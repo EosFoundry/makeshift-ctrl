@@ -1,0 +1,41 @@
+{
+  "name": "makeshift-ctrl",
+  "version": "1.0.0",
+  "description": "desktop interface for MakeShift",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EosFoundry/makeshift-ctrl.git"
+  },
+  "author": {
+    "name": "James Liu",
+    "email": "james@eosfoundry.dev"
+  },
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/EosFoundry/makeshift-ctrl/issues"
+  },
+  "homepage": "https://github.com/EosFoundry/makeshift-ctrl#readme",
+  "config": {},
+  "dependencies": {
+    "@electron-forge/maker-dmg": "^6.0.0-beta.66",
+    "electron-squirrel-startup": "^1.0.0",
+    "vue": "^3.2.39",
+    "xterm": "^5.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.66",
+    "@electron-forge/maker-deb": "^6.0.0-beta.66",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.66",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.66",
+    "@electron-forge/maker-zip": "^6.0.0-beta.66",
+    "electron": "20.1.4"
+  }
+}
