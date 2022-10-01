@@ -11,17 +11,22 @@
     "sourceMap": true,
     "baseUrl": "./",
     "strict": true,
-    "paths": {},
+    "paths": {
+
+    },
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
   "ts-node": {
-      "esm": true
+    "esm": true
   },
   "include": [
-      "interface"
+    "interface/**/*",
+    "types/*.d.ts"
   ],
   "references": [
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

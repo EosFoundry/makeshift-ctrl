@@ -1,0 +1,32 @@
+$light-theme: false !default;
+$color-bg: #242228 !default;
+$color-neutral: #98938D !default;
+$color-text: #EEE7DD !default;
+$color-hl: #423F3D !default;
+$color-hl1: #E0D4CC !default;
+$color-primary: #D6B2EB !default;
+$color-primary1: #A370B7 !default;
+$color-primary2: #804B95 !default;
+$color-secondary: #C74E29 !default;
+$color-secondary1: #FF9A7A !default;
+$color-secondary2: #FFB199 !default;
+$color-red: #BE5B70 !default;
+$color-green: #A7C07B !default;
+$color-blue: #AACEDE !default;
+
+@if $light-theme {
+    $color-bg: #EEE7DD !default;
+    $color-neutral: #98938D !default;
+    $color-text: #423F3D !default;
+    $color-hl: #E0D4CC !default;
+    $color-hl1: #242228 !default;
+    $color-primary: #FFB199 !default;
+    $color-primary1: #FF9A7A !default;
+    $color-primary2: #C74E29 !default;
+    $color-secondary: #D6B2EB !default;
+    $color-secondary1: #A370B7 !default;
+    $color-secondary2: #804B95 !default;
+    $color-red: #BB2A49 !default;
+    $color-green: #588A00 !default;
+    $color-blue: #007AC4 !default;
+}
