@@ -2,6 +2,9 @@
 .idea
 tmp/
 
+# Tooling/IDE stuff
+.volarrc
+
 # Build output
 out/
 dist/
