@@ -38,13 +38,19 @@ function terminalResize(event:any) {
   </splitpanes>
 </template>
 
-<style>
-/* Global styles */
+<style lang="scss">
+
 @font-face {
   font-family: "Encode Sans";
   src: url('/encode-sans/EncodeSans-VariableFont_wdth,wght.ttf');
 }
 
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
 
 
 #app {
@@ -57,6 +63,7 @@ function terminalResize(event:any) {
   display: flex;
   flex-direction: column;
 }
+
 
 .logo-box {
   width: 100%;
@@ -101,7 +108,7 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-light.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-light.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-light.woff2') format('woff2');
 }
 
 @font-face {
@@ -109,7 +116,7 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: expanded;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedlight.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlight.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlight.woff2') format('woff2');
 }
 
 @font-face {
@@ -117,14 +124,14 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: normal;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-lightoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 300;
 	font-stretch: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-lightoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -132,14 +139,14 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: expanded;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedlightoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 300;
 	font-stretch: expanded;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedlightoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -147,7 +154,7 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: normal;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-lightitalic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-lightitalic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightitalic.woff2') format('woff2');
 }
 
 @font-face {
@@ -155,7 +162,7 @@ function terminalResize(event:any) {
 	font-weight: 300;
 	font-stretch: expanded;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedlightitalic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightitalic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightitalic.woff2') format('woff2');
 }
 
 @font-face {
@@ -163,7 +170,7 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-regular.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-regular.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -171,7 +178,7 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: expanded;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extended.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extended.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extended.woff2') format('woff2');
 }
 
 @font-face {
@@ -179,14 +186,14 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: normal;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-oblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 400;
 	font-stretch: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-oblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -194,14 +201,14 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: expanded;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 400;
 	font-stretch: expanded;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -209,7 +216,7 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: normal;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-italic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-italic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -217,7 +224,7 @@ function terminalResize(event:any) {
 	font-weight: 400;
 	font-stretch: expanded;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendeditalic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendeditalic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendeditalic.woff2') format('woff2');
 }
 
 @font-face {
@@ -225,7 +232,7 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extrabold.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabold.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabold.woff2') format('woff2');
 }
 
 @font-face {
@@ -233,7 +240,7 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: expanded;
 	font-style: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedextrabold.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabold.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabold.woff2') format('woff2');
 }
 
 @font-face {
@@ -241,14 +248,14 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: normal;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extraboldoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 800;
 	font-stretch: normal;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extraboldoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -256,14 +263,14 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: expanded;
 	font-style: oblique;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedextraboldoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
 }
 
 @font-face {
 	font-family: 'iosevka-makeshift Web Oblique';
 	font-weight: 800;
 	font-stretch: expanded;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedextraboldoblique.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
 }
 
 @font-face {
@@ -271,7 +278,7 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: normal;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extrabolditalic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabolditalic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabolditalic.woff2') format('woff2');
 }
 
 @font-face {
@@ -279,7 +286,7 @@ function terminalResize(event:any) {
 	font-weight: 800;
 	font-stretch: expanded;
 	font-style: italic;
-	src: url('/iosevka-makeshift/ttf/iosevka-makeshift-extendedextrabolditalic.ttf') format('truetype'), url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabolditalic.woff2') format('woff2');
+	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabolditalic.woff2') format('woff2');
 }
 
 </style>

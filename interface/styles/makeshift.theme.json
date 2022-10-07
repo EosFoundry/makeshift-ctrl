@@ -1,0 +1,25 @@
+{
+    "name": "makeshift",
+    "author": "James Liu",
+    "color": [
+      "#242228",
+      "#ec3159",
+      "#588a00",
+      "#ff9a7a",
+      "#007ac4",
+      "#a370b7",
+      "#39afa1",
+      "#98938d",
+      "#423d4e",
+      "#cc8494",
+      "#a7c07b",
+      "#f0c674",
+      "#aacede",
+      "#b294bb",
+      "#8abeb7",
+      "#e0d4cc"
+    ],
+    "foreground": "#eee7dd",
+    "background": "#1c1b1f"
+  }
+  

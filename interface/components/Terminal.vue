@@ -5,45 +5,71 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { propsToAttrMap } from '@vue/shared';
-import { ref, onMounted, nextTick, watch } from 'vue';
-import { Terminal } from 'xterm';
+import { ref, onMounted, nextTick, watch, onUpdated } from 'vue';
+import { ITerminalOptions, Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
 const props = defineProps<{
   paneHeightPercent?: number
 }>()
 
-const xtermConfig = {
-  fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
-  fontStyle: 'normal',
-  fontSize: 14,
-  letterSpacing: 0,
+const xtermConfig:ITerminalOptions = {
   cursorBlink: true,
-  scrollback: 0,
+  fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
+  fontWeight: 400,
+  fontWeightBold: 800,
+  letterSpacing: 0,
+  logLevel: 'debug',
+  scrollback: 4000,
 }
+
+
 const terminal = new Terminal(xtermConfig);
 const fitAddon = new FitAddon()
 const xtermContainer = ref<HTMLElement>()
 const terminalCommand = ref("")
-terminal.loadAddon(fitAddon);
-onMounted(() => {
-  nextTick(() => {
-    terminal.open((xtermContainer.value as HTMLElement));
-    terminal.write('Qello from \x1B[1;3;31mxterm.js\x1B[0m $ ')
-    fitAddon.fit();
-  })
-})
 
-watch(
-  () => props.paneHeightPercent,
-  (newHeight, oldHeight) => {
-    fitAddon.fit()
-  })
+terminal.loadAddon(fitAddon);
+
+function fitTerm () { fitAddon.fit() }
 
 function sendCommand(event: Event) {
   console.log(terminalCommand.value);
 }
+
+function writePrompt() {
+  terminal.write('makeshift-ctrl $ ')
+}
+
+  terminal.onResize((size) => {
+    console.log(`${size.rows} x ${size.cols}`)
+  })
+function checkSize() {
+}
+
+onMounted(() => {
+  nextTick(() => {
+    terminal.open((xtermContainer.value as HTMLElement));
+    terminal.clear();
+    terminal.writeln('\r=> Qelcome to makeshift-ctrl')
+    writePrompt();
+    nextTick(() => {
+      fitTerm()     
+    })
+  })
+  // setInterval(() => {
+  //   terminal.writeln('butt poop')
+  // }, 150)
+})
+
+
+// fit every last one of them
+window.addEventListener('resize', fitTerm);
+onUpdated(fitTerm);
+watch(
+  () => props.paneHeightPercent,
+  (newHeight, oldHeight) => { fitTerm() })
+
 </script>
 
 <template>
@@ -59,7 +85,7 @@ function sendCommand(event: Event) {
 <style>
 .xterm-border {
   box-sizing: border-box;
-  background-color: var(--color-green);
+  background-color: var(--color-bg);
   border-color: green;
   border-radius: 10px;
   /* border-width: 14px; */
@@ -78,11 +104,12 @@ function sendCommand(event: Event) {
 .xterm-container {
   box-sizing: border-box;
   position: relative;
-  background-color: var(--color-bg);
+  text-align: left;
   bottom: 0px;
   left: 0px;
   width: 100%;
   height: 100%;
+  padding: 4px;
 }
 
 /**
