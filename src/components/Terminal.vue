@@ -13,7 +13,7 @@ const props = defineProps<{
   paneHeightPercent?: number
 }>()
 
-const xtermConfig:ITerminalOptions = {
+const xtermConfig: ITerminalOptions = {
   cursorBlink: true,
   fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
   fontWeight: 400,
@@ -31,30 +31,26 @@ const terminalCommand = ref("")
 
 terminal.loadAddon(fitAddon);
 
-function fitTerm () { fitAddon.fit() }
+function fitTerm() { fitAddon.fit() }
 
 function sendCommand(event: Event) {
   console.log(terminalCommand.value);
+  writePrompt();
+  terminal.writeln(terminalCommand.value)
 }
 
 function writePrompt() {
-  terminal.write('makeshift-ctrl $ ')
+  terminal.write('makeshift-ctrl <== ')
 }
 
-  terminal.onResize((size) => {
-    console.log(`${size.rows} x ${size.cols}`)
-  })
-function checkSize() {
-}
 
 onMounted(() => {
   nextTick(() => {
     terminal.open((xtermContainer.value as HTMLElement));
     terminal.clear();
-    terminal.writeln('\r=> Qelcome to makeshift-ctrl')
-    writePrompt();
+    terminal.writeln('\rmakeshift-ctrl ==> Welcome')
     nextTick(() => {
-      fitTerm()     
+      fitTerm()
     })
   })
   // setInterval(() => {
@@ -64,8 +60,6 @@ onMounted(() => {
 
 
 // fit every last one of them
-window.addEventListener('resize', fitTerm);
-onUpdated(fitTerm);
 watch(
   () => props.paneHeightPercent,
   (newHeight, oldHeight) => { fitTerm() })
@@ -74,22 +68,36 @@ watch(
 
 <template>
   <div class="xterm-border">
+    <div class="xterm-inner-border">
+      <div ref="xtermContainer" class="xterm-container" />
+    </div>
     <div class="xterm-commandline">
       <input v-model="terminalCommand" @keyup.enter="sendCommand" />
-      <button @click="sendCommand">send</button>
+      <button @click="sendCommand">SEND</button>
     </div>
-    <div ref="xtermContainer" class="xterm-container" />
   </div>
 </template>
 
 <style>
 .xterm-border {
-  box-sizing: border-box;
   background-color: var(--color-bg);
-  border-color: green;
+  box-sizing: border-box;
   border-radius: 10px;
   /* border-width: 14px; */
-  padding: 11px 10px;
+  padding: 10px;
+  padding-bottom: 50px;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.xterm-inner-border {
+  background-color: black;
+  box-sizing: border-box;
+  border-radius: 10px;
+  /* border-width: 14px; */
+  padding: 10px;
 
   width: 100%;
   height: 100%;
@@ -97,6 +105,8 @@ watch(
 
 .xterm-commandline {
   box-sizing: border-box;
+  height: 50px;
+  padding-top: 15px;
   width: 100%;
 }
 

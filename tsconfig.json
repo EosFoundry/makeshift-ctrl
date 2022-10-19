@@ -11,17 +11,13 @@
     "sourceMap": true,
     "baseUrl": "./",
     "strict": true,
-    "paths": {
-
-    },
+    "paths": {},
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
-  "ts-node": {
-    "esm": true
-  },
+  "exclude": [],
   "include": [
-    "interface/**/*",
+    "src",
     "types/*.d.ts"
   ],
   "references": [

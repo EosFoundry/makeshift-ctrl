@@ -1,10 +1,7 @@
 # makeshift-ctrl
-desktop interface for the MakeShift
 
-## How the layer system works
+Desktop interface for the MakeShift
 
-keywords:
-device state - the recorded state of the device
-function triggers - the 
+## What is everything?
 
-When makeshift-serial recieves events from the MakeShift, the 'device state' is updated to reflect
+*UNDER CONSTRUCTION*

@@ -5,9 +5,14 @@ tmp/
 # Tooling/IDE stuff
 .volarrc
 
+# VScode vue plugin
+env.d.ts
+
 # Build output
 out/
 dist/
+dist-electron/
+release/
 
 # Logs
 logs
@@ -27,16 +32,6 @@ pids
 *.seed
 *.pid.lock
 
-
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
@@ -48,9 +43,6 @@ node_modules/
 
 # Optional npm cache directory
 .npm
-
-# Optional eslint cache
-.eslintcache
 
 # Optional REPL history
 .node_repl_history

@@ -7,9 +7,12 @@ export default {
 <script setup lang="ts">
 import { ref, markRaw, watch, nextTick, reactive, onMounted } from "vue";
 import ace, { type Ace } from 'ace-builds'
-import aceUrl from 'ace-builds/src-min-noconflict/mode-javascript?url'
+// import aceUrl from 'ace-builds/src-min-noconflict/mode-javascript'
 import { executionAsyncResource } from "async_hooks";
 
+const props = defineProps<{
+  paneHeightPercent?: number
+}>()
 
 function transformAceUrl(url: string) {
   const regexpLastWord = /\/[^/]*$/;
@@ -32,14 +35,22 @@ watch(
   }
 )
 
+
 onMounted(() => nextTick(() => {
   console.log(import.meta.url)
-  console.log(aceUrl)
+  // console.log(aceUrl)
   const editor = markRaw(ace.edit("codebox-editor"))
   editor.resize()
+  window.addEventListener('resize', () => {
+    console.log('ace editor resizing')
+  });
 
   // editor.session.setMode(aceUrl);
   // editor.setTheme(aceMonokaiUrl);
+
+  watch(
+    () => props.paneHeightPercent,
+    (newHeight, oldHeight) => { editor.resize() })
 
 }))
 </script>
@@ -56,9 +67,9 @@ onMounted(() => nextTick(() => {
   /* -webkit-box-sizing: border-box;
 -moz-box-sizing: border-box;
 -ms-box-sizing: border-box; */
-box-sizing: border-box;
-  background-color: green;
-  border-color: green;
+  box-sizing: border-box;
+  background-color: var(--color-bg);
+  color: var(--color-bg);
   border-radius: 10px;
   /* border-width: 14px; */
   padding: 11px 10px;
@@ -69,7 +80,7 @@ box-sizing: border-box;
 }
 
 #codebox-editor {
-/* -webkit-box-sizing: border-box;
+  /* -webkit-box-sizing: border-box;
 -moz-box-sizing: border-box;
 -ms-box-sizing: border-box; */
   box-sizing: border-box;

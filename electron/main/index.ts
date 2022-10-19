@@ -36,7 +36,7 @@ let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const preload = join(__dirname, '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL as string
-const htmlEntry = join(process.env.DIST, '../interface/index.html')
+const htmlEntry = join(process.env.DIST, './dist/index.html')
 
 async function createWindow() {
   win = new BrowserWindow({

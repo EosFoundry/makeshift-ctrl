@@ -11,98 +11,76 @@ const editorContents = ref("// Welcome to makesh*ft-ctrl alpha!\n")
 const terminalContents = ref("// Welcome to makesh*t-ctrl alpha!\n")
 const topPanelHeight = ref(69)
 const bottomPanelHeight = computed(() => {
-  return 100 - topPanelHeight.value
+	return 100 - topPanelHeight.value
 })
 
-function terminalResize(event:any) {
-  console.log(`Resized`)
-  topPanelHeight.value = event[0].size
+function terminalResize(event: any) {
+	topPanelHeight.value = event[0].size
 }
 
 </script>
 
 <template>
-  <h1>Heblo</h1>
-  <p>{{ topPanelHeight }}</p>
-  <splitpanes 
-    horizontal
-    class="default-theme" 
-    @resized="terminalResize"
-  >
-    <pane min-size="15">
-      <code-box />
-    </pane>
-    <pane size="size">
-      <terminal :pane-height-percent="bottomPanelHeight"/>
-    </pane>
-  </splitpanes>
+	<!-- <h1></h1> -->
+	<!-- <p>{{ topPanelHeight }}</p> -->
+	<splitpanes horizontal @resize="terminalResize">
+		<pane min-size="15">
+			<code-box :pane-height-percent="bottomPanelHeight" />
+		</pane>
+		<pane size="size">
+			<terminal :pane-height-percent="bottomPanelHeight" />
+		</pane>
+	</splitpanes>
 </template>
 
 <style lang="scss">
-
 @font-face {
-  font-family: "Encode Sans";
-  src: url('/encode-sans/EncodeSans-VariableFont_wdth,wght.ttf');
+	font-family: "Encode Sans";
+	src: url('/encode-sans/EncodeSans-VariableFont_wdth,wght.ttf');
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+	margin: 0;
+	padding: 0;
+	height: 100%;
 }
-
 
 #app {
-  font-family: Encode Sans, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+	font-family: Encode Sans, Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-align: center;
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
+.splitpanes {
+	color: var(--color-bg);
+	background-color: var(--color-bg);
 
-.logo-box {
-  width: 100%;
-  justify-content: center;
+	&__pane {
+		color: var(--color-bg);
+		background-color: var(--color-bg);
+	}
+
+	&--vertical>&__splitter {
+		background-color: var(--color-bg);
+		color: var(--color-bg);
+		min-width: 7px;
+	}
+
+	&--horizontal>&__splitter {
+		background-color: var(--color-bg);
+		color: var(--color-bg);
+		min-height: 7px;
+	}
 }
 
-.static-public {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.static-public code {
-  background-color: #eee;
-  padding: 2px 4px;
-  margin: 0 4px;
-  border-radius: 4px;
-  color: #304455;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.electron:hover {
-  filter: drop-shadow(0 0 2em #9FEAF9);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-
+// crapton of font loading
 @font-face {
 	font-family: 'iosevka-makeshift Web';
 	font-weight: 300;
@@ -288,5 +266,4 @@ body {
 	font-style: italic;
 	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabolditalic.woff2') format('woff2');
 }
-
 </style>

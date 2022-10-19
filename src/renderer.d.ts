@@ -1,16 +1,16 @@
-import { ICueAPI } from "types/cue"
+import { ICueAPI } from "./types/cue"
 
 export interface testAPI { // calling it ElectronAPI could contaminate the electron namespace
-  onMPM: (callback:function) => void,
-  
+  onMPM: (callback: Function) => void,
+
 }
-  
+
 export interface IMakeShiftDeviceAPI {
 
 }
 
 export interface IPluginAPI {
-  
+
 }
 
 
