@@ -1,0 +1,39 @@
+appId: com.eosfoundry.makeshiftctrl
+copyright: "Copyright © year ${author}"
+asar: true
+directories:
+  output: "release/${version}"
+files:
+  - dist-electron
+  - dist
+linux:
+  artifactName: "${productName}_${version}_${arch}.${ext}"
+  target:
+    - target: AppImg
+      arch: x64
+    - target: deb
+      arch: x64
+    - target: rpm
+      arch: x64
+mac:
+  artifactName: "${productName}_${version}_${arch}.${ext}"
+  category: public.app-category.utilities
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+win:
+  artifactName: "${productName}_${version}.${ext}"
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true

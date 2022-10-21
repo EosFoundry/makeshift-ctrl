@@ -1,5 +1,5 @@
 {
-  "name": "makeshift-ctrl",
+  "name": "@eos-makeshift/ctrl",
   "version": "0.0.2-uipreview.0",
   "description": "desktop interface for MakeShift",
   "main": "dist-electron/main/index.js",
@@ -15,13 +15,14 @@
     "name": "James Liu",
     "email": "james@eosfoundry.dev"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/EosFoundry/makeshift-ctrl/issues"
   },
   "homepage": "https://github.com/EosFoundry/makeshift-ctrl#readme",
   "config": {},
   "dependencies": {
+    "@eos-makeshift/serial": "^0.9.1",
     "@highlightjs/vue-plugin": "^2.1.0",
     "@vitejs/plugin-vue": "^3.1.0",
     "ace-builds": "^1.11.2",
