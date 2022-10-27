@@ -13,7 +13,6 @@ export interface IPluginAPI {
 
 }
 
-
 declare global {
   interface Window {
     electronAPI: testAPI

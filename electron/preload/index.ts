@@ -1,7 +1,10 @@
-import { contextBridge, ipcRenderer } from 'electron'
+// import { contextBridge, ipcRenderer } from 'electron'
+import {Events, MakeShiftPort} from '@eos-makeshift/serial'
+const election = require('electron')
 
-contextBridge.exposeInMainWorld('electronAPI', {
-  onMPM: (callback) => ipcRenderer.on('main-process-message', callback)
+
+election.contextBridge.exposeInMainWorld('electronAPI', {
+  onMPM: (callback) => election.ipcRenderer.on('main-process-message', callback)
 })
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {

@@ -7,7 +7,7 @@ export default {
 <script setup lang="ts">
 import { ref, markRaw, watch, nextTick, reactive, onMounted } from "vue";
 import ace, { type Ace } from 'ace-builds'
-// import aceUrl from 'ace-builds/src-min-noconflict/mode-javascript'
+import 'ace-builds/src-min-noconflict/mode-javascript'
 import { executionAsyncResource } from "async_hooks";
 
 const props = defineProps<{
