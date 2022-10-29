@@ -3,7 +3,7 @@ import {Events, MakeShiftPort} from '@eos-makeshift/serial'
 const election = require('electron')
 
 
-election.contextBridge.exposeInMainWorld('electronAPI', {
+election.contextBridge.exposeInMainWorld('buttAPI', {
   onMPM: (callback) => election.ipcRenderer.on('main-process-message', callback)
 })
 

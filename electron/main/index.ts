@@ -19,9 +19,11 @@ import { electron } from '../electron.js'
 
 const { app, BrowserWindow, shell, ipcMain } = electron
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
+const workingDir = dirname(fileURLToPath(import.meta.url))
+const appDataPath = app.getPath('appData')
 const makeShift = new MakeShiftPort()
+
+console.log(appDataPath)
 
 makeShift.on(Events.DEVICE.CONNECTED, () => {
   console.log('whoa butt')
@@ -49,7 +51,7 @@ if (!app.requestSingleInstanceLock()) {
 // process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
 
 // Here, you can also use other preload
-const preload = join(__dirname, '../preload/index.js')
+const preload = join(workingDir, '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL as string
 const htmlEntry = join(process.env.DIST, './dist/index.html')
 
@@ -57,7 +59,7 @@ const htmlEntry = join(process.env.DIST, './dist/index.html')
 app.whenReady().then(async () => {
   console.log('app ready')
 
-  process.env.DIST_ELECTRON = join(__dirname, '..')
+  process.env.DIST_ELECTRON = join(workingDir, '..')
   process.env.DIST = join(process.env.DIST_ELECTRON, '../client')
   process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST_ELECTRON, '../../public')
 

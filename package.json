@@ -1,5 +1,6 @@
 {
   "name": "@eos-makeshift/ctrl",
+  "productName": "makeshift-ctrl",
   "version": "0.0.2-uipreview.0",
   "description": "desktop interface for MakeShift",
   "main": "./boot-electron.js",
@@ -47,7 +48,8 @@
     "@types/uuid": "^8.3.4",
     "electron": "21.2.0",
     "electron-builder": "^23.6.0",
-    "vite-electron-plugin": "^0.4.6"
+    "vite-electron-plugin": "^0.4.6",
+    "vite-plugin-html-config": "^1.0.11"
   },
   "debug": {
     "env": {

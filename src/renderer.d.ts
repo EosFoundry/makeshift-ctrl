@@ -5,7 +5,7 @@ export interface testAPI { // calling it ElectronAPI could contaminate the elect
 
 }
 
-export interface IMakeShiftDeviceAPI {
+export interface IMakeShiftAPI {
 
 }
 
@@ -15,7 +15,7 @@ export interface IPluginAPI {
 
 declare global {
   interface Window {
-    electronAPI: testAPI
+    buttAPI: testAPI
     makeshift: IMakeShiftDeviceAPI
     plugin: IPluginAPI
     cue: ICueAPI
