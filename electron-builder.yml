@@ -3,10 +3,7 @@ copyright: "Copyright © year ${author}"
 asar: true
 directories:
   output: "release/${version}"
-extraMetadata:
-  main: "boot-electron.js"
 files:
-  - "./boot-electron.js"
   - dist
 # linux:
 #   artifactName: "${productName}_${version}_${arch}.${ext}"

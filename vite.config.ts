@@ -3,27 +3,14 @@ import path from 'path'
 import { defineConfig } from 'vite'
 
 import vue from '@vitejs/plugin-vue'
-import htmlPlugin from 'vite-plugin-html-config'
 import electron from 'vite-electron-plugin'
 import { customStart } from 'vite-electron-plugin/plugin'
 
 import pkg from './package.json'
 import { validate } from 'uuid'
-// import jsWorker from 'ace-builds/src-min-noconflict/worker-javascript?url'
 
-// const PACKAGE_ROOT = __dirname
-// const pathInterface = path.resolve(__dirname, './interface')
-// console.log(pathInterface)
+const PACKAGE_ROOT = __dirname
 
-// const htmlOptions = {
-//   metas: [
-//     {
-//       httpEquiv: 'Content-Security-Policy',
-//       content: `script-src 'self'; worker-src ${import.meta.url}`,
-
-//     }
-//   ]
-// }
 
 rmSync('dist/electron', { recursive: true, force: true }) // v14.14.0
 
@@ -36,7 +23,7 @@ export default defineConfig({
       transformOptions: {
         sourcemap: !!process.env.VSCODE_DEBUG,
         target: 'node16',
-        format: 'esm',
+        format: 'cjs',
       },
       outDir: 'dist/electron',
       // the following will start Electron via VSCode Debug

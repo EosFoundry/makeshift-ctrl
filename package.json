@@ -3,7 +3,7 @@
   "productName": "makeshift-ctrl",
   "version": "0.0.2",
   "description": "desktop interface for MakeShift",
-  "main": "./boot-electron.js",
+  "main": "./dist/electron/main/index.js",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && electron-builder"
@@ -28,6 +28,7 @@
     "@vitejs/plugin-vue": "^3.2.0",
     "ace-builds": "^1.12.3",
     "defu": "^6.1.0",
+    "fs-extra": "^10.1.0",
     "highlight.js": "^11.6.0",
     "nanoid": "^4.0.0",
     "pathe": "^0.3.9",

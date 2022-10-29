@@ -10,16 +10,18 @@
 // │ ├── ...other-static-files-from-public
 // │
 
-import { release } from 'node:os'
-import { fileURLToPath } from 'node:url'
+import { release } from 'os'
+import { fileURLToPath } from 'url'
 import { dirname, join } from 'pathe'
 import { Events, MakeShiftPort } from '@eos-makeshift/serial'
 import { createWindow, restoreWindows } from './window.js'
-import { electron } from '../electron.js'
 
-const { app, BrowserWindow, shell, ipcMain } = electron
+import { app, Tray, BrowserWindow, shell, ipcMain } from 'electron'
 
-const workingDir = dirname(fileURLToPath(import.meta.url))
+// import { electron } from '../electron.js'
+// const { app, BrowserWindow, shell, ipcMain } = electron
+
+const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
 const appDataPath = app.getPath('appData')
 const makeShift = new MakeShiftPort()
 

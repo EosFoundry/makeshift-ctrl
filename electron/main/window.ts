@@ -1,13 +1,15 @@
 import fs from 'fs-extra'
 import { defu } from 'defu'
 import { dirname, join } from 'pathe'
-import { nanoid } from 'nanoid'
+// import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from 'uuid'
 import { fileURLToPath } from 'node:url'
-import { electron } from '../electron.js'
+import { app, BrowserWindow, screen, shell } from 'electron'
+// import { electron } from '../electron.js'
+// const { app, BrowserWindow, screen, shell } = electron
 
-const { app, BrowserWindow, screen, shell } = electron
+const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export interface CreateWindowOptions {
   /**
@@ -29,7 +31,7 @@ function getDefaultWindowOptions(): Omit<CreateWindowOptions, 'id'> {
   const primaryDisplaySize = screen.getPrimaryDisplay().size
   return {
     state: {
-      id: nanoid(),
+      id: uuidv4(),
       closed: false,
       x: 0,
       y: 0,
@@ -53,7 +55,7 @@ function saveWindowState(state: WindowState) {
 export async function createWindow(options?: CreateWindowOptions) {
   const finalOptions = defu(options ?? {}, getDefaultWindowOptions())
 
-  const preload = join(__dirname, '../preload/index.js')
+  const preload = join(workingDir, '../preload/index.js')
   const url = process.env.VITE_DEV_SERVER_URL
   const indexHtml = join(process.env.DIST, 'index.html')
 
