@@ -14,9 +14,9 @@ ace.config.set("basePath", acePath)
 ace.config.set("workerPath", acePath);
 ace.config.set("loadWorkerFromBlob", false);
 
-console.log(url.origin)
-console.log(url.pathname)
-console.log(aceUrl)
+console.log('url origin: ' + url.origin)
+console.log('url pathname: ' + url.pathname)
+console.log('aceurl: ' + aceUrl)
 console.log(dirname(aceUrl))
 console.log(acePath)
 
