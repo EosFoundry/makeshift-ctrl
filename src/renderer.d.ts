@@ -2,10 +2,11 @@ import { ICueAPI } from "./types/cue"
 
 export interface testAPI { // calling it ElectronAPI could contaminate the electron namespace
   onMPM: (callback: Function) => void,
-
+  onCounterr: (callback: Function) => void,
 }
 
 export interface IMakeShiftAPI {
+  onSerialStreamData: (callback: Function) => void,
 
 }
 

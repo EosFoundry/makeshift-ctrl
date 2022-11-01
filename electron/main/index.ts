@@ -23,18 +23,6 @@ import { app, Tray, BrowserWindow, shell, ipcMain } from 'electron'
 
 const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
 const appDataPath = app.getPath('appData')
-const makeShift = new MakeShiftPort()
-
-console.log(appDataPath)
-
-makeShift.on(Events.DEVICE.CONNECTED, () => {
-  console.log('whoa butt')
-})
-
-makeShift.on(Events.BUTTON[1].PRESSED, (ev) => {
-  console.log('whoa betsy')
-  console.dir(ev)
-})
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -65,14 +53,39 @@ app.whenReady().then(async () => {
   process.env.DIST = join(process.env.DIST_ELECTRON, '../client')
   process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST_ELECTRON, '../../public')
 
-  await restoreWindows()
+  const mainWindow = await restoreWindows()
+
+  const makeShift:MakeShiftPort = new MakeShiftPort({
+    logOptions: {
+      level: 'info'
+    }
+  })
+
+  console.log(appDataPath)
+  makeShift.setLogToEmit()
+  console.log(Events)
+  // makeShift.on(Events.TERMINAL.DATA, (data) => {
+  //   mainWindow.webContents.send(Events.TERMINAL.DATA, data)
+  // })
+
+  makeShift.on(Events.DEVICE.CONNECTED, () => {
+    console.log('whoa butt')
+  })
+
+  makeShift.on(Events.BUTTON[1].PRESSED, (ev) => {
+    console.log('whoa betsy')
+    console.dir(ev)
+  })
+
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
 })
 
-app.on('second-instance', () => {
-  createWindow()
-})
+// app.on('second-instance', () => {
+//   createWindow()
+// })
 

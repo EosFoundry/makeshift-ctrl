@@ -4,10 +4,12 @@ import { defineConfig } from 'vite'
 
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-electron-plugin'
-import { customStart } from 'vite-electron-plugin/plugin'
+import { BuildOptions } from 'esbuild'
+// import { customStart } from 'vite-plugin-electron/plugin'
 
 import pkg from './package.json'
 import { validate } from 'uuid'
+import { render } from 'vue'
 
 const PACKAGE_ROOT = __dirname
 
@@ -26,11 +28,8 @@ export default defineConfig({
         format: 'cjs',
       },
       outDir: 'dist/electron',
-      // the following will start Electron via VSCode Debug
+
       plugins: [
-        ...process.env.VSCODE_DEBUG
-          ? [customStart(debounce(() => console.log(/* For `.vscode/.debug.script.mjs` */'[startup] Electron App')))]
-          : [],
         // Other plugins here
       ],
     }),
@@ -47,13 +46,10 @@ export default defineConfig({
   clearScreen: false,
   build: {
     outDir: 'dist/client',
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
   },
 })
-
-function debounce<Fn extends (...args: any[]) => void>(fn: Fn, delay = 299) {
-  let t: NodeJS.Timeout
-  return ((...args) => {
-    clearTimeout(t)
-    t = setTimeout(() => fn(...args), delay)
-  }) as Fn
-}

@@ -3,8 +3,8 @@ import { defu } from 'defu'
 import { dirname, join } from 'pathe'
 // import { nanoid } from 'nanoid'
 import { v4 as uuidv4 } from 'uuid'
-import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow, screen, shell } from 'electron'
+import { fileURLToPath } from 'url'
+import { app, BrowserWindow, Menu, screen, shell } from 'electron'
 // import { electron } from '../electron.js'
 // const { app, BrowserWindow, screen, shell } = electron
 
@@ -76,6 +76,24 @@ export async function createWindow(options?: CreateWindowOptions) {
     },
   })
 
+  // const menu = Menu.buildFromTemplate([
+  //   {
+  //     label: app.name,
+  //     submenu: [
+  //       {
+  //         click: () => win.webContents.send('update-counter', 1),
+  //         label: 'Increment',
+  //       },
+  //       {
+  //         click: () => win.webContents.send('update-counter', -1),
+  //         label: 'Decrement',
+  //       }
+  //     ]
+  //   }
+  // ])
+  // Menu.setApplicationMenu(menu)
+
+  // This loads the index and chains into src/main.ts
   if (app.isPackaged) {
     win.loadFile(indexHtml)
   } else {
@@ -142,10 +160,10 @@ export async function restoreWindows() {
 
   await Promise.all(windowStates.map(async (state) => {
     if (!state.closed) {
-      await createWindow({ state })
+      return await createWindow({ state })
     }
   }))
   if (!windowStates.some(w => !w.closed)) {
-    await createWindow()
+    return await createWindow({ state: { id: 'main', closed: false } })
   }
 }

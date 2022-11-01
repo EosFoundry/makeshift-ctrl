@@ -1,10 +1,18 @@
 // import { contextBridge, ipcRenderer } from 'electron'
-import {Events, MakeShiftPort} from '@eos-makeshift/serial'
+const MakeShiftSerial = require('@eos-makeshift/serial')
 const election = require('electron')
+
+const Events = MakeShiftSerial.Events
+const MakeShiftPort = MakeShiftSerial.MakeShiftPort
 
 
 election.contextBridge.exposeInMainWorld('buttAPI', {
-  onMPM: (callback) => election.ipcRenderer.on('main-process-message', callback)
+  onMPM: (callback) => election.ipcRenderer.on('main-process-message', callback),
+  onCounterr: (callback) => election.ipcRenderer.on('update-counter', callback),
+})
+
+election.contextBridge.exposeInMainWorld('makeshift', {
+  onSerialStreamData: (callback) => election.ipcRenderer.on(Events.TERMINAL.DATA, callback)
 })
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {

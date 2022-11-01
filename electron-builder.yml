@@ -30,8 +30,8 @@ win:
     - target: portable
       arch:
         - x64
-nsis:
-  oneClick: false
-  perMachine: false
-  allowToChangeInstallationDirectory: true
-  deleteAppDataOnUninstall: true
+# nsis:
+#   oneClick: false
+#   perMachine: false
+#   allowToChangeInstallationDirectory: true
+#   deleteAppDataOnUninstall: true

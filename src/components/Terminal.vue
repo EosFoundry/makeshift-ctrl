@@ -52,6 +52,8 @@ onMounted(() => {
     nextTick(() => {
       fitTerm()
     })
+
+    window.makeshift.onSerialStreamData((ev:any) => { terminal.write(ev.message) })
   })
   // setInterval(() => {
   //   terminal.writeln('butt poop')
