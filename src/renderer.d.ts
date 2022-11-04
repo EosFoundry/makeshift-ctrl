@@ -7,7 +7,9 @@ export interface testAPI { // calling it ElectronAPI could contaminate the elect
 
 export interface IMakeShiftAPI {
   onSerialStreamData: (callback: Function) => void,
-
+  getMakeShiftEvents: () => void,
+  onConnect: (callback: Function) => void,
+  onDisconnect: (callback: Function) => void,
 }
 
 export interface IPluginAPI {

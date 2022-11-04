@@ -3,6 +3,6 @@ interface Toaster {
 }
 
 interface Message {
-  label:string,
+  label: string,
   data: Object
 }

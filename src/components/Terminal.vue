@@ -5,9 +5,17 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch, onUpdated } from 'vue';
+// import { MakeShiftPort } from '@eos-makeshift/serial';
+import { ref, onMounted, nextTick, watch, onUpdated, inject, Ref } from 'vue';
 import { ITerminalOptions, Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
+import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/serial';
+
+import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
+
+const makeshift = inject('makeshift') as any
+const logLevel = inject('logLevel') as Ref<LogLevel>
+const logRank = inject('makeshift-logRank') as any
 
 const props = defineProps<{
   paneHeightPercent?: number
@@ -15,13 +23,17 @@ const props = defineProps<{
 
 const xtermConfig: ITerminalOptions = {
   cursorBlink: true,
+  cursorStyle: 'underline',
   fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
   fontWeight: 400,
   fontWeightBold: 800,
+  lineHeight: 1.3,
   letterSpacing: 0,
-  logLevel: 'debug',
+  // logLevel: 'debug',
+  theme: makeShiftTheme,
   scrollback: 4000,
 }
+
 
 
 const terminal = new Terminal(xtermConfig);
@@ -48,12 +60,19 @@ onMounted(() => {
   nextTick(() => {
     terminal.open((xtermContainer.value as HTMLElement));
     terminal.clear();
-    terminal.writeln('\rmakeshift-ctrl ==> Welcome')
+    terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
     nextTick(() => {
       fitTerm()
     })
 
-    window.makeshift.onSerialStreamData((ev:any) => { terminal.write(ev.message) })
+    makeshift.onEv.terminal.log((garbage: any, ev: LogMessage) => {
+      if (logRank[ev.level] >= logRank[logLevel.value]) {
+        terminal.writeln(ev.message)
+      }
+    })
+    addEventListener('resize', (event) => {
+      fitTerm()
+    })
   })
   // setInterval(() => {
   //   terminal.writeln('butt poop')
@@ -70,7 +89,7 @@ watch(
 
 <template>
   <div class="xterm-border">
-    <div class="xterm-inner-border">
+    <div class="xterm-inner-border" :style="{backgroundColor: makeShiftTheme.background}">
       <div ref="xtermContainer" class="xterm-container" />
     </div>
     <div class="xterm-commandline">
@@ -95,7 +114,6 @@ watch(
 
 
 .xterm-inner-border {
-  background-color: black;
   box-sizing: border-box;
   border-radius: 10px;
   /* border-width: 14px; */

@@ -1,18 +1,32 @@
 // import { contextBridge, ipcRenderer } from 'electron'
-const MakeShiftSerial = require('@eos-makeshift/serial')
+import { MakeShiftIpcApi } from '../ipcApi'
 const election = require('electron')
-
-const Events = MakeShiftSerial.Events
-const MakeShiftPort = MakeShiftSerial.MakeShiftPort
-
+const Api: MakeShiftIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
 
 election.contextBridge.exposeInMainWorld('buttAPI', {
-  onMPM: (callback) => election.ipcRenderer.on('main-process-message', callback),
-  onCounterr: (callback) => election.ipcRenderer.on('update-counter', callback),
+  onMPM: (callback: any) => election.ipcRenderer.on('main-process-message', callback),
+  onCounterr: (callback: any) => election.ipcRenderer.on('update-counter', callback),
 })
+const ipcRndr = election.ipcRenderer
 
 election.contextBridge.exposeInMainWorld('makeshift', {
-  onSerialStreamData: (callback) => election.ipcRenderer.on(Events.TERMINAL.DATA, callback)
+  call: {
+    loadDevices: () => ipcRndr.invoke(Api.call.loadDevices)
+  },
+  get: {
+    events: () => ipcRndr.invoke(Api.get.events),
+    connectedDevices: () => ipcRndr.invoke(Api.get.connectedDevices),
+    logRank: () => ipcRndr.invoke(Api.get.logRank),
+  },
+  onEv: {
+    terminal: {
+      log: (callback: any) => ipcRndr.on(Api.onEv.terminal.data, callback),
+    },
+    device: {
+      connected: (callback: any) => ipcRndr.on(Api.onEv.device.connected, callback),
+      disconnected: (callback: any) => ipcRndr.on(Api.onEv.device.disconnected, callback),
+    }
+  }
 })
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {

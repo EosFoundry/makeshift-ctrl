@@ -1,169 +1,153 @@
-import fs from 'fs-extra'
-import { defu } from 'defu'
-import { dirname, join } from 'pathe'
-// import { nanoid } from 'nanoid'
-import { v4 as uuidv4 } from 'uuid'
-import { fileURLToPath } from 'url'
-import { app, BrowserWindow, Menu, screen, shell } from 'electron'
-// import { electron } from '../electron.js'
-// const { app, BrowserWindow, screen, shell } = electron
+// import fs from 'fs-extra'
+// import { defu } from 'defu'
+// import { dirname, join } from 'pathe'
+// // import { nanoid } from 'nanoid'
+// import { v4 as uuidv4 } from 'uuid'
+// import { fileURLToPath } from 'url'
+// import { app, BrowserWindow, Menu, screen, shell } from 'electron'
+// // import { electron } from '../electron.js'
+// // const { app, BrowserWindow, screen, shell } = electron
 
-const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
+// const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
 
 
-export interface CreateWindowOptions {
-  /**
-   * Used to restore a previous window.
-   */
-  state?: WindowState
-}
+// export interface CreateWindowOptions {
+//   /**
+//    * Used to restore a previous window.
+//    */
+//   state?: WindowState
+// }
 
-export interface WindowState {
-  id: string
-  x?: number
-  y?: number
-  width?: number
-  height?: number
-  closed: boolean
-}
+// export interface WindowState {
+//   id: string
+//   x?: number
+//   y?: number
+//   width?: number
+//   height?: number
+//   closed: boolean
+// }
 
-function getDefaultWindowOptions(): Omit<CreateWindowOptions, 'id'> {
-  const primaryDisplaySize = screen.getPrimaryDisplay().size
-  return {
-    state: {
-      id: uuidv4(),
-      closed: false,
-      x: 0,
-      y: 0,
-      width: primaryDisplaySize.width,
-      height: primaryDisplaySize.height,
-    },
-  }
-}
+// function getDefaultWindowOptions(): Omit<CreateWindowOptions, 'id'> {
+//   const primaryDisplaySize = screen.getPrimaryDisplay().size
+//   return {
+//     state: {
+//       id: uuidv4(),
+//       closed: false,
+//       x: 0,
+//       y: 0,
+//       width: primaryDisplaySize.width,
+//       height: primaryDisplaySize.height,
+//     },
+//   }
+// }
 
-function getWindowStateFolder() {
-  return join(app.getPath('userData'), 'window-state')
-}
+// function getWindowStateFolder() {
+//   return join(app.getPath('userData'), 'window-state')
+// }
 
-function saveWindowState(state: WindowState) {
-  const filePath = join(getWindowStateFolder(), `${state.id}.json`)
-  fs.ensureDirSync(getWindowStateFolder())
-  fs.writeJSONSync(filePath, state)
-  return state
-}
+// function saveWindowState(state: WindowState) {
+//   const filePath = join(getWindowStateFolder(), `${state.id}.json`)
+//   fs.ensureDirSync(getWindowStateFolder())
+//   fs.writeJSONSync(filePath, state)
+//   return state
+// }
 
-export async function createWindow(options?: CreateWindowOptions) {
-  const finalOptions = defu(options ?? {}, getDefaultWindowOptions())
+// export async function createWindow(options?: CreateWindowOptions) {
+//   const finalOptions = defu(options ?? {}, getDefaultWindowOptions())
 
-  const preload = join(workingDir, '../preload/index.js')
-  const url = process.env.VITE_DEV_SERVER_URL
-  const indexHtml = join(process.env.DIST, 'index.html')
+//   const preload = join(workingDir, '../preload/index.js')
+//   const url = process.env.VITE_DEV_SERVER_URL
+//   const indexHtml = join(process.env.DIST, 'index.html')
 
-  const win = new BrowserWindow({
-    title: 'makeshift-ctrl',
-    minWidth: 300,
-    minHeight: 300,
-    x: finalOptions.state.x,
-    y: finalOptions.state.y,
-    width: finalOptions.state.width,
-    height: finalOptions.state.height,
-    icon: join(process.env.PUBLIC, 'favicon.ico'),
-    webPreferences: {
-      preload,
-      // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  })
+//   const win = new BrowserWindow({
+//     title: 'makeshift-ctrl',
+//     minWidth: 300,
+//     minHeight: 300,
+//     x: finalOptions.state.x,
+//     y: finalOptions.state.y,
+//     width: finalOptions.state.width,
+//     height: finalOptions.state.height,
+//     icon: join(process.env.PUBLIC, 'favicon.ico'),
+//     webPreferences: {
+//       preload,
+//       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
+//       nodeIntegration: false,
+//       contextIsolation: true,
+//     },
+//   })
 
-  // const menu = Menu.buildFromTemplate([
-  //   {
-  //     label: app.name,
-  //     submenu: [
-  //       {
-  //         click: () => win.webContents.send('update-counter', 1),
-  //         label: 'Increment',
-  //       },
-  //       {
-  //         click: () => win.webContents.send('update-counter', -1),
-  //         label: 'Decrement',
-  //       }
-  //     ]
-  //   }
-  // ])
-  // Menu.setApplicationMenu(menu)
 
-  // This loads the index and chains into src/main.ts
-  if (app.isPackaged) {
-    win.loadFile(indexHtml)
-  } else {
-    win.loadURL(url)
-    // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
-  }
+//   // This loads the index and chains into src/main.ts
+//   if (app.isPackaged) {
+//     win.loadFile(indexHtml)
+//   } else {
+//     win.loadURL(url)
+//     // Open devTool if the app is not packaged
+//     win.webContents.openDevTools()
+//   }
 
-  // Make all links open with the browser, not with the application
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    // @TODO open new  web view
-    if (url.startsWith('https:')) shell.openExternal(url)
-    return { action: 'deny' }
-  })
+//   // Make all links open with the browser, not with the application
+//   win.webContents.setWindowOpenHandler(({ url }) => {
+//     // @TODO open new  web view
+//     if (url.startsWith('https:')) shell.openExternal(url)
+//     return { action: 'deny' }
+//   })
 
-  let state: WindowState = {
-    ...finalOptions.state,
-    closed: false,
-  }
+//   let state: WindowState = {
+//     ...finalOptions.state,
+//     closed: false,
+//   }
 
-  win.addListener('move', () => {
-    const [x, y] = win.getPosition()
-    state = saveWindowState({
-      ...state,
-      x,
-      y,
-    })
-  })
+//   win.addListener('move', () => {
+//     const [x, y] = win.getPosition()
+//     state = saveWindowState({
+//       ...state,
+//       x,
+//       y,
+//     })
+//   })
 
-  win.addListener('resize', () => {
-    const [width, height] = win.getSize()
-    state = saveWindowState({
-      ...state,
-      width,
-      height,
-    })
-  })
+//   win.addListener('resize', () => {
+//     const [width, height] = win.getSize()
+//     state = saveWindowState({
+//       ...state,
+//       width,
+//       height,
+//     })
+//   })
 
-  win.addListener('close', () => {
-    // @TODO differenciate between close and quit
-    // state = saveWindowState({
-    //   ...state,
-    //   closed: true,
-    // })
-  })
+//   win.addListener('close', () => {
+//     // @TODO differenciate between close and quit
+//     // state = saveWindowState({
+//     //   ...state,
+//     //   closed: true,
+//     // })
+//   })
 
-  return win
-}
+//   return win
+// }
 
-async function loadWindowStates(): Promise<WindowState[]> {
-  const folder = getWindowStateFolder()
-  if (fs.existsSync(folder)) {
-    const files = await fs.readdir(folder)
-    return Promise.all(files.map((file) => {
-      const filePath = join(folder, file)
-      return fs.readJSON(filePath)
-    }))
-  }
-  return []
-}
+// async function loadWindowStates(): Promise<WindowState[]> {
+//   const folder = getWindowStateFolder()
+//   if (fs.existsSync(folder)) {
+//     const files = await fs.readdir(folder)
+//     return Promise.all(files.map((file) => {
+//       const filePath = join(folder, file)
+//       return fs.readJSON(filePath)
+//     }))
+//   }
+//   return []
+// }
 
-export async function restoreWindows() {
-  const windowStates = await loadWindowStates()
+// export async function restoreWindows() {
+//   const windowStates = await loadWindowStates()
 
-  await Promise.all(windowStates.map(async (state) => {
-    if (!state.closed) {
-      return await createWindow({ state })
-    }
-  }))
-  if (!windowStates.some(w => !w.closed)) {
-    return await createWindow({ state: { id: 'main', closed: false } })
-  }
-}
+//   await Promise.all(windowStates.map(async (state) => {
+//     if (!state.closed) {
+//       return await createWindow({ state })
+//     }
+//   }))
+//   if (!windowStates.some(w => !w.closed)) {
+//     return await createWindow({ state: { id: 'main', closed: false } })
+//   }
+// }

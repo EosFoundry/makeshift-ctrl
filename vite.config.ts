@@ -2,6 +2,7 @@ import { rmSync } from 'fs'
 import path from 'path'
 import { defineConfig } from 'vite'
 
+import { builtinModules } from 'node:module' 
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-electron-plugin'
 import { BuildOptions } from 'esbuild'
@@ -47,6 +48,10 @@ export default defineConfig({
   build: {
     outDir: 'dist/client',
     rollupOptions: {
+      external: [
+        'electron',
+        ...builtinModules.flatMap((p) => [p, `node:${p}`]),
+      ],
       output: {
         inlineDynamicImports: true,
       },

@@ -6,6 +6,8 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
+import Toolbar from './components/Toolbar.vue'
+import StatusBar from './components/StatusBar.vue'
 
 const editorContents = ref("// Welcome to makesh*ft-ctrl alpha!\n")
 const terminalContents = ref("// Welcome to makesh*t-ctrl alpha!\n")
@@ -23,6 +25,7 @@ function terminalResize(event: any) {
 <template>
 	<!-- <h1></h1> -->
 	<!-- <p>{{ topPanelHeight }}</p> -->
+	<Toolbar></Toolbar>
 	<splitpanes horizontal @resize="terminalResize">
 		<pane min-size="15">
 			<code-box :pane-height-percent="bottomPanelHeight" />
@@ -31,6 +34,9 @@ function terminalResize(event: any) {
 			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
 	</splitpanes>
+	<StatusBar>
+		
+	</StatusBar>
 </template>
 
 <style lang="scss">
@@ -63,20 +69,17 @@ body {
 	background-color: var(--color-bg);
 
 	&__pane {
-		color: var(--color-bg);
 		background-color: var(--color-bg);
 	}
 
 	&--vertical>&__splitter {
 		background-color: var(--color-bg);
-		color: var(--color-bg);
-		min-width: 7px;
+		min-width: 3px;
 	}
 
 	&--horizontal>&__splitter {
 		background-color: var(--color-bg);
-		color: var(--color-bg);
-		min-height: 7px;
+		min-height: 3px;
 	}
 }
 

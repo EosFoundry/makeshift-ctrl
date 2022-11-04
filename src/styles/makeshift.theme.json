@@ -1,25 +1,26 @@
 {
-    "name": "makeshift",
-    "author": "James Liu",
-    "color": [
-      "#242228",
-      "#ec3159",
-      "#588a00",
-      "#ff9a7a",
-      "#007ac4",
-      "#a370b7",
-      "#39afa1",
-      "#98938d",
-      "#423d4e",
-      "#cc8494",
-      "#a7c07b",
-      "#f0c674",
-      "#aacede",
-      "#b294bb",
-      "#8abeb7",
-      "#e0d4cc"
-    ],
+  "name": "makeshift",
+  "author": "James Liu",
+  "colors": {
     "foreground": "#eee7dd",
-    "background": "#1c1b1f"
+    "background": "#17171c",
+    "cursor": "#eee7dd",
+    "cursorBackground": "#1c1b1f",
+    "black": "#242228",
+    "red": "#ec3159",
+    "green": "#588a00",
+    "yellow": "#ff9a7a",
+    "blue": "#007ac4",
+    "magenta": "#a370b7",
+    "cyan": "#39afa1",
+    "white": "#98938d",
+    "brightBlack": "#423d4e",
+    "brightRed": "#cc8494",
+    "brightGreen": "#a7c07b",
+    "brightYellow": "#f0c674",
+    "brightBlue": "#aacede",
+    "brightMagenta": "#b294bb",
+    "brightCyan": "#8abeb7",
+    "brightWhite": "#e0d4cc"
   }
-  
+}
