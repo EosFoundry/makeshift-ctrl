@@ -13,6 +13,7 @@
 import { release } from 'os'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'pathe'
+import * as Store from 'electron-store'
 import {
   DeviceEvents, //event api
   Ports, //device object
@@ -27,8 +28,9 @@ import {
 } from '@eos-makeshift/serial'
 // import { createWindow, restoreWindows } from './window.js'
 
-import { app, Tray, BrowserWindow, shell, ipcMain, Menu } from 'electron'
-import { makeShiftIpcApi } from '../ipcApi'
+import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
+import { loadPlugins } from './plugins'
+import { makeShiftIpcApi, storeKeys } from '../ipcApi'
 
 type MakeShiftPortFingerprint = {
   time: number,
@@ -39,14 +41,36 @@ type MakeShiftPortFingerprint = {
 // import { electron } from '../electron.js'
 // const { app, BrowserWindow, shell, ipcMain } = electron
 
-const workingDir = __dirname ? __dirname : dirname(fileURLToPath(import.meta.url))
-const appDataPath = app.getPath('appData')
+const workingDir = __dirname
+const appDataPath = join(app.getPath('appData'), 'makeshift-ctrl')
 const Api = makeShiftIpcApi
+const store = new Store.default()
+const url = process.env.VITE_DEV_SERVER_URL as string
 
 process.env.DIST_ELECTRON = join(workingDir, '..')
-process.env.DIST = join(process.env.DIST_ELECTRON, '../client')
-process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST_ELECTRON, '../../public')
+process.env.PKGROOT = join(process.env.DIST_ELECTRON, '../..')
+process.env.DIST = join(process.env.PKGROOT, 'dist')
+process.env.DIST_CLIENT = join(process.env.DIST, 'client')
+if (app.isPackaged) {
+  process.env.PUBLIC = process.env.DIST_CLIENT
+  process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
+} else {
+  process.env.PUBLIC = join(process.env.PKGROOT, 'public')
+  process.env.ASSETS = join(process.env.PKGROOT, 'assets')
+}
+
 process.env.MakeShiftSerializedApi = JSON.stringify(makeShiftIpcApi)
+const preload = join(process.env.DIST_ELECTRON, 'preload/index.js')
+const htmlEntry = join(process.env.DIST_CLIENT, './index.html')
+
+console.log(import.meta.url)
+console.log(__dirname)
+console.log(process.env.PKGROOT)
+console.log(process.env.DIST)
+console.log(process.env.DIST_ELECTRON)
+console.log(process.env.DIST_CLIENT)
+console.log(process.env.ASSETS)
+console.log(process.env.PUBLIC)
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -59,20 +83,25 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0)
 }
 
-// Remove electron security warnings
-// This warning only shows in development mode
-// Read more on https://www.electronjs.org/docs/latest/tutorial/security
-// process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
 
-// Here, you can also use other preload
-const preload = join(workingDir, '../preload/index.js')
-const assetDir = join(workingDir, '../assets/')
-const url = process.env.VITE_DEV_SERVER_URL as string
-const htmlEntry = join(process.env.DIST, './dist/index.html')
+
 let deviceList: MakeShiftPortFingerprint[] = []
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let menu: Menu | null = null
+
+loadPlugins(appDataPath)
+
+let windowPos = {
+  x: 50,
+  y: 50,
+  width: 600,
+  height: 800,
+} as any
+
+if (store.has(storeKeys.MainWindowState)) {
+  windowPos = store.get(storeKeys.MainWindowState)
+}
 
 setLogLevel('none')
 setPortAuthorityLogLevel('none')
@@ -82,7 +111,6 @@ setPortAuthorityLogLevel('none')
 app.whenReady().then(async () => {
   console.log('App ready')
 
-
   ipcMain.handle(makeShiftIpcApi.get.events, async () => {
     return DeviceEvents
   })
@@ -91,10 +119,10 @@ app.whenReady().then(async () => {
     title: 'makeshift-ctrl',
     minWidth: 300,
     minHeight: 300,
-    x: 0,
-    y: 0,
-    height: 800,
-    width: 600,
+    x: windowPos.x,
+    y: windowPos.y,
+    width: windowPos.width,
+    height: windowPos.height,
     icon: './assets/icon/iconbright.png',
     webPreferences: {
       preload,
@@ -103,6 +131,23 @@ app.whenReady().then(async () => {
       contextIsolation: true,
     },
   })
+
+  mainWindow.on('close', () => {
+    const size = mainWindow.getSize()
+    const pos = mainWindow.getPosition()
+    const newPosition = {
+      x: pos[0],
+      y: pos[1],
+      height: size[1],
+      width: size[0],
+    }
+    store.set(storeKeys.MainWindowState, newPosition)
+    // console.log(newPosition)
+  })
+  // mainWindow.on('move', () => {
+  //   console.log(mainWindow.getSize())
+  //   console.log(mainWindow.getPosition())
+  // })
 
   // This loads the index and chains into src/main.ts
   if (app.isPackaged) {
@@ -143,10 +188,15 @@ app.whenReady().then(async () => {
     const id = ms.portId
   })
 
+  // dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then((aaa) => {
+  //   console.log(aaa)
+  // })
+
   // setup Renderer -> Main handlers
+  ipcMain.on(Api.test, handleTest)
   ipcMain.handle(Api.get.logRank, async () => { return logRank })
   ipcMain.handle(Api.get.connectedDevices, async () => {
-    console.log(deviceList)
+    // console.log(deviceList)
     return getPortFingerPrintSnapShot()
   })
   PortAuthority.on(PortAuthorityEvents.port.opened, (fp) => {
@@ -157,10 +207,14 @@ app.whenReady().then(async () => {
     mainWindow.webContents.send(Api.onEv.device.disconnected, fp)
   })
 
+  //handlers - avoid using `this` when writing
+  async function handleTest(event, data) {
+    // console.dir(event)
+    // console.dir(data)
 
+  }
   function hookupDevice(id: string, window: BrowserWindow) {
     for (const lv in DeviceEvents.Terminal.Log) {
-      console.log(lv)
       Ports[id].on(DeviceEvents.Terminal.Log[lv as MsgLevel],
         async (data: LogMessage) => {
           // console.dir(data)

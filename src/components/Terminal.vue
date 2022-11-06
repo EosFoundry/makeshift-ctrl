@@ -12,6 +12,8 @@ import { FitAddon } from 'xterm-addon-fit';
 import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/serial';
 
 import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
+import chevronUpUrl from '../assets/img/chevron-up.svg?url'
+import chevronDownUrl from '../assets/img/chevron-down.svg?url'
 
 const makeshift = inject('makeshift') as any
 const logLevel = inject('logLevel') as Ref<LogLevel>
@@ -27,7 +29,7 @@ const xtermConfig: ITerminalOptions = {
   fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
   fontWeight: 400,
   fontWeightBold: 800,
-  lineHeight: 1.3,
+  lineHeight: 1.15,
   letterSpacing: 0,
   // logLevel: 'debug',
   theme: makeShiftTheme,
@@ -38,12 +40,30 @@ const xtermConfig: ITerminalOptions = {
 
 const terminal = new Terminal(xtermConfig);
 const fitAddon = new FitAddon()
+const chevronUrl = ref(chevronUpUrl)
+const cliInputDisplay = ref('none')
 const xtermContainer = ref<HTMLElement>()
-const terminalCommand = ref("")
+const terminalCommand = ref('')
 
 terminal.loadAddon(fitAddon);
 
-function fitTerm() { fitAddon.fit() }
+function fitTerm() {
+  // console.log(fitAddon.proposeDimensions())
+  fitAddon.fit()
+}
+
+function hideCli(event: Event) {
+  console.log('vvvvv')
+  let d = 'none'
+  if (cliInputDisplay.value === 'none') {
+    chevronUrl.value = chevronDownUrl
+    d = 'flex';
+  } else {
+    d = 'none'
+    chevronUrl.value = chevronUpUrl
+  }
+  cliInputDisplay.value = d
+}
 
 function sendCommand(event: Event) {
   console.log(terminalCommand.value);
@@ -52,8 +72,10 @@ function sendCommand(event: Event) {
 }
 
 function writePrompt() {
-  terminal.write('makeshift-ctrl <== ')
+  terminal.write(`makeshift <== `)
 }
+
+
 
 
 onMounted(() => {
@@ -61,9 +83,6 @@ onMounted(() => {
     terminal.open((xtermContainer.value as HTMLElement));
     terminal.clear();
     terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
-    nextTick(() => {
-      fitTerm()
-    })
 
     makeshift.onEv.terminal.log((garbage: any, ev: LogMessage) => {
       if (logRank[ev.level] >= logRank[logLevel.value]) {
@@ -89,12 +108,33 @@ watch(
 
 <template>
   <div class="xterm-border">
-    <div class="xterm-inner-border" :style="{backgroundColor: makeShiftTheme.background}">
+    <div class="xterm-inner-border" :style="{ backgroundColor: makeShiftTheme.background }">
       <div ref="xtermContainer" class="xterm-container" />
     </div>
-    <div class="xterm-commandline">
-      <input v-model="terminalCommand" @keyup.enter="sendCommand" />
+    <div class="xterm-commandline" :style="{
+      display: cliInputDisplay,
+    }">
+      <input class="xterm-cli-input" :style="{
+        color: makeShiftTheme.foreground,
+        backgroundColor: makeShiftTheme.cursorBackground,
+        borderColor: 'var(--color-hl)',
+        caretColor: makeShiftTheme.cursor
+      }" v-model="terminalCommand" @keyup.enter="sendCommand" />
       <button @click="sendCommand">SEND</button>
+    </div>
+    <div class="hideCli" @click="hideCli" :style="{
+      width: '100%',
+      cursor: 'pointer',
+    }">
+      <div class="icon" :style="{
+        height: '15px',
+        width: '15px',
+        // paddingTop: '5px',
+        margin: 'auto',
+        backgroundColor: 'aliceblue',
+        maskImage: `url(${chevronUrl})`,
+      }">
+      </div>
     </div>
   </div>
 </template>
@@ -103,43 +143,78 @@ watch(
 .xterm-border {
   background-color: var(--color-bg);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   border-radius: 10px;
   /* border-width: 14px; */
   padding: 10px;
-  padding-bottom: 50px;
+  padding-bottom: 5px;
+  margin: auto;
 
   width: 100%;
   height: 100%;
 }
 
+
+.xterm-commandline {
+  float: right;
+
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 4px;
+  box-sizing: border-box;
+  height: fit-content;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  width: 100%;
+}
+
+.xterm-cli-input {
+  box-sizing: border-box;
+  padding: 4px 10px;
+  margin: auto;
+  margin-right: 10px;
+  font-size: 12pt;
+  font-family: 'iosevka-makeshift Web';
+  border: solid;
+  border-width: 2px;
+  border-radius: 8px;
+  width: 100%;
+  height: fit-content;
+}
 
 .xterm-inner-border {
   box-sizing: border-box;
   border-radius: 10px;
-  /* border-width: 14px; */
-  padding: 10px;
+  border: solid;
+  border-color: var(--color-hl);
+  border-width: 2px;
+  padding: 3px;
+  padding-left: 10px;
+  /* padding-bottom: 10px; */
+  margin: auto;
+  margin-bottom: 4px;
+
+  overflow: hidden;
 
   width: 100%;
   height: 100%;
 }
 
-.xterm-commandline {
-  box-sizing: border-box;
-  height: 50px;
-  padding-top: 15px;
-  width: 100%;
-}
 
 
 .xterm-container {
-  box-sizing: border-box;
-  position: relative;
+  /* box-sizing: border-box; */
+  /* position: relative; */
   text-align: left;
-  bottom: 0px;
+  bottom: 3px;
   left: 0px;
-  width: 100%;
+  /* width: 100%; */
   height: 100%;
-  padding: 4px;
+  /* padding: 4px; */
+  overflow: scroll;
 }
 
 /**
@@ -236,7 +311,7 @@ watch(
 
 /* Works on Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
-  width: 1px;
+  width: 0px;
 }
 
 .xterm .xterm-viewport {

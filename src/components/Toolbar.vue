@@ -5,8 +5,7 @@ import { LogLevel, MakeShiftDeviceEvents } from '@eos-makeshift/serial'
 const Events = inject('makeshift-events') as MakeShiftDeviceEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
 
-console.log(logLevel.value);
-// for 
+// console.log(logLevel.value);
 
 const LogLevels = Object.keys(Events.Terminal.Log)
 
@@ -24,8 +23,12 @@ const LogLevels = Object.keys(Events.Terminal.Log)
         {{ lv }}
       </option>
     </select>
-    asdf
+    logging
   </span>
 
 </div>
 </template>
+
+<style lang="scss">
+
+</style>

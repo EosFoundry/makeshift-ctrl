@@ -1,41 +1,50 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
 import Toolbar from './components/Toolbar.vue'
 import StatusBar from './components/StatusBar.vue'
+import { emit } from 'process'
 
-const editorContents = ref("// Welcome to makesh*ft-ctrl alpha!\n")
-const terminalContents = ref("// Welcome to makesh*t-ctrl alpha!\n")
-const topPanelHeight = ref(69)
+const editorContents = ref("// Welcome to makesh*t-ctrl alpha!\n")
+provide<Ref<string>>('current-session', editorContents)
+const topPanelHeight = ref(60)
 const bottomPanelHeight = computed(() => {
 	return 100 - topPanelHeight.value
 })
 
 function terminalResize(event: any) {
+	console.log(event)
 	topPanelHeight.value = event[0].size
 }
 
+onMounted(() => {
+	nextTick(() => {
+		// this is a very cursed hack to get xterm to resize correctly
+		window.resizeBy(-1, -1)
+		window.resizeBy(1, 1)
+	})
+})
 </script>
 
 <template>
 	<!-- <h1></h1> -->
-	<!-- <p>{{ topPanelHeight }}</p> -->
+	<p>{{ editorContents }}</p>
 	<Toolbar></Toolbar>
 	<splitpanes horizontal @resize="terminalResize">
 		<pane min-size="15">
 			<code-box :pane-height-percent="bottomPanelHeight" />
 		</pane>
-		<pane size="size">
+		<pane size="size" min-size="25">
 			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
 	</splitpanes>
 	<StatusBar>
-		
+
 	</StatusBar>
 </template>
 
@@ -52,6 +61,50 @@ body {
 	height: 100%;
 }
 
+:focus {
+	outline: 1px solid var(--color-primary);
+}
+
+.icon {
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+
+button {
+	cursor: pointer;
+	box-sizing: border-box;
+	background-color: var(--color-primary);
+	color: var(--color-bg);
+
+	font-size: 11pt;
+	// margin: auto;
+	vertical-align: baseline;
+
+	border: solid;
+	border-width: 4px;
+	border-radius: 6px;
+	border-color: var(--color-primary);
+
+	padding: 1px 8px;
+
+	height: fit-content;
+	font-weight: bold;
+	font-family: 'Encode Sans';
+
+	transition-duration: 0.2s;
+
+	&:hover {
+		background-color: var(--color-primary2);
+		border-color: var(--color-primary);
+		color: var(--color-text)
+	}
+}
+
 #app {
 	font-family: Encode Sans, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
@@ -62,10 +115,12 @@ body {
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+	user-select: none;
+
+  transition-duration: 0.2s;
 }
 
 .splitpanes {
-	color: var(--color-bg);
 	background-color: var(--color-bg);
 
 	&__pane {
@@ -84,189 +139,6 @@ body {
 }
 
 // crapton of font loading
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: normal;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-light.woff2') format('woff2');
-}
 
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: expanded;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlight.woff2') format('woff2');
-}
 
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: normal;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 300;
-	font-stretch: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: expanded;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 300;
-	font-stretch: expanded;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: normal;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-lightitalic.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 300;
-	font-stretch: expanded;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedlightitalic.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: normal;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-regular.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: expanded;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extended.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: normal;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 400;
-	font-stretch: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-oblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: expanded;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 400;
-	font-stretch: expanded;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: normal;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-italic.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 400;
-	font-stretch: expanded;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendeditalic.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: normal;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabold.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: expanded;
-	font-style: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabold.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: normal;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 800;
-	font-stretch: normal;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extraboldoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: expanded;
-	font-style: oblique;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web Oblique';
-	font-weight: 800;
-	font-stretch: expanded;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextraboldoblique.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: normal;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extrabolditalic.woff2') format('woff2');
-}
-
-@font-face {
-	font-family: 'iosevka-makeshift Web';
-	font-weight: 800;
-	font-stretch: expanded;
-	font-style: italic;
-	src: url('/iosevka-makeshift/woff2/iosevka-makeshift-extendedextrabolditalic.woff2') format('woff2');
-}
 </style>

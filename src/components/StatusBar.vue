@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { inject, watch } from 'vue';
+import { inject, ref, watch } from 'vue';
 import { LogLevel, MakeShiftDeviceEvents, MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 
 const Events = inject('makeshift-events') as MakeShiftDeviceEvents
 const initialLevel = inject('logLevel') as LogLevel
 const connectedDevices = inject('makeshift-connected-devices') as MakeShiftPortFingerprint[]
 
-
-// for 
 
 
 
@@ -17,14 +15,22 @@ const connectedDevices = inject('makeshift-connected-devices') as MakeShiftPortF
     <div class="status-text">
       Connected:
     </div>
-    <div class="device-status-blob" v-for="dev in connectedDevices">
-      <b>ID: {{dev.portId }} | SN: {{ dev.deviceSerial.slice(0, 8) }} | PATH: {{ dev.devicePath }}</b>
-    </div>
+    <form class="asdf">
+    <label class="device-status-blob" v-for="dev in connectedDevices" :key="dev.portId">
+      <input type="radio" name="connected-device" :id="dev.portId"/>
+      <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
+    </label>
+    </form>
 
   </div>
 </template>
 
 <style lang="scss">
+input[type="radio"]+svg {
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+}
+
 #statusbar-wrapper {
   background-color: var(--color-hl);
   display: flex;
@@ -49,8 +55,8 @@ const connectedDevices = inject('makeshift-connected-devices') as MakeShiftPortF
   padding: 4px;
   padding-left: 8px;
   padding-right: 8px;
-  color: var(--color-hl);
-  background-color: var(--color-primary);
+  color: var(--color-text);
+  background-color: var(--color-bg);
   border-radius: 3px;
 }
 </style>

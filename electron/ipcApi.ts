@@ -1,4 +1,5 @@
 export const makeShiftIpcApi = {
+  test: 'mkshft-test-event',
   get: {
     events: 'mkshft-get-events',
     connectedDevices: 'mkshft-get-connectedDevices',
@@ -18,3 +19,8 @@ export const makeShiftIpcApi = {
   }
 }
 export type MakeShiftIpcApi = typeof makeShiftIpcApi
+
+export const storeKeys = {
+  MainWindowState : 'mainWindowState'
+}
+export type StoreKeys = typeof storeKeys

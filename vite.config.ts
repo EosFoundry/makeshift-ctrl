@@ -54,6 +54,7 @@ export default defineConfig({
       ],
       output: {
         inlineDynamicImports: true,
+        format:'esm'
       },
     },
   },

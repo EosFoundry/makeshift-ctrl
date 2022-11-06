@@ -10,6 +10,7 @@ election.contextBridge.exposeInMainWorld('buttAPI', {
 const ipcRndr = election.ipcRenderer
 
 election.contextBridge.exposeInMainWorld('makeshift', {
+  test: () => ipcRndr.invoke(Api.test),
   call: {
     loadDevices: () => ipcRndr.invoke(Api.call.loadDevices)
   },
