@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { inject, ref, watch } from 'vue';
+import { inject, onMounted, Ref, ref, watch } from 'vue';
 import { LogLevel, MakeShiftDeviceEvents, MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 
-const Events = inject('makeshift-events') as MakeShiftDeviceEvents
-const initialLevel = inject('logLevel') as LogLevel
-const connectedDevices = inject('makeshift-connected-devices') as MakeShiftPortFingerprint[]
+const Events = inject('makeshift-events') as Ref<MakeShiftDeviceEvents>
+const initialLevel = inject('logLevel') as Ref<LogLevel>
+const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftPortFingerprint[]>
+const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 
+onMounted(() => {
+
+  if (typeof currentDevice.value.portId === 'undefined' && connectedDevices.value.length > 0){
+    currentDevice.value = connectedDevices.value[0]
+  }
+})
 
 
 
@@ -16,12 +23,11 @@ const connectedDevices = inject('makeshift-connected-devices') as MakeShiftPortF
       Connected:
     </div>
     <form class="asdf">
-    <label class="device-status-blob" v-for="dev in connectedDevices" :key="dev.portId">
-      <input type="radio" name="connected-device" :id="dev.portId"/>
-      <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
-    </label>
+      <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.portId">
+        <input type="radio" :id="dev.portId" :value="dev" v-model="currentDevice" />
+        <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
+      </label>
     </form>
-
   </div>
 </template>
 
@@ -35,7 +41,9 @@ input[type="radio"]+svg {
   background-color: var(--color-hl);
   display: flex;
   align-items: center;
-  height: 50px;
+  height: fit-content;
+  padding: 8px;
+  padding-left: 0px;
 }
 
 .status-text {

@@ -18,9 +18,18 @@ declare namespace NodeJS {
      * ```
      */
     VSCODE_DEBUG?: 'true'
-    DIST_ELECTRON: string
+    PKGROOT: string
     DIST: string
-    /** /dist/ or /public/ */
+    DIST_ELECTRON: string
+    DIST_CLIENT: string
+    ASSETS: string
+    /** /dist/client (packaged) or /public (during dev) */
     PUBLIC: string
+
+    /** AppData */
+    APPDATA: string
+    PLUGINS: string
+    CUES: string
+    TEMP: string
   }
 }

@@ -5,19 +5,30 @@ export default {
 </script>
 
 <script setup lang="ts">
-// import { MakeShiftPort } from '@eos-makeshift/serial';
-import { ref, onMounted, nextTick, watch, onUpdated, inject, Ref } from 'vue';
-import { ITerminalOptions, Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/serial';
+// node module imports
+import { ref, onMounted, nextTick, watch, onUpdated, inject, Ref, onUnmounted } from 'vue'
+import { ITerminalOptions, Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
+import { LigaturesAddon } from 'xterm-addon-ligatures'
+import { WebglAddon } from 'xterm-addon-webgl'
 
+import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/serial'
+
+// local file imports
 import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
-import chevronUpUrl from '../assets/img/chevron-up.svg?url'
-import chevronDownUrl from '../assets/img/chevron-down.svg?url'
+import chevronUpUrl from '../assets/icon/bootstrap/chevron-up.svg?url'
+import chevronDownUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
+import { IMakeShiftAPI } from 'src/renderer'
 
-const makeshift = inject('makeshift') as any
+// reactive elements
+const makeshift = inject('makeshift') as IMakeShiftAPI
 const logLevel = inject('logLevel') as Ref<LogLevel>
 const logRank = inject('makeshift-logRank') as any
+
+const chevronUrl = ref(chevronUpUrl)
+const cliInputDisplay = ref('none')
+const xtermContainer = ref<HTMLElement>()
+const terminalCommand = ref('')
 
 const props = defineProps<{
   paneHeightPercent?: number
@@ -26,7 +37,7 @@ const props = defineProps<{
 const xtermConfig: ITerminalOptions = {
   cursorBlink: true,
   cursorStyle: 'underline',
-  fontFamily: 'iosevka-makeshift Web, courier-new, courier, monospace',
+  fontFamily: 'iosevka-makeshift Web',
   fontWeight: 400,
   fontWeightBold: 800,
   lineHeight: 1.15,
@@ -34,18 +45,15 @@ const xtermConfig: ITerminalOptions = {
   // logLevel: 'debug',
   theme: makeShiftTheme,
   scrollback: 4000,
+  allowProposedApi: true,
 }
 
-
-
-const terminal = new Terminal(xtermConfig);
+const terminal = new Terminal(xtermConfig)
 const fitAddon = new FitAddon()
-const chevronUrl = ref(chevronUpUrl)
-const cliInputDisplay = ref('none')
-const xtermContainer = ref<HTMLElement>()
-const terminalCommand = ref('')
+const ligaturesAddon = new LigaturesAddon()
+const webGlAddon = new WebglAddon()
 
-terminal.loadAddon(fitAddon);
+
 
 function fitTerm() {
   // console.log(fitAddon.proposeDimensions())
@@ -53,16 +61,15 @@ function fitTerm() {
 }
 
 function hideCli(event: Event) {
-  console.log('vvvvv')
-  let d = 'none'
+  let display = 'none'
   if (cliInputDisplay.value === 'none') {
     chevronUrl.value = chevronDownUrl
-    d = 'flex';
+    display = 'flex';
   } else {
-    d = 'none'
+    display = 'none'
     chevronUrl.value = chevronUpUrl
   }
-  cliInputDisplay.value = d
+  cliInputDisplay.value = display
 }
 
 function sendCommand(event: Event) {
@@ -75,23 +82,28 @@ function writePrompt() {
   terminal.write(`makeshift <== `)
 }
 
+function LogEventHandler(event: any, logMessage: LogMessage) {
+  if (logRank[logMessage.level] >= logRank[logLevel.value]) {
+    terminal.writeln(logMessage.message)
+  }
+}
 
 
+onUnmounted(() => {
+  removeEventListener('resize', fitTerm)
+})
 
 onMounted(() => {
   nextTick(() => {
     terminal.open((xtermContainer.value as HTMLElement));
+    terminal.loadAddon(webGlAddon)
+    terminal.loadAddon(fitAddon);
+    terminal.loadAddon(ligaturesAddon);
     terminal.clear();
     terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
 
-    makeshift.onEv.terminal.log((garbage: any, ev: LogMessage) => {
-      if (logRank[ev.level] >= logRank[logLevel.value]) {
-        terminal.writeln(ev.message)
-      }
-    })
-    addEventListener('resize', (event) => {
-      fitTerm()
-    })
+    makeshift.onEv.terminal.log(LogEventHandler)
+    addEventListener('resize', fitTerm)
   })
   // setInterval(() => {
   //   terminal.writeln('butt poop')
@@ -107,8 +119,8 @@ watch(
 </script>
 
 <template>
-  <div class="xterm-border">
-    <div class="xterm-inner-border" :style="{ backgroundColor: makeShiftTheme.background }">
+  <div class="xterm-border pane-border">
+    <div class="pane-rounded-inner xterm-inner" :style="{ backgroundColor: makeShiftTheme.background }">
       <div ref="xtermContainer" class="xterm-container" />
     </div>
     <div class="xterm-commandline" :style="{
@@ -133,24 +145,15 @@ watch(
         margin: 'auto',
         backgroundColor: 'aliceblue',
         maskImage: `url(${chevronUrl})`,
-      }">
-      </div>
+      }"/>
     </div>
   </div>
 </template>
 
 <style>
 .xterm-border {
-  background-color: var(--color-bg);
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border-radius: 10px;
-  /* border-width: 14px; */
-  padding: 10px;
-  padding-bottom: 5px;
-  margin: auto;
-
   width: 100%;
   height: 100%;
 }
@@ -185,31 +188,19 @@ watch(
   height: fit-content;
 }
 
-.xterm-inner-border {
-  box-sizing: border-box;
-  border-radius: 10px;
-  border: solid;
-  border-color: var(--color-hl);
-  border-width: 2px;
-  padding: 3px;
-  padding-left: 10px;
-  /* padding-bottom: 10px; */
-  margin: auto;
+.xterm-inner {
+  /* border-color:green; */
+  padding-left: 12px;
   margin-bottom: 4px;
-
-  overflow: hidden;
-
-  width: 100%;
-  height: 100%;
 }
 
 
 
 .xterm-container {
   /* box-sizing: border-box; */
-  /* position: relative; */
+  position: relative;
   text-align: left;
-  bottom: 3px;
+  bottom: -10px;
   left: 0px;
   /* width: 100%; */
   height: 100%;

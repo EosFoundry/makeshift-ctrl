@@ -1,5 +1,5 @@
 export const makeShiftIpcApi = {
-  test: 'mkshft-test-event',
+  test: 'mkshft-test',
   get: {
     events: 'mkshft-get-events',
     connectedDevices: 'mkshft-get-connectedDevices',

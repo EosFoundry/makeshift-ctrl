@@ -9,16 +9,17 @@ import Terminal from './components/Terminal.vue'
 import Toolbar from './components/Toolbar.vue'
 import StatusBar from './components/StatusBar.vue'
 import { emit } from 'process'
+import LayoutPanel from './components/LayoutPanel.vue'
+import helloString from './assets/examples/cues/hello.cue.mjs?raw'
 
-const editorContents = ref("// Welcome to makesh*t-ctrl alpha!\n")
+const editorContents = ref(`// Welcom to makesh*t-ctrl alpha!`)
 provide<Ref<string>>('current-session', editorContents)
-const topPanelHeight = ref(60)
+const topPanelHeight = ref(65)
 const bottomPanelHeight = computed(() => {
 	return 100 - topPanelHeight.value
 })
 
 function terminalResize(event: any) {
-	console.log(event)
 	topPanelHeight.value = event[0].size
 }
 
@@ -33,13 +34,19 @@ onMounted(() => {
 
 <template>
 	<!-- <h1></h1> -->
-	<p>{{ editorContents }}</p>
 	<Toolbar></Toolbar>
-	<splitpanes horizontal @resize="terminalResize">
-		<pane min-size="15">
-			<code-box :pane-height-percent="bottomPanelHeight" />
+	<splitpanes id="main-container" horizontal @resize="terminalResize">
+		<pane :size="topPanelHeight" min-size="45">
+			<splitpanes>
+				<pane min-size="30">
+					<layout-panel />
+				</pane>
+				<pane size='80' min-size="30">
+					<code-box :pane-height-percent="topPanelHeight" />
+				</pane>
+			</splitpanes>
 		</pane>
-		<pane size="size" min-size="25">
+		<pane min-size="20">
 			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
 	</splitpanes>
@@ -49,9 +56,23 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-@font-face {
-	font-family: "Encode Sans";
-	src: url('/encode-sans/EncodeSans-VariableFont_wdth,wght.ttf');
+
+#app {
+	font-family: Encode Sans, Helvetica, Arial, sans-serif;
+
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	font-size: 12pt;
+	text-align: center;
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	display: flex;
+	flex-direction: column;
+	user-select: none;
+
+	transition-duration: 0.2s;
+	height: 100%;
 }
 
 html,
@@ -61,17 +82,16 @@ body {
 	height: 100%;
 }
 
-:focus {
-	outline: 1px solid var(--color-primary);
-}
+// code {
+// 	font-family: 'JetBrains Mono', 'iosevka-makeshift Web', monospace, monospace;	
+// }
 
-.icon {
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+input {
+	font-size: 12pt;
+	color: var(--color-text);
+	background-color: var(--color-bg);
+	border-color: var(--color-hl);
+	caret-color: var(--color-neutral);
 }
 
 
@@ -105,40 +125,76 @@ button {
 	}
 }
 
-#app {
-	font-family: Encode Sans, Helvetica, Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	text-align: center;
-	background-color: var(--color-bg);
-	color: var(--color-text);
-	height: 100%;
+
+:focus {
+	outline: 1px solid var(--color-primary);
+}
+
+.icon {
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+}
+
+
+#main-container {
+	box-sizing: border-box;
+	padding: 0px 4px;
+	width: 100%;
+}
+
+.pane-border {
+	// background-color: var(--color-bg);
+	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
-	user-select: none;
+	padding: 3px;
+	// padding-top: 5px;
+	// padding-bottom: 5px;
+	// margin: 4px;
 
-  transition-duration: 0.2s;
+	width: 100%;
+	height: 100%;
 }
+
+.pane-rounded-inner {
+	box-sizing: border-box;
+	border: solid;
+	border-color: var(--color-hl);
+	border-width: 2px;
+	border-radius: 8px;
+	width: 100%;
+	height: 100%;
+	margin: auto;
+	overflow: hidden;
+	// overflow: scroll;
+}
+
 
 .splitpanes {
 	background-color: var(--color-bg);
 
-	&__pane {
-		background-color: var(--color-bg);
-	}
+	// &__pane {}
 
 	&--vertical>&__splitter {
-		background-color: var(--color-bg);
-		min-width: 3px;
+		background-color: var(--color-neutral);
+		min-width: 4px;
+		border-radius: 2px;
+		height: 70px;
+		margin: auto;
 	}
 
 	&--horizontal>&__splitter {
-		background-color: var(--color-bg);
-		min-height: 3px;
+		background-color: var(--color-neutral);
+		min-height: 4px;
+		border-radius: 2px;
+		margin: auto;
+		width: 70px;
 	}
 }
 
 // crapton of font loading
-
-
 </style>
