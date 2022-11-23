@@ -1,20 +1,32 @@
 // import * as chokidar from 'chokidar'
+import { Msg } from '@eos-makeshift/msg'
 import { dialog } from 'electron'
 import { readdir, mkdir } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'original-fs'
 import { isAbsolute, join } from 'pathe'
+import { mainWindow } from './index'
+import { makeShiftIpcApi, storeKeys } from '../ipcApi'
+import { ctrlLogger } from './utils'
 
 export const plugins = {}
+const msgen = new Msg({
+  host: 'Plugins',
+  showTime: false,
+  logLevel: 'info',
+  logger: ctrlLogger
+})
+
+const log = msgen.getLevelLoggers()
 
 export async function loadPlugins() {
   try {
     const dir = await readdir(process.env.PLUGINS)
-    console.log(dir)
+    log.info(dir)
     dir.forEach(async (path) => {
       const plugPath = join(process.env.PLUGINS, path)
       const toast = await readdir(plugPath)
-      console.log(toast)
+      log.info(toast)
       const manifest = join(plugPath, 'manifest.json')
       if (lstatSync(manifest).isFile()) {
         if (lstatSync(plugPath).isDirectory()) {
@@ -28,7 +40,7 @@ export async function loadPlugins() {
       }
     })
   } catch (err) {
-    console.log(err)
+    log.info(err)
   }
 }
 
@@ -50,8 +62,8 @@ export async function installPlugin() {
   })
 
   if (openResult.canceled === false) {
-    console.log(openResult)
-    console.log(process.env.TEMP)
+    log.info(openResult)
+    log.info(process.env.TEMP)
   }
 }
 
@@ -62,11 +74,11 @@ async function load(pluginFolder: string) {
   const pluginPath = join(pluginFolder, (name + '.mkshftpb.js'))
   const plugPathUrl = pathToFileURL(pluginPath)
 
-  // console.log(manifest)
-  // console.log(pluginPath)
-  // console.log(isAbsolute(pluginPath))
-  // console.log(plugPathUrl)
-  // console.log(lstatSync(pluginPath).isFile())
+  // log.info(manifest)
+  // log.info(pluginPath)
+  // log.info(isAbsolute(pluginPath))
+  // log.info(plugPathUrl)
+  // log.info(lstatSync(pluginPath).isFile())
   plugins[name] = await import(plugPathUrl.href)
-  // console.log(plugins)
+  // log.info(plugins)
 }

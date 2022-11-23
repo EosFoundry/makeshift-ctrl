@@ -8,6 +8,8 @@ directories:
   output: "release/"
 files:
   - dist
+extraFiles:
+  - examples
 linux:
   artifactName: "${productName}.${ext}"
   executableName: 'makeshift-ctrl'

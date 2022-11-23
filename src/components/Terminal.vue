@@ -6,7 +6,7 @@ export default {
 
 <script setup lang="ts">
 // node module imports
-import { ref, onMounted, nextTick, watch, onUpdated, inject, Ref, onUnmounted } from 'vue'
+import { ref, onMounted, nextTick, watch, onUpdated, inject, Ref, onUnmounted, StyleValue } from 'vue'
 import { ITerminalOptions, Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { LigaturesAddon } from 'xterm-addon-ligatures'
@@ -18,16 +18,18 @@ import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/seri
 import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
 import chevronUpUrl from '../assets/icon/bootstrap/chevron-up.svg?url'
 import chevronDownUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
-import { IMakeShiftAPI } from 'src/renderer'
+import  TextButton  from './TextButton.vue'
+import { rndrMakeShiftAPI } from 'src/renderer'
+import { watchResize } from '../composables/resizer'
 
 // reactive elements
-const makeshift = inject('makeshift') as IMakeShiftAPI
+const makeshift = inject('makeshift') as rndrMakeShiftAPI
 const logLevel = inject('logLevel') as Ref<LogLevel>
 const logRank = inject('makeshift-logRank') as any
 
 const chevronUrl = ref(chevronUpUrl)
 const cliInputDisplay = ref('none')
-const xtermContainer = ref<HTMLElement>()
+const xtermContainerElement = ref<HTMLElement>()
 const terminalCommand = ref('')
 
 const props = defineProps<{
@@ -35,20 +37,21 @@ const props = defineProps<{
 }>()
 
 const xtermConfig: ITerminalOptions = {
+  convertEol: true,
   cursorBlink: true,
   cursorStyle: 'underline',
-  fontFamily: 'iosevka-makeshift Web',
-  fontWeight: 400,
-  fontWeightBold: 800,
+  fontFamily: 'Iosevka Makeshift, Fira Code, JetBrains Mono, Consolas, monospace',
+  // fontWeight: 400,
+  // fontWeightBold: 800,
   lineHeight: 1.15,
-  letterSpacing: 0,
+  letterSpacing: 1,
   // logLevel: 'debug',
   theme: makeShiftTheme,
   scrollback: 4000,
   allowProposedApi: true,
 }
 
-const terminal = new Terminal(xtermConfig)
+let terminal: Terminal
 const fitAddon = new FitAddon()
 const ligaturesAddon = new LigaturesAddon()
 const webGlAddon = new WebglAddon()
@@ -56,7 +59,6 @@ const webGlAddon = new WebglAddon()
 
 
 function fitTerm() {
-  // console.log(fitAddon.proposeDimensions())
   fitAddon.fit()
 }
 
@@ -95,19 +97,20 @@ onUnmounted(() => {
 
 onMounted(() => {
   nextTick(() => {
-    terminal.open((xtermContainer.value as HTMLElement));
-    terminal.loadAddon(webGlAddon)
+    terminal = new Terminal(xtermConfig)
+    terminal.open(xtermContainerElement.value as HTMLElement);
     terminal.loadAddon(fitAddon);
     terminal.loadAddon(ligaturesAddon);
+    terminal.loadAddon(webGlAddon);
+
     terminal.clear();
     terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
+    fitTerm()
 
-    makeshift.onEv.terminal.log(LogEventHandler)
-    addEventListener('resize', fitTerm)
+    makeshift.onEv.terminal.data(LogEventHandler)
+    watchResize(xtermContainerElement.value as HTMLElement, fitTerm)
+    fitTerm()
   })
-  // setInterval(() => {
-  //   terminal.writeln('butt poop')
-  // }, 150)
 })
 
 
@@ -121,7 +124,7 @@ watch(
 <template>
   <div class="xterm-border pane-border">
     <div class="pane-rounded-inner xterm-inner" :style="{ backgroundColor: makeShiftTheme.background }">
-      <div ref="xtermContainer" class="xterm-container" />
+      <div ref="xtermContainerElement" class="xterm-container" />
     </div>
     <div class="xterm-commandline" :style="{
       display: cliInputDisplay,
@@ -132,7 +135,7 @@ watch(
         borderColor: 'var(--color-hl)',
         caretColor: makeShiftTheme.cursor
       }" v-model="terminalCommand" @keyup.enter="sendCommand" />
-      <button @click="sendCommand">SEND</button>
+      <text-button @click="sendCommand">send</text-button>
     </div>
     <div class="hideCli" @click="hideCli" :style="{
       width: '100%',
@@ -141,11 +144,11 @@ watch(
       <div class="icon" :style="{
         height: '15px',
         width: '15px',
-        // paddingTop: '5px',
         margin: 'auto',
+        marginBottom: '-4px',
         backgroundColor: 'aliceblue',
         maskImage: `url(${chevronUrl})`,
-      }"/>
+      }" />
     </div>
   </div>
 </template>
@@ -180,7 +183,7 @@ watch(
   margin: auto;
   margin-right: 10px;
   font-size: 12pt;
-  font-family: 'iosevka-makeshift Web';
+  font-family: 'Iosevka Makeshift';
   border: solid;
   border-width: 2px;
   border-radius: 8px;
@@ -198,6 +201,7 @@ watch(
 
 .xterm-container {
   /* box-sizing: border-box; */
+  font-family: 'Iosevka Makeshift';
   position: relative;
   text-align: left;
   bottom: -10px;

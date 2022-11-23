@@ -1,7 +1,7 @@
 // import { contextBridge, ipcRenderer } from 'electron'
 import { MakeShiftIpcApi } from '../ipcApi'
 const election = require('electron')
-const Api: MakeShiftIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
+const MakeShiftApi: MakeShiftIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
 
 election.contextBridge.exposeInMainWorld('buttAPI', {
   onMPM: (callback: any) => election.ipcRenderer.on('main-process-message', callback),
@@ -9,26 +9,51 @@ election.contextBridge.exposeInMainWorld('buttAPI', {
 })
 const ipcRndr = election.ipcRenderer
 
-election.contextBridge.exposeInMainWorld('makeshift', {
-  test: () => ipcRndr.invoke(Api.test),
-  call: {
-    loadDevices: () => ipcRndr.invoke(Api.call.loadDevices)
-  },
-  get: {
-    events: () => ipcRndr.invoke(Api.get.events),
-    connectedDevices: () => ipcRndr.invoke(Api.get.connectedDevices),
-    logRank: () => ipcRndr.invoke(Api.get.logRank),
-  },
-  onEv: {
-    terminal: {
-      log: (callback: any) => ipcRndr.on(Api.onEv.terminal.data, callback),
-    },
-    device: {
-      connected: (callback: any) => ipcRndr.on(Api.onEv.device.connected, callback),
-      disconnected: (callback: any) => ipcRndr.on(Api.onEv.device.disconnected, callback),
+let dryMakeShiftApi: any = {}
+Object.assign(dryMakeShiftApi, JSON.parse(process.env.MakeShiftSerializedApi))
+
+function hydrate(section, handler: Function): any {
+  if (typeof section === 'string') {
+    const s = section
+    section = handler(s)
+  } else {
+    for (const subS in section) {
+      section[subS] = hydrate(section[subS], handler)
     }
   }
-})
+  return section
+}
+
+const hydratedMakeShiftApi = {
+  test: () => ipcRndr.invoke(MakeShiftApi.test),
+  get: hydrate(dryMakeShiftApi.get, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
+  set: hydrate(dryMakeShiftApi.set, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
+  onEv: hydrate(dryMakeShiftApi.onEv, (evStr) => { return (cb: any) => ipcRndr.on(evStr, cb) }),
+}
+
+
+// const hydratedApi = {
+//   test: () => ipcRndr.invoke(MakeShiftApi.test),
+//   get: {
+//     events: () => ipcRndr.invoke(MakeShiftApi.get.events),
+//     connectedDevices: () => ipcRndr.invoke(MakeShiftApi.get.connectedDevices),
+//     logRank: () => ipcRndr.invoke(MakeShiftApi.get.logRank),
+//   },
+//   set: {
+//     cue: (cue) => ipcRndr.invoke(MakeShiftApi.set.cue),
+//   },
+//   onEv: {
+//     terminal: {
+//       log: (callback: any) => ipcRndr.on(MakeShiftApi.onEv.terminal.data, callback),
+//     },
+//     device: {
+//       connected: (callback: any) => ipcRndr.on(MakeShiftApi.onEv.device.connected, callback),
+//       disconnected: (callback: any) => ipcRndr.on(MakeShiftApi.onEv.device.disconnected, callback),
+//     }
+//   }
+// }
+
+election.contextBridge.exposeInMainWorld('MakeShiftCtrl', hydratedMakeShiftApi)
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise(resolve => {

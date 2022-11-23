@@ -9,10 +9,11 @@ const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 
 onMounted(() => {
 
-  if (typeof currentDevice.value.portId === 'undefined' && connectedDevices.value.length > 0){
+  if (typeof currentDevice.value.portId === 'undefined' && connectedDevices.value.length > 0) {
     currentDevice.value = connectedDevices.value[0]
   }
 })
+
 
 
 
@@ -25,7 +26,9 @@ onMounted(() => {
     <form class="asdf">
       <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.portId">
         <input type="radio" :id="dev.portId" :value="dev" v-model="currentDevice" />
-        <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
+        <code>
+         <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
+        </code>
       </label>
     </form>
   </div>
@@ -55,7 +58,7 @@ input[type="radio"]+svg {
 }
 
 .device-status-blob {
-  font-family: 'iosevka-makeshift Web';
+  font-family: 'Iosevka Makeshift Web';
   font-size: 11pt;
   width: fit-content;
   height: fit-content;

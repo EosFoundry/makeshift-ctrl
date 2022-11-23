@@ -1,16 +1,8 @@
 import { rmSync } from 'fs'
-import path from 'path'
 import { defineConfig } from 'vite'
-
-import { builtinModules } from 'node:module' 
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-electron-plugin'
-import { BuildOptions } from 'esbuild'
-// import { customStart } from 'vite-plugin-electron/plugin'
-
 import pkg from './package.json'
-import { validate } from 'uuid'
-import { render } from 'vue'
 
 const PACKAGE_ROOT = __dirname
 
@@ -47,13 +39,14 @@ export default defineConfig({
   clearScreen: false,
   build: {
     outDir: 'dist/client',
+    // minify: false,
     rollupOptions: {
       external: [
         'electron',
-        ...builtinModules.flatMap((p) => [p, `node:${p}`]),
       ],
       output: {
         inlineDynamicImports: true,
+        
         format:'esm'
       },
     },

@@ -1,20 +1,20 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+import './styles/colors.css'
+import './styles/fonts.css'
+import 'splitpanes/dist/splitpanes.css'
+
 import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
 import Toolbar from './components/Toolbar.vue'
 import StatusBar from './components/StatusBar.vue'
-import { emit } from 'process'
-import LayoutPanel from './components/LayoutPanel.vue'
-import helloString from './assets/examples/cues/hello.cue.mjs?raw'
+import CuePanel from './components/CuePanel.vue'
+import DevicePanel from './components/DevicePanel.vue'
 
-const editorContents = ref(`// Welcom to makesh*t-ctrl alpha!`)
+const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 provide<Ref<string>>('current-session', editorContents)
-const topPanelHeight = ref(65)
+const topPanelHeight = ref(69)
 const bottomPanelHeight = computed(() => {
 	return 100 - topPanelHeight.value
 })
@@ -23,40 +23,43 @@ function terminalResize(event: any) {
 	topPanelHeight.value = event[0].size
 }
 
-onMounted(() => {
-	nextTick(() => {
-		// this is a very cursed hack to get xterm to resize correctly
-		window.resizeBy(-1, -1)
-		window.resizeBy(1, 1)
-	})
+// this is a very cursed hack to get xterm to resize correctly
+nextTick(() => {
+	window.resizeBy(-1, -1)
+	window.resizeBy(1, 1)
 })
+
 </script>
 
 <template>
 	<!-- <h1></h1> -->
-	<Toolbar></Toolbar>
-	<splitpanes id="main-container" horizontal @resize="terminalResize">
-		<pane :size="topPanelHeight" min-size="45">
-			<splitpanes>
-				<pane min-size="30">
-					<layout-panel />
+	<toolbar />
+	<splitpanes id="main-container" horizontal>
+		<pane :size="topPanelHeight">
+			<splitpanes vertical>
+				<pane size="69">
+					<code-box />
 				</pane>
-				<pane size='80' min-size="30">
-					<code-box :pane-height-percent="topPanelHeight" />
+				<pane>
+					<cue-panel />
 				</pane>
 			</splitpanes>
 		</pane>
-		<pane min-size="20">
-			<terminal :pane-height-percent="bottomPanelHeight" />
+		<pane @resize="terminalResize">
+			<splitpanes vertical>
+				<pane size="69">
+					<terminal :pane-height-percent="bottomPanelHeight" />
+				</pane>
+				<pane>
+					<device-panel />
+				</pane>
+			</splitpanes>
 		</pane>
 	</splitpanes>
-	<StatusBar>
-
-	</StatusBar>
+	<!-- <status-bar /> -->
 </template>
 
 <style lang="scss">
-
 #app {
 	font-family: Encode Sans, Helvetica, Arial, sans-serif;
 
@@ -82,16 +85,17 @@ body {
 	height: 100%;
 }
 
-// code {
-// 	font-family: 'JetBrains Mono', 'iosevka-makeshift Web', monospace, monospace;	
-// }
+code {
+	font-family: 'Iosevka Makeshift', monospace, monospace;
+}
 
 input {
 	font-size: 12pt;
 	color: var(--color-text);
-	background-color: var(--color-bg);
+	background-color: var(--color-dark);
 	border-color: var(--color-hl);
 	caret-color: var(--color-neutral);
+	transition-duration: 0.2s;
 }
 
 
@@ -100,6 +104,7 @@ button {
 	box-sizing: border-box;
 	background-color: var(--color-primary);
 	color: var(--color-bg);
+	display: flex;
 
 	font-size: 11pt;
 	// margin: auto;
@@ -125,25 +130,21 @@ button {
 	}
 }
 
-
 :focus {
 	outline: 1px solid var(--color-primary);
 }
 
-.icon {
-	-webkit-mask-size: contain;
-	mask-size: contain;
-	-webkit-mask-position: center;
-	mask-position: center;
-	-webkit-mask-repeat: no-repeat;
-	mask-repeat: no-repeat;
-}
 
+.flex-col{
+	display: flex;
+	flex-direction: col;
+}
 
 #main-container {
 	box-sizing: border-box;
-	padding: 0px 4px;
+	padding: 4px;
 	width: 100%;
+	height: 100%;
 }
 
 .pane-border {
@@ -196,5 +197,15 @@ button {
 	}
 }
 
-// crapton of font loading
+.hidden {
+	position: absolute;
+	visibility: hidden;
+}
+
+.toolbar-cluster {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+}
 </style>

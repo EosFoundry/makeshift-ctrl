@@ -14,20 +14,19 @@
     "paths": {},
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "declaration": true,
+    "declarationDir": "./types/renderer",
     "types": [
       "vite/client"
     ]
   },
   "include": [
-    "src",
+    "src", 
     // "electron"
-  ],
-  "exclude": [
-    "src/assets/examples"
   ],
   "references": [
     {
-      "path": "./tsconfig.node.json"
+      "path": "./electron/tsconfig.json"
     }
   ]
 }

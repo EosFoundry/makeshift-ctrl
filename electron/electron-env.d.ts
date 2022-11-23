@@ -18,7 +18,8 @@ declare namespace NodeJS {
      * ```
      */
     VSCODE_DEBUG?: 'true'
-    PKGROOT: string
+    INSTALL_ROOT: string
+    APPROOT: string
     DIST: string
     DIST_ELECTRON: string
     DIST_CLIENT: string
@@ -31,5 +32,6 @@ declare namespace NodeJS {
     PLUGINS: string
     CUES: string
     TEMP: string
+    MakeShiftSerializedApi: string
   }
 }

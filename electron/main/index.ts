@@ -10,32 +10,56 @@
 // │ ├── ...other-static-files-from-public
 // │
 
-import { release } from 'os'
+// File handling imports
+import { release } from 'node:os'
 import { readdirSync } from 'node:fs'
-import { pathToFileURL } from 'node:url'
-import { Stream } from 'node:stream'
-import { dirname, join, resolve } from 'pathe'
-import * as Store from 'electron-store'
+import { readFile, writeFile } from 'node:fs/promises'
+import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'original-fs'
 import {
-  DeviceEvents, //event api
-  Ports, //device object
-  setLogLevel, setPortAuthorityLogLevel, //functions
-  getPortFingerPrintSnapShot,
-  PortAuthority,
-  MakeShiftPortAuthorityEvents,
+  resolve as resolvePosix,
+  normalize as normalizePosix,
+} from 'pathe'
+import { ensureDir, copyFile, ensureDirSync } from 'fs-extra'
+import * as chokidar from 'chokidar'
+import { pathToFileURL } from 'node:url'
+
+// electron related imports
+import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
+import * as Store from 'electron-store'
+
+// makeshift serial imports
+import {
+  // emitter apis
+  DeviceEvents,
   PortAuthorityEvents,
-  logRank,
-  LogLevel, LogMessage, MakeShiftPort, MsgLevel, startAutoScan, // types
+  // emitter objects
+  Ports,
+  PortAuthority,
+  // functions
+  getPortFingerPrintSnapShot,
+  startAutoScan,
+  setLogLevel,
+  setPortAuthorityLogLevel,
+  // types
+  LogLevel,
+  LogMessage,
+  MakeShiftPort,
+  MakeShiftPortFingerprint,
+  MsgLevel,
+  MakeShiftDeviceEvents,
 
 } from '@eos-makeshift/serial'
-// import { createWindow, restoreWindows } from './window.js'
-
-import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
+import { Msg, nspct2, nspect, logRank } from '@eos-makeshift/msg'
 import { plugins, loadPlugins, installPlugin } from './plugins'
 import { makeShiftIpcApi, storeKeys } from '../ipcApi'
-import { existsSync, mkdirSync, ReadStream, rmdirSync, rmSync } from 'original-fs'
-import { loadCue, unloadCue } from './cues'
-import { initCustomFormatter } from 'vue'
+import { ctrlLogger } from './utils'
+
+
+let nanoid
+import('nanoid').then((e) => {
+  nanoid = e.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
+})
 
 // Disallow multiple instances due to makeshift-serial resource locking
 if (!app.requestSingleInstanceLock()) {
@@ -48,35 +72,63 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
-type MakeShiftPortFingerprint = {
-  time: number,
-  devicePath: string,
-  portId: string,
-}
+
+// initializing all independent globals
+let attachedDeviceIds: MakeShiftPortFingerprint[] = []
+export let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+let menu: Menu | null = null
+
+const nodePathNormalize = normalize
+const store = new Store.default()
+const textDecoder = new TextDecoder()
 
 
-// Set up app directories
+export type CueMap = Map<string, Cue>
+
+// TODO: Fix the API so these are real
+export type DeviceId = string
+export type MakeShiftEvent = string
+export type DeviceLayout = Map<MakeShiftEvent, Cue>
+
+const cues: CueMap = new Map()
+const deviceLayouts: Map<DeviceId, DeviceLayout> = new Map()
+const loadedCues: { [key: string]: CueModule } = {}
+let cueWatcher: chokidar.FSWatcher
+
+// Log Levelup
+const msgen = new Msg({ host: 'Ctrl', logLevel: 'all' })
+msgen.logger = ctrlLogger
+const log = msgen.getLevelLoggers()
+
+// Set up app directories that are relative to install location
 const workingDir = __dirname
 const url = process.env.VITE_DEV_SERVER_URL as string
 
 process.env.DIST_ELECTRON = join(workingDir, '..')
-process.env.PKGROOT = join(process.env.DIST_ELECTRON, '../..')
-process.env.DIST = join(process.env.PKGROOT, 'dist')
+process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
+process.env.DIST = join(process.env.APPROOT, 'dist')
 process.env.DIST_CLIENT = join(process.env.DIST, 'client')
 if (app.isPackaged) {
+  msgen.logLevel = 'info'
+  process.env.INSTALLROOT = join(process.env.APPROOT, '../..')
   process.env.PUBLIC = process.env.DIST_CLIENT
   process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
 } else {
-  process.env.PUBLIC = join(process.env.PKGROOT, 'public')
-  process.env.ASSETS = join(process.env.PKGROOT, 'src/assets')
+  process.env.INSTALLROOT = process.env.APPROOT
+  process.env.PUBLIC = join(process.env.APPROOT, 'public')
+  process.env.ASSETS = join(process.env.APPROOT, 'src/assets')
 }
 
+// Set up AppData directories
 process.env.APPDATA = join(app.getPath('appData'), 'makeshift-ctrl')
 process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
-process.env.TEMP = join(process.env.APPDATA, 'temp')
+process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
 ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
+ensureDir(process.env.CUES)
+ensureDir(process.env.TEMP)
 // always cleanup temp from last startup
 if (existsSync(process.env.TEMP)) {
   rmSync(process.env.TEMP, {
@@ -94,70 +146,95 @@ const Api = makeShiftIpcApi
 process.env.MakeShiftSerializedApi = JSON.stringify(makeShiftIpcApi)
 
 
-// console.log('pkgroot:       ' + process.env.PKGROOT)
-// console.log('dist:          ' + process.env.DIST)
-// console.log('dist_electron: ' + process.env.DIST_ELECTRON)
-// console.log('dist_client:   ' + process.env.DIST_CLIENT)
-// console.log('assets:        ' + process.env.ASSETS)
-// console.log('public:        ' + process.env.PUBLIC)
+log.debug('pkgroot:       ' + process.env.APPROOT)
+log.debug('dist:          ' + process.env.DIST)
+log.debug('dist_electron: ' + process.env.DIST_ELECTRON)
+log.debug('dist_client:   ' + process.env.DIST_CLIENT)
+log.debug('assets:        ' + process.env.ASSETS)
+log.debug('public:        ' + process.env.PUBLIC)
+log.debug('appdata:       ' + process.env.APPDATA)
+log.debug('plugins:       ' + process.env.PLUGINS)
+log.debug('cues:          ' + process.env.CUES)
+log.debug('temp:          ' + process.env.TEMP)
 
-
-
-
-let attachedDeviceIds: MakeShiftPortFingerprint[] = []
-let mainWindow: BrowserWindow | null = null
-let tray: Tray | null = null
-let menu: Menu | null = null
-
-
-
-
-const store = new Store.default()
-// console.log('poop' + process.env.APPDATA)
-// console.log('butt' + process.env.PLUGINS)
-const windowTerm = {
-  log: function (loggable: string) {
-    const data = {
-      level: 'info',
-      message: loggable.toString(),
-      buffer: Buffer.from(loggable.toString())
-    } as LogMessage
-    if (mainWindow !== null) {
-      mainWindow.webContents.send(Api.onEv.terminal.data, data)
-    }
-    console.log(loggable)
-  }
-}
 
 loadPlugins()
+initCues()
 // loadPlugins(process.env.APPDATA)
-unloadCue()
 
 
 setLogLevel('none')
 setPortAuthorityLogLevel('none')
 
-ipcMain.handle(makeShiftIpcApi.get.events, async () => {
-  return DeviceEvents
-})
-ipcMain.handle(Api.test, loadCue)
+const ipcMainGetHandler = {
+  connectedDevices: () => getPortFingerPrintSnapShot(),
+  events: () => DeviceEvents,
+  logRank: () => logRank,
+  allCues: () => cues,
+  cueById: (id) => {
+    log.info(`got request for cue with id: ${id}`)
+    return cues.get(id)},
+  cueByFolder: (folder) => {
+    const cuesInFolder: CueMap = new Map()
+    cues.forEach((val, key) => {
+      if (val.folder === folder) {
+        cuesInFolder.set(key, val)
+      }
+    })
+    return cuesInFolder
+  },
+}
+const ipcMainSetHandler = {
+  cueFile: async (data: { cueId: string, contents: Uint8Array }) => {
+    const { cueId, contents } = data
+    // log.debug(nspct2(cueId))
+    log.debug(nspct2(data))
+    const contentString = textDecoder.decode(contents)
+    const fullPath = join(process.env.CUES, cueId)
 
-ipcMain.handle(Api.get.logRank, async () => { return logRank })
-ipcMain.handle(Api.get.connectedDevices, async () => {
-  // console.log(deviceList)
-  return getPortFingerPrintSnapShot()
+    try {
+      await writeFile(fullPath, contentString)
+      return fullPath
+    } catch (e) {
+      return ''
+    }
+  }
+}
+export type IpcMainGetHandler = typeof ipcMainGetHandler
+export type IpcMainSetHandler = typeof ipcMainSetHandler
+
+ipcMain.handle(Api.test, () => {
+  loadCueDialog().then((cue) => {
+    const normPath = nodePathNormalize(cue.path)
+
+    return cue
+  }).then((q) => {
+    // loadedCues[q.id].run()
+
+    // log.debug(nspct2(loadedCues[q.id]))
+    // log.debug(q)
+    // log.debug(Object.keys(require.cache).includes(q.modulePath))
+  })
 })
+
+for (const getter in makeShiftIpcApi.get) {
+  ipcMain.handle(makeShiftIpcApi.get[getter], (ev, data) => { return ipcMainGetHandler[getter](data) })
+}
+
+for (const setter in makeShiftIpcApi.set) {
+  ipcMain.handle(makeShiftIpcApi.set[setter], (ev, data) => { return ipcMainSetHandler[setter](data) })
+}
+log.debug(nspct2(makeShiftIpcApi.get))
 
 
 // const devices: MakeShiftPort[] = []
 
 
 app.whenReady().then(async () => {
-  console.log('App ready')
+  log.info('App ready')
 
   createMainWindow()
   startAutoScan()
-
 
 
   // const menu = Menu.buildFromTemplate([
@@ -200,7 +277,6 @@ async function createMainWindow() {
     windowPos = store.get(storeKeys.MainWindowState)
   }
 
-  console.log(join(process.env.ASSETS, 'icon/makeshiftctrl_bright.png'))
   mainWindow = new BrowserWindow({
     title: 'makeshift-ctrl',
     minWidth: 300,
@@ -241,7 +317,7 @@ async function createMainWindow() {
     }
 
     store.set(storeKeys.MainWindowState, newPosition)
-    console.log(newPosition)
+    log.info(newPosition)
 
     // detach listeners from PortAuth
     PortAuthority.removeListener(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
@@ -255,8 +331,8 @@ async function createMainWindow() {
     })
   })
   // mainWindow.on('move', () => {
-  //   console.log(mainWindow.getSize())
-  //   console.log(mainWindow.getPosition())
+  //   log.info(mainWindow.getSize())
+  //   log.info(mainWindow.getPosition())
   // })
 
 
@@ -268,18 +344,6 @@ async function createMainWindow() {
 
 }
 
-function ensureDir(path) {
-  if (existsSync(path) === false) {
-    try {
-      mkdirSync(path)
-    } catch (err) {
-      console.error(err);
-      if (err.code = 'ENOENT') {
-        console.error(err);
-      }
-    }
-  }
-}
 
 // these more or less handle logging, 
 // user written code is attached directly in the main process
@@ -303,12 +367,252 @@ async function serialLogToMainWindow(data: LogMessage) {
   mainWindow.webContents.send(Api.onEv.terminal.data, data)
 }
 
-async function save(data: string, path: string) {
-  existsSync(path)
-
+async function saveCueFile(data: Buffer, path: string) {
+  log.info(path)
 }
 
 // app.on('second-instance', () => {
 //   createWindow()
 // })
 
+
+// Cues
+
+function attachCue(deviceId: DeviceId, event: MakeShiftEvent, cueId: CueId) {
+  // try clobbering events first
+  const targetLayout = deviceLayouts.get(deviceId)
+  // if (targetLayout.has(event)) {
+  //   // find and remove the existing event
+  //   const existingCue = targetLayout.get(event)
+  //   Ports[deviceId].removeListener(event, loadedCues[existingCue.id].run)
+  // }
+  Ports[deviceId].removeAllListeners(event)
+  Ports[deviceId].on(event, loadedCues[cueId].run as any)
+  loadedCues[cueId].runTriggers.push({
+    deviceId: deviceId,
+    events: [event]
+  })
+}
+
+async function unloadCueModule(cue: Cue) {
+  // this deliberately does not detach any loaded cues
+  // to avoid running errors if an event is still attached
+  if (typeof loadedCues[cue.id] !== 'undefined') {
+    const moduleId = loadedCues[cue.id].moduleId
+    log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
+    delete require.cache[moduleId]
+  }
+}
+async function initCues() {
+  if (existsSync(join(process.env.CUES, 'examples'))) {
+
+  } else {
+    // this should be on first run or if the user nukes 
+    // the ../AppData/../makeshift-ctrl folder
+    const dest = join(process.env.CUES, 'examples')
+    const src = join(process.env.INSTALL_ROOT, 'examples')
+    const examples = readdirSync(src)
+    log.info(examples)
+    examples.forEach((filePath) => {
+      copyFileSync(join(src, filePath), join(dest, filePath))
+    })
+  }
+  cueWatcher = chokidar.watch(process.env.CUES, {
+    cwd: process.env.CUES
+  })
+  cueWatcher.on('ready', () => {
+    log.info('cueWatcher ready')
+  })
+  cueWatcher.on('add', path => cueHandler.add(path))
+  cueWatcher.on('change', path => cueHandler.add(path))
+  cueWatcher.on('unlink', path => cueHandler.unlink(path))
+  cueWatcher.on('addDir', path => log.info(`Dir ${path} has been added`))
+  cueWatcher.on('unlinkDir', path => log.info(`Dir ${path} has been unlinked`))
+  cueWatcher.on('error', err => log.info(`err ${err}`))
+}
+
+const cueHandler = {
+  add: async function (path) {
+    let newCue
+    try {
+      newCue = pathToCue(path)
+      cues.set(newCue.id, newCue)
+      newCue.contents = await readFile(newCue.fullPath)
+      cues.set(newCue.id, newCue)
+      newCue = await importCueModule(newCue)
+      cues.set(newCue.id, newCue)
+      log.debug(nspct2(newCue))
+    } catch (e) {
+      log.warn(`Checking cue: ${path} \n    ${e}`)
+    }
+    if (mainWindow !== null) {
+      mainWindow.webContents.send(Api.onEv.cue.added, newCue)
+    }
+  },
+  unlink: function (path) {
+    try {
+      const maybeCue = pathToCue(path)
+      if (mainWindow !== null) {
+        mainWindow.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
+      }
+      cues.delete(maybeCue.id)
+    } catch (e) {
+      log.error(`Unabled to load cue from ${path} => ${e}`)
+      return
+    }
+  },
+  addDir: function (path) { },
+  unlinkDir: function (path) { },
+  error: function (path) { },
+}
+
+function pathToCue(path): Cue {
+  const fileName = basename(path)
+  const folderName = dirname(path)
+  const fullPath = resolve(join(process.env.CUES, path))
+
+  let ext = '.cue.js'
+  if (fileName.endsWith('.cue.js')) { ext = '.cue.js' }
+  else if (fileName.endsWith('.js')) { ext = '.js' }
+  else if (fileName.endsWith('.mjs')) { ext = '.mjs' }
+  else if (fileName.endsWith('.cjs')) { ext = '.cjs' }
+  else {
+    throw 'Path given does not contain a cue file.'
+  }
+  const cueName = basename(fileName, ext)
+  log.debug(`Adding new file...`)
+  log.debug(`path: ${path}`)
+  log.debug(`url: ${nspct2(fullPath)}`)
+  log.debug(`folder: ${folderName}`)
+  log.debug(`file: ${fileName}`)
+  log.debug(`cueName: ${cueName}`)
+  const id = normalizePosix(path)
+  return {
+    id: id,
+    file: fileName,
+    fullPath: fullPath,
+    name: cueName,
+    folder: folderName,
+    modulePath: '',
+  } as Cue
+}
+
+// TODO: create temp directory for 'attached' cues
+async function importCueModule(cue: Cue) {
+  log.debug(`loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
+  if (typeof loadedCues[cue.id] !== 'undefined') {
+    // TODO: change to hash checking for better performance
+    unloadCueModule(cue)
+  }
+  // the temporary cue file naming scheme:
+  // [folder]-[name]_[id].cue.js
+  // where all the path separators are replaced with '-'
+  let moduleFile = cue.name + '_' + nanoid() + '.cue.js'
+  if (cue.folder !== '.' && cue.folder !== '' && cue.folder !== '..') {
+    moduleFile = cue.folder.replaceAll(pathSep, '-') + '-' + moduleFile
+  }
+
+  const modulePath = join(process.env.TEMP, 'cues', moduleFile)
+  const id = cue.id
+
+  log.debug(modulePath)
+  await ensureDir(join(process.env.TEMP, 'cues'))
+  await copyFile(cue.fullPath, modulePath)
+  loadedCues[id] = require(modulePath) as CueModule
+  loadedCues[id].moduleId = modulePath
+  const cueExports = Object.keys(loadedCues[id])
+  // log.debug(nspct2(require.cache))
+  // big fat type checker
+  if (cueExports.includes('requiredPlugins') && Array.isArray(loadedCues[id].requiredPlugins)
+    && cueExports.includes('plugins') && typeof loadedCues[id].plugins === 'object'
+    && cueExports.includes('setup') && typeof loadedCues[id].setup === 'function'
+    && cueExports.includes('run') && typeof loadedCues[id].run === 'function') {
+    if (typeof loadedCues[id].requiredPlugins !== 'undefined') {
+      loadedCues[id].requiredPlugins.forEach((pluginName) => {
+        if (typeof plugins[pluginName] !== 'undefined'
+          && pluginName !== 'ctrlTerm') {
+          loadedCues[id].plugins[pluginName] = plugins[pluginName]
+        }
+      })
+    }
+    loadedCues[id].plugins.msg = new Msg({
+      host: 'cue:' + id,
+      logger: ctrlLogger,
+      showTime: false,
+      logLevel: 'all'
+    })
+    loadedCues[id].plugins.ctrlTerm = loadedCues[id].plugins.msg.getLevelLoggers()
+    loadedCues[id].plugins.ctrlTerm.log = loadedCues[id].plugins.ctrlTerm.info
+    loadedCues[id].setup()
+    cue.modulePath = modulePath
+    return cue
+  } else {
+    unloadCueModule(cue)
+    delete loadedCues[id]
+    throw 'Module missing required exports.'
+  }
+}
+
+async function loadCueDialog() {
+  const openResult = await dialog.showOpenDialog({
+    filters: [
+      {
+        name: 'Javascript',
+        extensions: ['js', 'mjs', 'cjs']
+      },
+      {
+        name: 'All Files',
+        extensions: ['*'],
+      },
+    ],
+    properties: [
+      'openFile',
+    ]
+  })
+  if (openResult.canceled === false) {
+    try {
+      const fp = resolve(openResult.filePaths[0])
+      const pathUrl = pathToFileURL(fp)
+      let cueName = basename(fp)
+      let ext = '.cue.js'
+      if (cueName.endsWith('.cue.js')) { ext = '.cue.js' }
+      else if (cueName.endsWith('.js')) { ext = '.js' }
+      else if (cueName.endsWith('.mjs')) { ext = '.mjs' }
+      else if (cueName.endsWith('.cjs')) { ext = '.cjs' }
+      else {
+        //something has gone wrong
+      }
+
+      cueName = basename(fp, ext)
+
+      return {
+        name: cueName,
+        path: fp,
+      }
+    } catch (e) {
+      log.info(e)
+    }
+  }
+}
+
+type IModule = typeof Electron.CrossProcessExports
+
+export interface CueModule extends IModule {
+  requiredPlugins?: string[],
+  plugins?: any,
+  setup: Function,
+  run: () => void,
+  runTriggers?: { deviceId: string, events: string[] }[],
+  moduleId: string,
+}
+
+type CueId = string
+export interface Cue {
+  id: CueId,
+  file: string,
+  fullPath: string,
+  name: string,
+  folder: string,
+  contents?: Buffer
+  modulePath?: string
+}
