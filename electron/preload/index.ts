@@ -1,7 +1,7 @@
 // import { contextBridge, ipcRenderer } from 'electron'
-import { MakeShiftIpcApi } from '../ipcApi'
+import { CtrlIpcApi } from '../ipcApi'
 const election = require('electron')
-const MakeShiftApi: MakeShiftIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
+const MakeShiftApi: CtrlIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
 
 election.contextBridge.exposeInMainWorld('buttAPI', {
   onMPM: (callback: any) => election.ipcRenderer.on('main-process-message', callback),
@@ -26,10 +26,12 @@ function hydrate(section, handler: Function): any {
 
 const hydratedMakeShiftApi = {
   test: () => ipcRndr.invoke(MakeShiftApi.test),
+  call: hydrate(dryMakeShiftApi.call, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
   get: hydrate(dryMakeShiftApi.get, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
   set: hydrate(dryMakeShiftApi.set, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
   onEv: hydrate(dryMakeShiftApi.onEv, (evStr) => { return (cb: any) => ipcRndr.on(evStr, cb) }),
 }
+console.log(hydratedMakeShiftApi)
 
 
 // const hydratedApi = {

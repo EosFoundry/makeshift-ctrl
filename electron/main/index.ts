@@ -42,24 +42,28 @@ import {
   setLogLevel,
   setPortAuthorityLogLevel,
   // types
-  LogLevel,
   LogMessage,
   MakeShiftPort,
   MakeShiftPortFingerprint,
-  MsgLevel,
   MakeShiftDeviceEvents,
 
 } from '@eos-makeshift/serial'
-import { Msg, nspct2, nspect, logRank } from '@eos-makeshift/msg'
-import { plugins, loadPlugins, installPlugin } from './plugins'
-import { makeShiftIpcApi, storeKeys } from '../ipcApi'
-import { ctrlLogger } from './utils'
 
+import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
+import { plugins, initPlugins, installPlugin } from './plugins'
+import { ctrlIpcApi, storeKeys } from '../ipcApi'
+import { ctrlLogger } from './utils'
+import { json } from 'stream/consumers'
+import {
+  v4 as uuidv4,
+  v5 as uuidv5,
+} from 'uuid'
 
 let nanoid
 import('nanoid').then((e) => {
   nanoid = e.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 })
+
 
 // Disallow multiple instances due to makeshift-serial resource locking
 if (!app.requestSingleInstanceLock()) {
@@ -75,6 +79,7 @@ if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
 // initializing all independent globals
 let attachedDeviceIds: MakeShiftPortFingerprint[] = []
+let knownDevices: MakeShiftPortFingerprint[] = [];
 export let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let menu: Menu | null = null
@@ -89,10 +94,13 @@ export type CueMap = Map<string, Cue>
 // TODO: Fix the API so these are real
 export type DeviceId = string
 export type MakeShiftEvent = string
-export type DeviceLayout = Map<MakeShiftEvent, Cue>
+export type EventToCueMap = Map<MakeShiftEvent, CueId>
 
 const cues: CueMap = new Map()
-const deviceLayouts: Map<DeviceId, DeviceLayout> = new Map()
+const cueMapLayers: EventToCueMap[] = [
+  new Map()
+]
+let currentLayer = 0;
 const loadedCues: { [key: string]: CueModule } = {}
 let cueWatcher: chokidar.FSWatcher
 
@@ -111,11 +119,11 @@ process.env.DIST = join(process.env.APPROOT, 'dist')
 process.env.DIST_CLIENT = join(process.env.DIST, 'client')
 if (app.isPackaged) {
   msgen.logLevel = 'info'
-  process.env.INSTALLROOT = join(process.env.APPROOT, '../..')
+  process.env.INSTALL_ROOT = join(process.env.APPROOT, '../..')
   process.env.PUBLIC = process.env.DIST_CLIENT
   process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
 } else {
-  process.env.INSTALLROOT = process.env.APPROOT
+  process.env.INSTALL_ROOT = process.env.APPROOT
   process.env.PUBLIC = join(process.env.APPROOT, 'public')
   process.env.ASSETS = join(process.env.APPROOT, 'src/assets')
 }
@@ -125,6 +133,7 @@ process.env.APPDATA = join(app.getPath('appData'), 'makeshift-ctrl')
 process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
 process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
+
 ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
 ensureDir(process.env.CUES)
@@ -142,8 +151,26 @@ const htmlEntry = join(process.env.DIST_CLIENT, './index.html')
 
 
 // Set up app constants
-const Api = makeShiftIpcApi
-process.env.MakeShiftSerializedApi = JSON.stringify(makeShiftIpcApi)
+const Api = ctrlIpcApi
+function flattenEmitterApi(obj) {
+  const ret = []
+  for (const key in obj) {
+    if (typeof obj[key] === 'string') {
+      ret.push(obj[key])
+    } else {
+      const subArr = flattenEmitterApi(obj[key])
+      if (Array.isArray(subArr)) {
+        ret.push(...subArr)
+      } else {
+        ret.push(subArr)
+      }
+    }
+  }
+  return ret
+}
+const DeviceEventsFlat = flattenEmitterApi(DeviceEvents)
+process.env.MakeShiftSerializedApi = JSON.stringify(ctrlIpcApi)
+log.debug(nspct2(DeviceEventsFlat))
 
 
 log.debug('pkgroot:       ' + process.env.APPROOT)
@@ -158,22 +185,44 @@ log.debug('cues:          ' + process.env.CUES)
 log.debug('temp:          ' + process.env.TEMP)
 
 
-loadPlugins()
+// Initialize 
+if (store.has(storeKeys.UuidNamespace) === false) {
+  const namespace = uuidv4()
+  store.set(storeKeys.UuidNamespace, namespace)
+}
+process.env.NAMESPACE = store.get(storeKeys.UuidNamespace) as string
+initPlugins()
+initLayouts()
 initCues()
 // loadPlugins(process.env.APPDATA)
-
 
 setLogLevel('none')
 setPortAuthorityLogLevel('none')
 
+const ipcMainCallHandler = {
+  openCueFolder: () => shell.showItemInFolder(process.env.CUES),
+  runCue: async (cueId) => {
+    log.debug(`Running cue ${cueId}`)
+    try {
+      const importedCue = await importCueModule(cues.get(cueId))
+      cues.set(cueId, importedCue)
+      loadedCues[cueId].run()
+    } catch (e) {
+      log.error(`Cue ${cueId} could not be run\n\tIssue: ${e}`)
+    }
+  }
+}
+
 const ipcMainGetHandler = {
   connectedDevices: () => getPortFingerPrintSnapShot(),
   events: () => DeviceEvents,
+  eventsAsList: () => DeviceEventsFlat,
   logRank: () => logRank,
   allCues: () => cues,
   cueById: (id) => {
-    log.info(`got request for cue with id: ${id}`)
-    return cues.get(id)},
+    log.debug(`Getting cue with id: ${id}`)
+    return cues.get(id)
+  },
   cueByFolder: (folder) => {
     const cuesInFolder: CueMap = new Map()
     cues.forEach((val, key) => {
@@ -184,11 +233,12 @@ const ipcMainGetHandler = {
     return cuesInFolder
   },
 }
+
 const ipcMainSetHandler = {
   cueFile: async (data: { cueId: string, contents: Uint8Array }) => {
     const { cueId, contents } = data
     // log.debug(nspct2(cueId))
-    log.debug(nspct2(data))
+    log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
     const contentString = textDecoder.decode(contents)
     const fullPath = join(process.env.CUES, cueId)
 
@@ -198,33 +248,36 @@ const ipcMainSetHandler = {
     } catch (e) {
       return ''
     }
-  }
+  },
+  cueForEvent: attachCueToEvent,
 }
+export type IpcMainCallHandler = typeof ipcMainCallHandler
 export type IpcMainGetHandler = typeof ipcMainGetHandler
 export type IpcMainSetHandler = typeof ipcMainSetHandler
 
 ipcMain.handle(Api.test, () => {
-  loadCueDialog().then((cue) => {
-    const normPath = nodePathNormalize(cue.path)
-
-    return cue
-  }).then((q) => {
-    // loadedCues[q.id].run()
-
-    // log.debug(nspct2(loadedCues[q.id]))
-    // log.debug(q)
-    // log.debug(Object.keys(require.cache).includes(q.modulePath))
-  })
+  log.debug(`testerino`)
 })
 
-for (const getter in makeShiftIpcApi.get) {
-  ipcMain.handle(makeShiftIpcApi.get[getter], (ev, data) => { return ipcMainGetHandler[getter](data) })
+for (const caller in ctrlIpcApi.call) {
+  ipcMain.handle(ctrlIpcApi.call[caller], (ev, data) => {
+    return ipcMainCallHandler[caller](data)
+  })
 }
 
-for (const setter in makeShiftIpcApi.set) {
-  ipcMain.handle(makeShiftIpcApi.set[setter], (ev, data) => { return ipcMainSetHandler[setter](data) })
+for (const getter in ctrlIpcApi.get) {
+  ipcMain.handle(ctrlIpcApi.get[getter], (ev, data) => {
+    return ipcMainGetHandler[getter](data)
+  })
 }
-log.debug(nspct2(makeShiftIpcApi.get))
+
+for (const setter in ctrlIpcApi.set) {
+  ipcMain.handle(ctrlIpcApi.set[setter], (ev, data) => {
+    return ipcMainSetHandler[setter](data)
+  })
+}
+
+log.debug(nspct2(ctrlIpcApi.get))
 
 
 // const devices: MakeShiftPort[] = []
@@ -233,6 +286,7 @@ log.debug(nspct2(makeShiftIpcApi.get))
 app.whenReady().then(async () => {
   log.info('App ready')
 
+  PortAuthority.addListener(PortAuthorityEvents.port.opened, addKnownDevice)
   createMainWindow()
   startAutoScan()
 
@@ -254,8 +308,6 @@ app.whenReady().then(async () => {
   // ])
   // Menu.setApplicationMenu(menu)
 
-  // Scan only when app has loaded properly
-
 }) //app.whenReady
 
 app.on('window-all-closed', () => {
@@ -264,6 +316,10 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+/**
+ * Main Window section
+ */
 
 async function createMainWindow() {
   let windowPos = {
@@ -376,43 +432,22 @@ async function saveCueFile(data: Buffer, path: string) {
 // })
 
 
-// Cues
+/**
+ * Cue Section
+ */
 
-function attachCue(deviceId: DeviceId, event: MakeShiftEvent, cueId: CueId) {
-  // try clobbering events first
-  const targetLayout = deviceLayouts.get(deviceId)
-  // if (targetLayout.has(event)) {
-  //   // find and remove the existing event
-  //   const existingCue = targetLayout.get(event)
-  //   Ports[deviceId].removeListener(event, loadedCues[existingCue.id].run)
-  // }
-  Ports[deviceId].removeAllListeners(event)
-  Ports[deviceId].on(event, loadedCues[cueId].run as any)
-  loadedCues[cueId].runTriggers.push({
-    deviceId: deviceId,
-    events: [event]
-  })
-}
 
-async function unloadCueModule(cue: Cue) {
-  // this deliberately does not detach any loaded cues
-  // to avoid running errors if an event is still attached
-  if (typeof loadedCues[cue.id] !== 'undefined') {
-    const moduleId = loadedCues[cue.id].moduleId
-    log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
-    delete require.cache[moduleId]
-  }
-}
 async function initCues() {
-  if (existsSync(join(process.env.CUES, 'examples'))) {
+  const examplesFolder = join(process.env.CUES, 'examples')
+  if (existsSync(examplesFolder)) {
 
   } else {
     // this should be on first run or if the user nukes 
     // the ../AppData/../makeshift-ctrl folder
-    const dest = join(process.env.CUES, 'examples')
+    const dest = examplesFolder
     const src = join(process.env.INSTALL_ROOT, 'examples')
+    await ensureDir(dest)
     const examples = readdirSync(src)
-    log.info(examples)
     examples.forEach((filePath) => {
       copyFileSync(join(src, filePath), join(dest, filePath))
     })
@@ -435,11 +470,9 @@ const cueHandler = {
   add: async function (path) {
     let newCue
     try {
-      newCue = pathToCue(path)
+      newCue = newCueFromPath(path)
       cues.set(newCue.id, newCue)
       newCue.contents = await readFile(newCue.fullPath)
-      cues.set(newCue.id, newCue)
-      newCue = await importCueModule(newCue)
       cues.set(newCue.id, newCue)
       log.debug(nspct2(newCue))
     } catch (e) {
@@ -451,7 +484,7 @@ const cueHandler = {
   },
   unlink: function (path) {
     try {
-      const maybeCue = pathToCue(path)
+      const maybeCue = newCueFromPath(path)
       if (mainWindow !== null) {
         mainWindow.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
       }
@@ -466,7 +499,7 @@ const cueHandler = {
   error: function (path) { },
 }
 
-function pathToCue(path): Cue {
+function newCueFromPath(path): Cue {
   const fileName = basename(path)
   const folderName = dirname(path)
   const fullPath = resolve(join(process.env.CUES, path))
@@ -499,7 +532,7 @@ function pathToCue(path): Cue {
 
 // TODO: create temp directory for 'attached' cues
 async function importCueModule(cue: Cue) {
-  log.debug(`loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
+  log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
   if (typeof loadedCues[cue.id] !== 'undefined') {
     // TODO: change to hash checking for better performance
     unloadCueModule(cue)
@@ -507,7 +540,12 @@ async function importCueModule(cue: Cue) {
   // the temporary cue file naming scheme:
   // [folder]-[name]_[id].cue.js
   // where all the path separators are replaced with '-'
-  let moduleFile = cue.name + '_' + nanoid() + '.cue.js'
+  let moduleFile = cue.name
+  moduleFile += '_'
+  moduleFile += uuidv5(cue.name, process.env.NAMESPACE)
+  // moduleFile += nanoid()
+  moduleFile += '.cue.js'
+
   if (cue.folder !== '.' && cue.folder !== '' && cue.folder !== '..') {
     moduleFile = cue.folder.replaceAll(pathSep, '-') + '-' + moduleFile
   }
@@ -543,6 +581,7 @@ async function importCueModule(cue: Cue) {
     })
     loadedCues[id].plugins.ctrlTerm = loadedCues[id].plugins.msg.getLevelLoggers()
     loadedCues[id].plugins.ctrlTerm.log = loadedCues[id].plugins.ctrlTerm.info
+    loadedCues[id].runTriggers = []
     loadedCues[id].setup()
     cue.modulePath = modulePath
     return cue
@@ -552,6 +591,56 @@ async function importCueModule(cue: Cue) {
     throw 'Module missing required exports.'
   }
 }
+
+async function unloadCueModule(cue: Cue) {
+  // this deliberately does not detach any loaded cues
+  // to avoid running errors if an event is still attached
+  if (typeof loadedCues[cue.id] !== 'undefined') {
+    const moduleId = loadedCues[cue.id].moduleId
+    log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
+    delete require.cache[moduleId]
+  }
+}
+
+async function attachCueToEvent({ event, cueId }:
+  {
+    event: MakeShiftEvent;
+    cueId: CueId
+  }
+) {
+  if (Object.keys(Ports).length > 0) {
+    const deviceId = knownDevices[0].portId;
+    // TODO: set up layouts by default
+    if (cueMapLayers[currentLayer].has(event)) {
+      log.debug(`Attempting to unload existing event: ${event}`)
+      // find and remove the existing event
+      const mappedCueId = cueMapLayers[currentLayer].get(event)
+      log.debug(`existing cue: ${nspct2(mappedCueId)}`)
+      Ports[deviceId].removeListener(event, loadedCues[mappedCueId].run)
+    }
+    log.debug(`Attaching cue ${cueId} to ${event}`)
+    try {
+      const importedCue = await importCueModule(cues.get(cueId))
+      cues.set(cueId, importedCue)
+
+      // // clobbering all events is an option if the above is buggy
+      // Ports[deviceId].removeAllListeners(event)
+
+      Ports[deviceId].on(event, loadedCues[cueId].run as any)
+      cueMapLayers[currentLayer].set(event, cueId)
+      loadedCues[cueId].runTriggers.push({
+        deviceId: deviceId,
+        events: [event]
+      })
+      log.info(`Cue ${cueId} set to run for event: ${event}`)
+    } catch (e) {
+      log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
+    }
+  } else {
+    log.error('No MakeShift device found, cue not attached')
+  }
+}
+
 
 async function loadCueDialog() {
   const openResult = await dialog.showOpenDialog({
@@ -596,17 +685,17 @@ async function loadCueDialog() {
 }
 
 type IModule = typeof Electron.CrossProcessExports
+type CueId = string
 
 export interface CueModule extends IModule {
   requiredPlugins?: string[],
   plugins?: any,
   setup: Function,
   run: () => void,
-  runTriggers?: { deviceId: string, events: string[] }[],
+  runTriggers: { deviceId: string, events: string[] }[],
   moduleId: string,
 }
 
-type CueId = string
 export interface Cue {
   id: CueId,
   file: string,
@@ -615,4 +704,20 @@ export interface Cue {
   folder: string,
   contents?: Buffer
   modulePath?: string
+}
+
+/**
+ * Layout section
+ */
+
+function initLayouts() {
+  let savedLayouts = store.get(storeKeys.DeviceLayouts, null) as EventToCueMap[]
+  if (savedLayouts !== null) {
+    for (const devId in savedLayouts.keys()) {
+    }
+  }
+}
+
+async function addKnownDevice(fp: MakeShiftPortFingerprint) {
+  knownDevices.push(fp)
 }

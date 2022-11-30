@@ -1,14 +1,13 @@
-
 <script setup lang="ts">
 const props = defineProps<{
   iconUrl: string,
   size?: string,
   // height?: string,
   color?: string,
-  click?: boolean,
+  hoverColor?: string,
+  clickable?: boolean,
   title?: string,
 }>()
-
 </script>
 <template>
   <div class="icon" :style="{
@@ -16,8 +15,8 @@ const props = defineProps<{
     width: props.size ? props.size : '20px',
     maskImage: `url(${props.iconUrl})`,
     backgroundColor: props.color ? props.color : 'var(--color-secondary2)',
-    cursor: props.click? 'pointer': 'default',
-  }" :title="props.title"/>
+    cursor: props.clickable ? 'pointer' : 'default',
+  }" :title="props.title" />
 </template>
 <style>
 .icon {
@@ -28,5 +27,6 @@ const props = defineProps<{
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   display: inline flex;
+  transition-duration: 0.2s;
 }
 </style>

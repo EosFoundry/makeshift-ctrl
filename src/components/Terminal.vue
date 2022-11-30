@@ -12,25 +12,28 @@ import { FitAddon } from 'xterm-addon-fit'
 import { LigaturesAddon } from 'xterm-addon-ligatures'
 import { WebglAddon } from 'xterm-addon-webgl'
 
-import { MakeShiftDeviceEvents, LogLevel, LogMessage } from '@eos-makeshift/serial'
+import { MakeShiftDeviceEvents, LogMessage } from '@eos-makeshift/serial'
+import { LogLevel } from '@eos-makeshift/msg'
 
 // local file imports
 import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
 import chevronUpUrl from '../assets/icon/bootstrap/chevron-up.svg?url'
 import chevronDownUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
-import  TextButton  from './TextButton.vue'
-import { rndrMakeShiftAPI } from 'src/renderer'
+import TextButton from './TextButton.vue'
+import { rndrCtrlAPI } from 'src/renderer'
 import { watchResize } from '../composables/resizer'
 
 // reactive elements
-const makeshift = inject('makeshift') as rndrMakeShiftAPI
+const makeshift = inject('makeshift') as rndrCtrlAPI
 const logLevel = inject('logLevel') as Ref<LogLevel>
 const logRank = inject('makeshift-logRank') as any
 
 const chevronUrl = ref(chevronUpUrl)
 const cliInputDisplay = ref('none')
 const xtermContainerElement = ref<HTMLElement>()
+const xtermWrapperElement = ref<HTMLElement>()
 const terminalCommand = ref('')
+const paneHeight = ref()
 
 const props = defineProps<{
   paneHeightPercent?: number
@@ -56,6 +59,8 @@ const fitAddon = new FitAddon()
 const ligaturesAddon = new LigaturesAddon()
 const webGlAddon = new WebglAddon()
 
+let lastFit = Date.now()
+const fitDebounceTime = 90
 
 
 function fitTerm() {
@@ -96,33 +101,31 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
-  nextTick(() => {
-    terminal = new Terminal(xtermConfig)
-    terminal.open(xtermContainerElement.value as HTMLElement);
-    terminal.loadAddon(fitAddon);
-    terminal.loadAddon(ligaturesAddon);
-    terminal.loadAddon(webGlAddon);
+  terminal = new Terminal(xtermConfig)
+  terminal.open(xtermContainerElement.value as HTMLElement);
+  terminal.loadAddon(fitAddon);
+  terminal.loadAddon(ligaturesAddon);
+  // terminal.loadAddon(webGlAddon);
 
-    terminal.clear();
-    terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
-    fitTerm()
+  terminal.clear();
+  terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
 
-    makeshift.onEv.terminal.data(LogEventHandler)
-    watchResize(xtermContainerElement.value as HTMLElement, fitTerm)
-    fitTerm()
-  })
+  watchResize(xtermContainerElement.value as HTMLElement, fitTerm)
+  makeshift.onEv.terminal.data(LogEventHandler)
 })
-
 
 // fit every last one of them
 watch(
-  () => props.paneHeightPercent,
-  (newHeight, oldHeight) => { fitTerm() })
+  () => paneHeight.value,
+  (newHeight, oldHeight) => {
+    console.log(newHeight)
+    fitTerm()
+  })
 
 </script>
 
 <template>
-  <div class="xterm-border pane-border">
+  <div class="xterm-border pane-border" ref="xtermWrapperElement">
     <div class="pane-rounded-inner xterm-inner" :style="{ backgroundColor: makeShiftTheme.background }">
       <div ref="xtermContainerElement" class="xterm-container" />
     </div>
@@ -200,16 +203,16 @@ watch(
 
 
 .xterm-container {
-  /* box-sizing: border-box; */
+  box-sizing: border-box;
   font-family: 'Iosevka Makeshift';
-  position: relative;
+  position: sticky;
   text-align: left;
   bottom: -10px;
   left: 0px;
   /* width: 100%; */
   height: 100%;
   /* padding: 4px; */
-  overflow: scroll;
+  overflow: hidden;
 }
 
 /**

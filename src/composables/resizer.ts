@@ -1,6 +1,6 @@
 import { Ref, unref } from "vue";
 
-const resizeDebounceInterval = 5;
+const resizeDebounceInterval = 50;
 let resizeTimeout: any = -1;
 let resizer: ResizeObserver
 
@@ -10,9 +10,9 @@ export function watchResize(
 ) {
   const target = unref(maybeRefTarget)
   resizer = new ResizeObserver(() => {
-    clearTimeout(resizeTimeout)
-    const t = Date.now()
-    resizeTimeout = setTimeout(callback, resizeDebounceInterval)
+    callback()
+    // if (resizeTimeout !== -1) { clearTimeout(resizeTimeout) }
+    // resizeTimeout = setTimeout(callback, resizeDebounceInterval)
   })
   resizer.observe(target)
 }

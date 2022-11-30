@@ -18,6 +18,8 @@ declare namespace NodeJS {
      * ```
      */
     VSCODE_DEBUG?: 'true'
+
+    //---------- Folders
     INSTALL_ROOT: string
     APPROOT: string
     DIST: string
@@ -32,6 +34,11 @@ declare namespace NodeJS {
     PLUGINS: string
     CUES: string
     TEMP: string
+
+    //---------- Constants
+    NAMESPACE:string
+    
+    //---------- Objects
     MakeShiftSerializedApi: string
   }
 }

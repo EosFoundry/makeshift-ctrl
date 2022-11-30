@@ -1,7 +1,12 @@
-export declare const makeShiftIpcApi: {
+export declare const ctrlIpcApi: {
     test: string;
+    call: {
+        openCueFolder: string;
+        runCue: string;
+    };
     get: {
         events: string;
+        eventsAsList: string;
         connectedDevices: string;
         logRank: string;
         allCues: string;
@@ -10,6 +15,7 @@ export declare const makeShiftIpcApi: {
     };
     set: {
         cueFile: string;
+        cueForEvent: string;
     };
     onEv: {
         cue: {
@@ -27,7 +33,9 @@ export declare const makeShiftIpcApi: {
     };
 };
 export declare const storeKeys: {
+    UuidNamespace: string;
     MainWindowState: string;
+    DeviceLayouts: string;
 };
-export declare type MakeShiftIpcApi = typeof makeShiftIpcApi;
-export declare type StoreKeys = typeof storeKeys;
+export type CtrlIpcApi = typeof ctrlIpcApi;
+export type StoreKeys = typeof storeKeys;

@@ -1,6 +1,7 @@
 import { createApp, Ref, ref, watch } from 'vue'
 import { customAlphabet } from 'nanoid'
-import { LogLevel, MakeShiftPortFingerprint } from '@eos-makeshift/serial'
+import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
+import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/index'
 import App from './App.vue'
 
@@ -26,6 +27,8 @@ const cueRoot: Folder = {
     cueDirectory: ref(cueRoot) as Ref<Folder>,
     logLevel: ref('info') as Ref<LogLevel>,
     Events: await window.MakeShiftCtrl.get.events(),
+    EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
+    selectedEvent: ref('dial-01-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
     initialDevices: await window.MakeShiftCtrl.get.connectedDevices(),
   }
@@ -86,13 +89,15 @@ const cueRoot: Folder = {
 })().then((state) => {
   const app = createApp(App)
     .provide('logLevel', state.logLevel)
+    .provide('makeshift-logRank', state.logRank)
+    .provide('makeshift-events', state.Events)
+    .provide('makeshift-events-flat', state.EventsList)
+    .provide('selected-event', state.selectedEvent)
     .provide('makeshift', state.makeShift)
     .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('current-device', state.currentDevice)
-    .provide('makeshift-logRank', state.logRank)
     .provide('cues', state.cues)
     .provide('cue-directory', state.cueDirectory)
-    .provide('makeshift-events', state.Events)
     .provide('nanoid', nanoid)
     .mount('#app')
     .$nextTick(() => {

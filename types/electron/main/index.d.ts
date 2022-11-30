@@ -2,10 +2,14 @@
 import { BrowserWindow } from 'electron';
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial';
 export declare let mainWindow: BrowserWindow | null;
-export declare type CueMap = Map<string, Cue>;
-export declare type DeviceId = string;
-export declare type MakeShiftEvent = string;
-export declare type DeviceLayout = Map<MakeShiftEvent, Cue>;
+export type CueMap = Map<string, Cue>;
+export type DeviceId = string;
+export type MakeShiftEvent = string;
+export type EventToCueMap = Map<MakeShiftEvent, CueId>;
+declare const ipcMainCallHandler: {
+    openCueFolder: () => void;
+    runCue: (cueId: any) => Promise<void>;
+};
 declare const ipcMainGetHandler: {
     connectedDevices: () => MakeShiftPortFingerprint[];
     events: () => {
@@ -25,14 +29,15 @@ declare const ipcMainGetHandler: {
             STATE_UPDATE: string;
         };
         Terminal: {
-            Log: import("@eos-makeshift/serial").MsgLvStringMap;
+            Log: import("@eos-makeshift/msg").MsgLvStringMap;
         };
     };
+    eventsAsList: () => any[];
     logRank: () => {
         all: number;
         debug: number;
-        info: number;
         deviceEvent: number;
+        info: number;
         warn: number;
         error: number;
         fatal: number;
@@ -47,22 +52,28 @@ declare const ipcMainSetHandler: {
         cueId: string;
         contents: Uint8Array;
     }) => Promise<string>;
+    cueForEvent: typeof attachCueToEvent;
 };
-export declare type IpcMainGetHandler = typeof ipcMainGetHandler;
-export declare type IpcMainSetHandler = typeof ipcMainSetHandler;
-declare type IModule = typeof Electron.CrossProcessExports;
+export type IpcMainCallHandler = typeof ipcMainCallHandler;
+export type IpcMainGetHandler = typeof ipcMainGetHandler;
+export type IpcMainSetHandler = typeof ipcMainSetHandler;
+declare function attachCueToEvent({ event, cueId }: {
+    event: MakeShiftEvent;
+    cueId: CueId;
+}): Promise<void>;
+type IModule = typeof Electron.CrossProcessExports;
+type CueId = string;
 export interface CueModule extends IModule {
     requiredPlugins?: string[];
     plugins?: any;
     setup: Function;
     run: () => void;
-    runTriggers?: {
+    runTriggers: {
         deviceId: string;
         events: string[];
     }[];
     moduleId: string;
 }
-declare type CueId = string;
 export interface Cue {
     id: CueId;
     file: string;

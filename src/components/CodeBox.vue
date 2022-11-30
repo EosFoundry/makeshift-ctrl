@@ -10,15 +10,18 @@ import { ref, markRaw, watch, nextTick, reactive, onMounted, inject, Ref, comput
 import ace, { edit, type Ace } from 'ace-builds'
 import 'ace-builds' // this needs to be called for ace.define to exist
 
+import newCueIcon from '../assets/icon/bootstrap/plus-circle.svg?url'
 import saveIcon from '../assets/icon/bootstrap/save.svg?url'
+import testCueIcon from '../assets/icon/bootstrap/play-circle.svg?url'
+import assignCueIcon from '../assets/icon/bootstrap/box-arrow-in-right.svg?url'
 import editPathIcon from '../assets/icon/bootstrap/pencil-square.svg?url'
-import savePathIcon from '../assets/icon/bootstrap/clipboard-check.svg?url'
+import savePathIcon from '../assets/icon/bootstrap/check2-square.svg?url'
 import breadcrumbIcon from '../assets/icon/bootstrap/chevron-compact-right.svg?url'
-import fileUnsavedIcon from '../assets/icon/bootstrap/file-diff.svg?url'
-import fileSavedIcon from '../assets/icon/bootstrap/file-check.svg?url'
-import { MakeShiftPortFingerprint } from "@eos-makeshift/serial";
-import { executionAsyncResource } from "async_hooks";
-import icon from './icon.vue'
+import fileUnsavedIcon from '../assets/icon/bootstrap/check-circle-fill.svg?url'
+import fileSavedIcon from '../assets/icon/bootstrap/file-earmark-check.svg?url'
+import { MakeShiftDeviceEvents, MakeShiftPortFingerprint } from "@eos-makeshift/serial";
+import Icon from './Icon.vue'
+import IconButton from './IconButton.vue'
 import toolbarSpacer from './ToolBarSpacer.vue'
 import { watchResize } from "../composables/resizer";
 import { Cue, CueMap } from "types/electron/main";
@@ -29,6 +32,8 @@ const editorContents = inject('current-session') as Ref<string>
 const acePath = import.meta.env.BASE_URL + 'ace-pkg/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
+const selectedEvent = inject('selected-event') as Ref<string>
+const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
 // console.log(acePath)
 
 ace.config.set("basePath", acePath)
@@ -44,20 +49,29 @@ const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
 
+let defaultCueNum = 0;
+function getBlankCueName() {
+  const now = new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: '2-digit',
+  }).format(new Date())
+    .replace(/\ /, '')
 
-const now = new Intl.DateTimeFormat('en', {
-  month: 'short',
-  day: '2-digit',
-}).format(new Date())
-  .replace(/\ /, '')
-
-const newCue: Cue = {
-  id: `cue_${now}.cue.js`,
-  file: `cue_${now}.cue.js`,
-  fullPath: '',
-  name: `cue_${now}`,
-  folder: '',
+  return now + '_' + defaultCueNum
 }
+function createBlankCue() {
+  const qName = getBlankCueName()
+  const cue = {
+    id: `${qName}.cue.js`,
+    file: `${qName}.cue.js`,
+    fullPath: '',
+    name: qName,
+    folder: '',
+  }
+  return cue
+}
+
+const newCue: Cue = createBlankCue()
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 const saveButtonHoverColor = ref('var(--color-bg)')
@@ -113,13 +127,24 @@ const saveStateStyles = reactive({
   iconUrl: fileSavedIcon,
 })
 
+window.MakeShiftCtrl.onEv.cue.removed((e, q) => {
+  console.log(q)
+  if (cueId.value === q.id) {
+    hasSaveFile.value = false
+    cueFullPath.value = ''
+  }
+})
 
 let autoSaveInterval = null
 onMounted(() => nextTick(async () => {
   const existingCue = await window.MakeShiftCtrl.get.cueById(cueId.value)
-  if (typeof existingCue !== 'undefined') {
+  if (typeof existingCue !== 'undefined'
+    && typeof existingCue.contents !== 'undefined') {
+    hasSaveFile.value = true
     cueFullPath.value = existingCue.fullPath
     cueFolder.value = existingCue.folder
+    cueName.value = existingCue.name
+    editorContents.value = textDecoder.decode(existingCue.contents)
   }
 
   editor = ace.edit("codebox-editor") as Ace.Editor
@@ -133,12 +158,13 @@ onMounted(() => nextTick(async () => {
       saveCue()
     }
   });
-
   editor.setTheme('ace/theme/twilight')
+  editor.setOption('fontFamily', 'Iosevka MakeShift')
+  // editor.setOption('fontSpacing', 'Iosevka MakeShift')
+  editor.setFontSize(15);
   editor.setOption('useSoftTabs', true)
   editor.setOption('tabSize', 2)
   editor.setKeyboardHandler('ace/keyboard/vim');
-  editor.setFontSize(16);
   (editor as any).session.on('changeMode', (e: any, session: any) => {
     if ("ace/mode/javascript" === session.getMode().$id) {
       if (typeof session.$worker !== 'undefined') {
@@ -165,29 +191,67 @@ onMounted(() => nextTick(async () => {
     editorContents.value = editor.getValue()
   })
 
-  autoSaveInterval = setInterval(checkAutoSaveTime, autoSaveWaitTime);
+  autoSaveInterval = setInterval(checkAutoSave, autoSaveWaitTime);
   watchResize(codeboxEditorElement.value as HTMLElement, fitCodebox)
   window.addEventListener('loadCue', (ev: any) => { loadCue(ev.detail) })
 }))
 
+async function createCue() {
+  if (hasSaveFile.value) {
+    await saveCue()
+  }
+  hasSaveFile.value = false
+  cueSaved.value = true
+  const cue = createBlankCue()
+  cueName.value = cue.name
+  cueFolder.value = '.'
+  cueFullPath.value = ''
+  editor.setValue('')
+}
+
 async function saveCue() {
   const id = cueId.value
   const contents = textEncoder.encode(editor.getValue())
-  window.MakeShiftCtrl.set.cueFile({
+  console.log(`Saving cue ${cue.value}`)
+  const fullPath = await window.MakeShiftCtrl.set.cueFile({
     cueId: id,
     contents: contents,
-  }).then((fullPath) => {
-    cueFullPath.value = fullPath
-    console.log(cueFullPath.value)
-    cueSaved.value = true
   })
+  if (cueName.value === getBlankCueName()) {
+    defaultCueNum++;
+  }
+  if (hasSaveFile.value === false) {
+    hasSaveFile.value = true
+  }
+  cueFullPath.value = fullPath
+  cueSaved.value = true
+  console.log(`Cue saved to ${fullPath}`)
 }
 
-function loadCue(cueId: string) {
-  // saveCue()
-  const newCue = cues.value.get(cueId)
-  console.log(`asdf ${cueId}`)
-  if (newCue?.contents) {
+async function assignCueToEvent() {
+  console.log(`uploading cue ${cue.value}`)
+  const deviceId = currentDevice.value.portId
+  const id = cueId.value
+  const contents = textEncoder.encode(editor.getValue())
+  await saveCue()
+  await window.MakeShiftCtrl.set.cueForEvent({
+    event: selectedEvent.value,
+    cueId: cueId.value,
+  })
+  console.log(`cue uploaded`)
+}
+
+async function testCue(){
+  await saveCue()
+  window.MakeShiftCtrl.call.runCue(cueId.value)
+}
+
+async function loadCue(cueId: string) {
+  saveCue()
+  const newCue = await window.MakeShiftCtrl.get.cueById(cueId)
+  console.log(`Loading ${cueId}`)
+  console.log(newCue)
+  if (typeof newCue !== 'undefined') {
     editor.setValue(textDecoder.decode(newCue.contents))
     cueName.value = newCue.name
     cueFolder.value = newCue.folder
@@ -195,12 +259,11 @@ function loadCue(cueId: string) {
   }
 }
 
-function checkAutoSaveTime() {
+
+function checkAutoSave() {
   const delta = Date.now() - saveStateStyles.lastChange
   if (hasSaveFile.value && delta > autoSaveWaitTime && cueSaved.value === false) {
     saveCue()
-    console.log('saved!')
-    cueSaved.value = true
   }
 }
 
@@ -223,16 +286,16 @@ watch(
   }
 )
 
-watch(
-  () => cueFullPath.value,
-  (fullPath) => {
-    if (fullPath === '') {
-      hasSaveFile.value = false
-    } else {
-      hasSaveFile.value = true
-    }
-  }
-)
+// watch(
+//   () => cueFullPath.value,
+//   (fullPath) => {
+//     if (fullPath === '') {
+//       hasSaveFile.value = false
+//     } else {
+//       hasSaveFile.value = true
+//     }
+//   }
+// )
 
 </script>
 
@@ -244,12 +307,33 @@ watch(
     {{ cueName }}
   </div>
   <div class="pane-border codebox-border">
-    <div id="codebox-toolbar">
+    <div class="toolbar">
+      <div class="toolbar-cluster left">
+        <toolbar-spacer width="2px" />
+        <text-button :icon-url="newCueIcon" @click="createCue">
+          new cue
+        </text-button>
+        <toolbar-spacer width="8px" />
+        <text-button :icon-url="saveIcon" @click="saveCue">
+          save
+        </text-button>
+      </div>
+      <div class="toolbar-cluster right">
+        <text-button :icon-url="testCueIcon" @click="testCue">
+          test
+        </text-button>
+        <toolbar-spacer width="8px" />
+        <text-button :icon-url="assignCueIcon" @click="assignCueToEvent">
+          assign to event
+        </text-button>
+      </div>
+    </div>
+    <div class="toolbar thin">
       <div class="toolbar-cluster left">
         <div v-if="editCuePath === false" class="toolbar-cluster" style="transition-duration: 0.2s;">
           <toolbar-spacer width="4px" title="Edit save path" />
-          <icon :icon-url="editPathIcon" size="18px" :click="true" color="var(--color-neutral)"
-            @click="editCuePath = true" />
+          <icon-button :icon-url="editPathIcon" clickable size="18px" color="var(--color-neutral)"
+            hoverColor="var(--color-text)" @click="editCuePath = true" />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
@@ -275,19 +359,17 @@ watch(
           </div>
 
           <toolbar-spacer width="10px" />
-          <icon v-if="hasSaveFile" :icon-url="saveStateStyles.iconUrl" :color="
-            hasSaveFile ? 'var(--color-neutral)' : 'var(--color-secondary)'
-          " />
+          <div v-if="hasSaveFile && cueSaved === false" class="save-icon" />
         </div>
         <div v-else class="toolbar-cluster" style="transition-duration: 0.2s;">
-          <toolbar-spacer width="4px" />
-          <icon :icon-url="savePathIcon" size="18px" :click="true" color="var(--color-green)"
-            @click="editCuePath = false" />
+          <toolbar-spacer width="3px" />
+          <icon-button :icon-url="savePathIcon" clickable size="19px" color="var(--color-neutral)"
+            hoverColor="var(--color-text)" @click="editCuePath = false" />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
           <icon :icon-url="breadcrumbIcon" size="14px" />
-          <toolbar-spacer width="8px" />
+          <toolbar-spacer width="4px" />
           <label for="folder-name">
             Folder:
           </label>
@@ -299,7 +381,7 @@ watch(
           }" />
           <toolbar-spacer width="8px" />
           <label for="cue-name">
-            Cue:
+            Cue Name:
           </label>
           <toolbar-spacer width="4px" />
           <input id="cue-name" class="name-entry" v-model="cueName" type="text" :style="{
@@ -311,11 +393,6 @@ watch(
         </div>
       </div>
       <div class="toolbar-cluster right">
-        <text-button :icon-url="saveIcon" @click="saveCue">
-          save
-        </text-button>
-
-
       </div>
     </div>
 
@@ -356,12 +433,13 @@ watch(
   width: 100%;
 }
 
-#save-icon {
-  height: 20px;
-  width: 20px;
+.save-icon {
+  height: 5px;
+  width: 5px;
   // paddingTop: '5px',
   margin: auto 0px;
   background-color: var(--color-neutral);
+  border-radius: 50%;
 }
 
 .name-entry {

@@ -47,7 +47,7 @@ watch(() => state.value.collapsed, (collapsed) => {
   <li class="list-entry folder-entry" @click="toggleHide" :style="{
     display: folder.name ==='.'? 'none':'inline flex'
   }">
-    <icon :icon-url="state.icon" size="12px" />
+    <icon :icon-url="state.icon" size="12px" :style="{ cursor: 'pointer' }" />
     <div class="entry-name">
       {{ folder.name }}
     </div>

@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'original-fs'
 import { isAbsolute, join } from 'pathe'
 import { mainWindow } from './index'
-import { makeShiftIpcApi, storeKeys } from '../ipcApi'
+import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { ctrlLogger } from './utils'
 
 export const plugins = {}
@@ -19,7 +19,7 @@ const msgen = new Msg({
 
 const log = msgen.getLevelLoggers()
 
-export async function loadPlugins() {
+export async function initPlugins() {
   try {
     const dir = await readdir(process.env.PLUGINS)
     log.info(dir)

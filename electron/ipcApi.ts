@@ -1,7 +1,12 @@
-export const makeShiftIpcApi = {
+export const ctrlIpcApi = {
   test: 'mkshft-test',
+  call: {
+    openCueFolder: 'shell-openCueFolder',
+    runCue: 'mkshft-runCue'
+  },
   get: {
     events: 'mkshft-get-events',
+    eventsAsList: 'mkshft-get-events-list',
     connectedDevices: 'mkshft-get-connectedDevices',
     logRank: 'mkshft-get-logRank',
     allCues: 'cue-get-all',
@@ -10,9 +15,10 @@ export const makeShiftIpcApi = {
   },
   set: {
     cueFile: 'mkshft-set-cueFile',
+    cueForEvent: 'mkshft-set-cueForEvent',
   },
   onEv: {
-    cue:{
+    cue: {
       added: 'cue-added',
       changed: 'cue-changed',
       removed: 'cue-deleted',
@@ -24,13 +30,15 @@ export const makeShiftIpcApi = {
     terminal: {
       data: 'mkshft-ev-termi-data'
     },
-  }
+  },
 }
 
 
 export const storeKeys = {
-  MainWindowState: 'mainWindowState'
+  UuidNamespace: 'uuidNamespace',
+  MainWindowState: 'mainWindowState',
+  DeviceLayouts: 'deviceLayouts'
 }
 
-export type MakeShiftIpcApi = typeof makeShiftIpcApi
+export type CtrlIpcApi = typeof ctrlIpcApi
 export type StoreKeys = typeof storeKeys

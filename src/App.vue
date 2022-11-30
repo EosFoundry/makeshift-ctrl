@@ -7,7 +7,7 @@ import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
-import Toolbar from './components/Toolbar.vue'
+import DeviceToolbar from './components/DeviceToolbar.vue'
 import StatusBar from './components/StatusBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
@@ -27,13 +27,13 @@ function terminalResize(event: any) {
 nextTick(() => {
 	window.resizeBy(-1, -1)
 	window.resizeBy(1, 1)
+	topPanelHeight.value = 70
 })
 
 </script>
 
 <template>
 	<!-- <h1></h1> -->
-	<toolbar />
 	<splitpanes id="main-container" horizontal>
 		<pane :size="topPanelHeight">
 			<splitpanes vertical>
@@ -41,21 +41,22 @@ nextTick(() => {
 					<code-box />
 				</pane>
 				<pane>
-					<cue-panel />
+					<splitpanes horizontal>
+						<pane>
+							<device-panel />
+						</pane>
+						<pane size="69">
+							<cue-panel />
+						</pane>
+					</splitpanes>
 				</pane>
 			</splitpanes>
 		</pane>
 		<pane @resize="terminalResize">
-			<splitpanes vertical>
-				<pane size="69">
-					<terminal :pane-height-percent="bottomPanelHeight" />
-				</pane>
-				<pane>
-					<device-panel />
-				</pane>
-			</splitpanes>
+			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
 	</splitpanes>
+	<device-toolbar />
 	<!-- <status-bar /> -->
 </template>
 
@@ -135,7 +136,7 @@ button {
 }
 
 
-.flex-col{
+.flex-col {
 	display: flex;
 	flex-direction: col;
 }
@@ -200,6 +201,24 @@ button {
 .hidden {
 	position: absolute;
 	visibility: hidden;
+}
+
+.toolbar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
+	justify-content: space-between;
+
+	margin-bottom: 4px;
+	box-sizing: border-box;
+	height: 3.5em;
+	padding-top: 4px;
+	padding-bottom: 2px;
+	width: 100%;
+	&.thin{
+		height: 2.5em;
+	}
 }
 
 .toolbar-cluster {

@@ -3,7 +3,11 @@ import { Folder } from 'src/main';
 import { fileURLToPath } from 'url';
 import { inject, onBeforeMount, ref, Ref } from 'vue';
 import { Cue, CueMap } from '../../types/electron/main/index'
+
+import folderIcon from '../assets/icon/bootstrap/folder2-open.svg?url'
+
 import FolderList from './FolderList.vue'
+import TextButton from "./TextButton.vue";
 
 
 const cueDirectory = inject('cue-directory') as Ref<Folder>
@@ -12,6 +16,10 @@ const cueDirectory = inject('cue-directory') as Ref<Folder>
 onBeforeMount(async () => {
   // console.log(cueDirectory.value)
 })
+
+async function openCueFolder() {
+  window.MakeShiftCtrl.call.openCueFolder()
+}
 
 function sendLoadEvent(cue: Cue) {
   console.log(cue)
@@ -22,8 +30,17 @@ function sendLoadEvent(cue: Cue) {
 
 
 <template>
-  <div class="pane-border">Cues
-    <div class="pane-rounded-inner">
+  <div class="pane-border">
+    <div class="toolbar">
+      <div class="toolbar-cluster left">
+      </div>
+        <text-button :icon-url="folderIcon" @click="openCueFolder">
+          open cue folder
+        </text-button>
+      <div class="toolbar-cluster right">
+      </div>
+    </div>
+    <div class="pane-rounded-inner cue-panel">
       <!-- <folder-list :folder="cueDirectory" :collapse-state="false"/> -->
       <ul class="file-list top-level">
         <FolderList v-for="(subFolder) in cueDirectory.subFolders" :folder="subFolder" :collapse-state="true" />
@@ -38,6 +55,9 @@ function sendLoadEvent(cue: Cue) {
 </template>
 
 <style lang="scss">
+.cue-panel {
+  background-color: var(--color-dark);
+}
 .list-entry {
   display: flex;
   flex-direction: row;

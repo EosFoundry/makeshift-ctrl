@@ -1,7 +1,8 @@
 import { LogMessage, MakeShiftPortFingerprint } from "@eos-makeshift/serial";
-import { Cue, IpcMainGetHandler, IpcMainSetHandler } from 'types/electron/main/index';
-export interface rndrMakeShiftAPI {
+import { Cue, IpcMainCallHandler, IpcMainGetHandler, IpcMainSetHandler } from 'types/electron/main/index';
+export interface rndrCtrlAPI {
     test: () => void;
+    call: IpcMainCallHandler;
     get: IpcMainGetHandler;
     set: IpcMainSetHandler;
     onEv: {
@@ -23,7 +24,7 @@ export interface IPluginAPI {
 }
 declare global {
     interface Window {
-        MakeShiftCtrl: rndrMakeShiftAPI;
+        MakeShiftCtrl: rndrCtrlAPI;
         plugin: IPluginAPI;
     }
 }
