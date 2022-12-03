@@ -10,9 +10,9 @@ Everything is pain and under construction.
 
 Required tooling:
 
-- git
-- nodejs - node and npm
-- some sort of IDE
+- git - <https://git-scm.com/>
+- nodejs - node and npm (see below)
+- some sort of IDE (see below)
 
 ### NodeJS version management
 
@@ -24,7 +24,7 @@ Windows: nvm-windows - <https://github.com/coreybutler/nvm-windows>
 
 ### IDE Setup
 
-This project has been developed in emacs and vscode. For beginners, vscode is likely easier to start with.
+This project has been developed in [emacs](https://www.gnu.org/software/emacs/) and [vscode](https://code.visualstudio.com/). For beginners, vscode is likely easier to start with.
 
 #### VSCode
 
