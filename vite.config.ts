@@ -21,7 +21,6 @@ export default defineConfig({
         format: 'cjs',
       },
       outDir: 'dist/electron',
-
       plugins: [
         // Other plugins here
       ],

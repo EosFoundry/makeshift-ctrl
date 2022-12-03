@@ -10,14 +10,20 @@ import { Cue } from 'types/electron/main';
 
 const props = defineProps<{
   folder: Folder,
-  collapseState: boolean
+  collapseState: boolean,
+  topLevel?: boolean
 }>()
 
 const state = ref({
   icon: collapsedIconUrl,
   collapsed: props.collapseState,
-  display: 'none'
+  display: props.collapseState ? 'none' : 'inherit',
+  classes: ['file-list']
 })
+
+if (props.topLevel) {
+  state.value.classes.push('top-level')
+}
 
 function toggleHide() {
   if (state.value.collapsed) {
@@ -44,15 +50,16 @@ watch(() => state.value.collapsed, (collapsed) => {
 </script>
 
 <template>
+  <!-- {{ state }} -->
   <li class="list-entry folder-entry" @click="toggleHide" :style="{
-    display: folder.name ==='.'? 'none':'inline flex'
+    display: topLevel ? 'none' : 'inline flex'
   }">
     <icon :icon-url="state.icon" size="12px" :style="{ cursor: 'pointer' }" />
-    <div class="entry-name">
+    <div v-if="(topLevel !== true)" class="entry-name">
       {{ folder.name }}
     </div>
   </li>
-  <ul class="file-list" :style="{
+  <ul :class="state.classes" :style="{
     display: state.display
   }">
     <FolderList v-for="(subFolder) in props.folder.subFolders" :folder="subFolder" :collapse-state="true" />

@@ -373,7 +373,7 @@ async function createMainWindow() {
     }
 
     store.set(storeKeys.MainWindowState, newPosition)
-    log.info(newPosition)
+    log.debug(nspct2(newPosition))
 
     // detach listeners from PortAuth
     PortAuthority.removeListener(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
@@ -456,7 +456,7 @@ async function initCues() {
     cwd: process.env.CUES
   })
   cueWatcher.on('ready', () => {
-    log.info('cueWatcher ready')
+    log.info('Now watching Cue directory')
   })
   cueWatcher.on('add', path => cueHandler.add(path))
   cueWatcher.on('change', path => cueHandler.add(path))
@@ -679,7 +679,7 @@ async function loadCueDialog() {
         path: fp,
       }
     } catch (e) {
-      log.info(e)
+      log.error(e)
     }
   }
 }

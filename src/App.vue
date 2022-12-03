@@ -210,11 +210,11 @@ button {
 
 	justify-content: space-between;
 
-	margin-bottom: 4px;
+	// margin-bottom: 4px;
 	box-sizing: border-box;
-	height: 3.5em;
-	padding-top: 4px;
-	padding-bottom: 2px;
+	// height: 3.5em;
+	padding-top: 8px;
+	padding-bottom: 8px;
 	width: 100%;
 	&.thin{
 		height: 2.5em;
