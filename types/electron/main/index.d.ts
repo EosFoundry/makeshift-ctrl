@@ -48,19 +48,20 @@ declare const ipcMainGetHandler: {
     cueByFolder: (folder: any) => CueMap;
 };
 declare const ipcMainSetHandler: {
-    cueFile: (data: {
+    cueFile: typeof saveCueFile;
+    cueForEvent: (data: {
         cueId: string;
+        event: string;
         contents: Uint8Array;
     }) => Promise<string>;
-    cueForEvent: typeof attachCueToEvent;
 };
 export type IpcMainCallHandler = typeof ipcMainCallHandler;
 export type IpcMainGetHandler = typeof ipcMainGetHandler;
 export type IpcMainSetHandler = typeof ipcMainSetHandler;
-declare function attachCueToEvent({ event, cueId }: {
-    event: MakeShiftEvent;
-    cueId: CueId;
-}): Promise<void>;
+declare function saveCueFile(data: {
+    cueId: string;
+    contents: Uint8Array;
+}): Promise<string>;
 type IModule = typeof Electron.CrossProcessExports;
 type CueId = string;
 export interface CueModule extends IModule {

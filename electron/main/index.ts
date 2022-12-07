@@ -133,6 +133,9 @@ process.env.APPDATA = join(app.getPath('appData'), 'makeshift-ctrl')
 process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
 process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
+if (process.platform === 'darwin') {
+  process.env.TEMP = join('/private', process.env.TEMP)
+}
 
 ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
@@ -235,21 +238,23 @@ const ipcMainGetHandler = {
 }
 
 const ipcMainSetHandler = {
-  cueFile: async (data: { cueId: string, contents: Uint8Array }) => {
-    const { cueId, contents } = data
-    // log.debug(nspct2(cueId))
-    log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
-    const contentString = textDecoder.decode(contents)
-    const fullPath = join(process.env.CUES, cueId)
-
-    try {
-      await writeFile(fullPath, contentString)
-      return fullPath
-    } catch (e) {
-      return ''
-    }
+  cueFile: saveCueFile,
+  cueForEvent: async (data: {
+    cueId: string,
+    event: string,
+    contents: Uint8Array,
+  }) => {
+    const fullPath = await saveCueFile({
+      cueId: data.cueId,
+      contents: data.contents,
+    })
+    await attachCueToEvent({
+      cueId: data.cueId,
+      event: data.event,
+    })
+    
+    return fullPath
   },
-  cueForEvent: attachCueToEvent,
 }
 export type IpcMainCallHandler = typeof ipcMainCallHandler
 export type IpcMainGetHandler = typeof ipcMainGetHandler
@@ -325,7 +330,7 @@ async function createMainWindow() {
   let windowPos = {
     x: 50,
     y: 50,
-    width: 600,
+    width: 700,
     height: 800,
   } as any
 
@@ -421,10 +426,6 @@ const mainWindowPortHandler = {
 
 async function serialLogToMainWindow(data: LogMessage) {
   mainWindow.webContents.send(Api.onEv.terminal.data, data)
-}
-
-async function saveCueFile(data: Buffer, path: string) {
-  log.info(path)
 }
 
 // app.on('second-instance', () => {
@@ -530,11 +531,27 @@ function newCueFromPath(path): Cue {
   } as Cue
 }
 
+async function saveCueFile(data: { cueId: string, contents: Uint8Array }): Promise<string> {
+    const { cueId, contents } = data
+    // log.debug(nspct2(cueId))
+    log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
+    const contentString = textDecoder.decode(contents)
+    const fullPath = join(process.env.CUES, cueId)
+
+    try {
+      await writeFile(fullPath, contentString)
+      return fullPath
+    } catch (e) {
+      return ''
+    }
+  }
+
 // TODO: create temp directory for 'attached' cues
-async function importCueModule(cue: Cue) {
+async function importCueModule(cue: Cue): Promise<Cue> {
   log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
   if (typeof loadedCues[cue.id] !== 'undefined') {
     // TODO: change to hash checking for better performance
+    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCues[cue.id])}`)
     unloadCueModule(cue)
   }
   // the temporary cue file naming scheme:
@@ -598,6 +615,7 @@ async function unloadCueModule(cue: Cue) {
   if (typeof loadedCues[cue.id] !== 'undefined') {
     const moduleId = loadedCues[cue.id].moduleId
     log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
+    log.debug(`Require cache: ${nspct2(require.cache)}`)
     delete require.cache[moduleId]
   }
 }
@@ -607,9 +625,10 @@ async function attachCueToEvent({ event, cueId }:
     event: MakeShiftEvent;
     cueId: CueId
   }
-) {
+): Promise<void> {
   if (Object.keys(Ports).length > 0) {
     const deviceId = knownDevices[0].portId;
+    
     // TODO: set up layouts by default
     if (cueMapLayers[currentLayer].has(event)) {
       log.debug(`Attempting to unload existing event: ${event}`)
@@ -642,7 +661,7 @@ async function attachCueToEvent({ event, cueId }:
 }
 
 
-async function loadCueDialog() {
+async function loadCueDialog(): Promise<{ name: string; path: string }> {
   const openResult = await dialog.showOpenDialog({
     filters: [
       {
