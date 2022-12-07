@@ -133,6 +133,9 @@ process.env.APPDATA = join(app.getPath('appData'), 'makeshift-ctrl')
 process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
 process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
+if (process.platform === 'darwin') {
+  process.env.TEMP = join('/private', process.env.TEMP)
+}
 
 ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
@@ -546,6 +549,7 @@ async function importCueModule(cue: Cue): Promise<Cue> {
   log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
   if (typeof loadedCues[cue.id] !== 'undefined') {
     // TODO: change to hash checking for better performance
+    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCues[cue.id])}`)
     unloadCueModule(cue)
   }
   // the temporary cue file naming scheme:
@@ -609,6 +613,7 @@ async function unloadCueModule(cue: Cue) {
   if (typeof loadedCues[cue.id] !== 'undefined') {
     const moduleId = loadedCues[cue.id].moduleId
     log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
+    log.debug(`Require cache: ${nspct2(require.cache)}`)
     delete require.cache[moduleId]
   }
 }
@@ -621,6 +626,7 @@ async function attachCueToEvent({ event, cueId }:
 ): Promise<void> {
   if (Object.keys(Ports).length > 0) {
     const deviceId = knownDevices[0].portId;
+    
     // TODO: set up layouts by default
     if (cueMapLayers[currentLayer].has(event)) {
       log.debug(`Attempting to unload existing event: ${event}`)

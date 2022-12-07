@@ -1,8 +1,9 @@
+# MacOS garbage?
 .DS_Store
-.idea
-tmp/
+.swp
 
 # Tooling/IDE stuff
+.idea
 .volarrc
 
 # VScode vue plugin
@@ -13,6 +14,7 @@ out/
 dist/
 dist-electron/
 release/
+tmp/
 
 # Logs
 logs
