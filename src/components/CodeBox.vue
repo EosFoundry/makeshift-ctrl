@@ -217,6 +217,25 @@ async function saveCue() {
     cueId: id,
     contents: contents,
   })
+  handlePostSave(fullPath)
+}
+
+
+async function assignCueToEvent() {
+  console.log(`uploading cue ${cue.value}`)
+  const deviceId = currentDevice.value.portId
+  const id = cueId.value
+  const contents = textEncoder.encode(editor.getValue())
+  const fullPath = await window.MakeShiftCtrl.set.cueForEvent({
+    event: selectedEvent.value,
+    cueId: cueId.value,
+    contents: contents,
+  })
+  console.log(`Cue assigned`)
+  handlePostSave(fullPath)
+}
+
+async function handlePostSave(fullPath: string) {
   if (cueName.value === getBlankCueName()) {
     defaultCueNum++;
   }
@@ -228,20 +247,7 @@ async function saveCue() {
   console.log(`Cue saved to ${fullPath}`)
 }
 
-async function assignCueToEvent() {
-  console.log(`uploading cue ${cue.value}`)
-  const deviceId = currentDevice.value.portId
-  const id = cueId.value
-  const contents = textEncoder.encode(editor.getValue())
-  await window.MakeShiftCtrl.set.cueForEvent({
-    event: selectedEvent.value,
-    cueId: cueId.value,
-    contents: contents,
-  })
-  console.log(`cue uploaded`)
-}
-
-async function testCue(){
+async function testCue() {
   await saveCue()
   window.MakeShiftCtrl.call.runCue(cueId.value)
 }

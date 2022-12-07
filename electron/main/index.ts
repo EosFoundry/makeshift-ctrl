@@ -244,7 +244,7 @@ const ipcMainSetHandler = {
     event: string,
     contents: Uint8Array,
   }) => {
-    await saveCueFile({
+    const fullPath = await saveCueFile({
       cueId: data.cueId,
       contents: data.contents,
     })
@@ -252,6 +252,8 @@ const ipcMainSetHandler = {
       cueId: data.cueId,
       event: data.event,
     })
+    
+    return fullPath
   },
 }
 export type IpcMainCallHandler = typeof ipcMainCallHandler

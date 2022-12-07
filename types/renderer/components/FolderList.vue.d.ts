@@ -6,6 +6,7 @@ declare const _default: {
         $props: Partial<{}> & Omit<Readonly<import("vue").ExtractPropTypes<__VLS_TypePropsToRuntimeProps<{
             folder: Folder;
             collapseState: boolean;
+            topLevel?: boolean | undefined;
         }>>> & import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, never>;
         $attrs: {
             [x: string]: unknown;
@@ -23,6 +24,7 @@ declare const _default: {
         $options: import("vue").ComponentOptionsBase<Readonly<import("vue").ExtractPropTypes<__VLS_TypePropsToRuntimeProps<{
             folder: Folder;
             collapseState: boolean;
+            topLevel?: boolean | undefined;
         }>>>, {}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, {}, {}, string> & {
             beforeCreate?: ((() => void) | (() => void)[]) | undefined;
             created?: ((() => void) | (() => void)[]) | undefined;
@@ -46,6 +48,7 @@ declare const _default: {
     } & Readonly<import("vue").ExtractPropTypes<__VLS_TypePropsToRuntimeProps<{
         folder: Folder;
         collapseState: boolean;
+        topLevel?: boolean | undefined;
     }>>> & import("vue").ShallowUnwrapRef<{}> & {} & import("vue").ComponentCustomProperties & {};
     __isFragment?: undefined;
     __isTeleport?: undefined;
@@ -53,6 +56,7 @@ declare const _default: {
 } & import("vue").ComponentOptionsBase<Readonly<import("vue").ExtractPropTypes<__VLS_TypePropsToRuntimeProps<{
     folder: Folder;
     collapseState: boolean;
+    topLevel?: boolean | undefined;
 }>>>, {}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, {}, {}, string> & import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps;
 export default _default;
 type __VLS_NonUndefinedable<T> = T extends undefined ? never : T;

@@ -53,7 +53,7 @@ declare const ipcMainSetHandler: {
         cueId: string;
         event: string;
         contents: Uint8Array;
-    }) => Promise<void>;
+    }) => Promise<string>;
 };
 export type IpcMainCallHandler = typeof ipcMainCallHandler;
 export type IpcMainGetHandler = typeof ipcMainGetHandler;
