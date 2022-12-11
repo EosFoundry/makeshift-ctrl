@@ -28,6 +28,8 @@ This project has been developed in [emacs](https://www.gnu.org/software/emacs/) 
 
 #### VSCode
 
+Download - <https://code.visualstudio.com/>
+
 [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/install) terminal is optional but somewhat recommended. VSCode's internal terminal is often quite clunky.
 
 Plugins:
@@ -35,6 +37,8 @@ Plugins:
 - Vue Language Features: <https://github.com/johnsoncodehk/volar/tree/master/extensions/vscode-vue-language-features>
 
 #### Emacs
+
+Download - <https://www.gnu.org/software/emacs/>
 
 Emacs 28+ is highly recommended, native-comp speeds things up greatly. All Emacs development has been using Doom Emacs, it is untested under vanilla so some tinkering may be required to get code completion/etc. working.
 
