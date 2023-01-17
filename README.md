@@ -22,6 +22,14 @@ Linuxs/MacOS: nvm - <https://github.com/nvm-sh/nvm>
 
 Windows: nvm-windows - <https://github.com/coreybutler/nvm-windows>
 
+#### nvm gotchas
+
+Make sure to install the correct version of node as specified in `makeshift-ctrl/.nvmrc`
+
+i.e. `nvm install 16.17.0`
+
+The pinned version of node is always available in the `.nvmrc`, this documentation could be out of date!
+
 ### IDE Setup
 
 This project has been developed in [emacs](https://www.gnu.org/software/emacs/) and [vscode](https://code.visualstudio.com/). For beginners, vscode is likely easier to start with.
