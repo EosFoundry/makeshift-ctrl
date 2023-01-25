@@ -10,6 +10,12 @@
     "esModuleInterop": true,
     "declarationDir": "../types/electron",
   },
+  "typedocOptions": {
+    "entryPoints": [
+      "main/index.ts"
+    ],
+    "out": "docs",
+  },
   "include": [
     "./"
   ],
