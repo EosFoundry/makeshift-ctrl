@@ -49,6 +49,7 @@ const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
 
+
 let defaultCueNum = 0;
 function getBlankCueName() {
   const now = new Intl.DateTimeFormat('en', {
@@ -56,9 +57,9 @@ function getBlankCueName() {
     day: '2-digit',
   }).format(new Date())
     .replace(/\ /, '')
-
   return now + '_' + defaultCueNum
 }
+
 function createBlankCue() {
   const qName = getBlankCueName()
   const cue = {

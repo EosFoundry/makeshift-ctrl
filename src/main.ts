@@ -5,20 +5,23 @@ import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/index'
 import App from './App.vue'
 
+
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 const dcDevice: MakeShiftPortFingerprint = {
   devicePath: '',
   portId: '',
   deviceSerial: ''
 };
+
 const cueRoot: Folder = {
   name: '.',
   subFolders: [],
   cueFiles: [],
 };
 
-
-(async () => { // loading initial states before app runs
+// Wrap initial state loading in IIFE to ensure async calls return with
+// state before starting app
+(async () => {
   const state = {
     makeShift: window.MakeShiftCtrl,
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
@@ -33,14 +36,11 @@ const cueRoot: Folder = {
     initialDevices: await window.MakeShiftCtrl.get.connectedDevices(),
   }
 
+  // Set up event hooks for device connections
   state.connectedDevices.value = state.initialDevices
   if (state.initialDevices.length > 0) {
     state.currentDevice.value = state.initialDevices[0]
   }
-
-  // watch(state.currentDevice, async (currDevice, prevDevice) => {
-
-  // })
 
   window.MakeShiftCtrl.onEv.device.connected((garb: any, newfp: MakeShiftPortFingerprint) => {
     if (state.connectedDevices.value.length === 0) {
@@ -80,10 +80,10 @@ const cueRoot: Folder = {
   function addCueToFolderList(cue: Cue) {
     emplaceCue(cue, state.cueDirectory.value, cue.id.split('/').slice(0, -1))
   }
+
   function removeCueFromFolderList(cue: Cue) {
     extractCue(state.cueDirectory.value, cue.id.split('/'))
   }
-
 
   // console.log(state.cues.value)
   // console.log(await state.makeShift.test())
@@ -105,7 +105,6 @@ const cueRoot: Folder = {
     .$nextTick(() => {
       postMessage({ payload: 'removeLoading' }, '*')
     })
-
 })
 
 function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
