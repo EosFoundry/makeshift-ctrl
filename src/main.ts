@@ -67,9 +67,11 @@ const cueRoot: Folder = {
     state.cues.value.set(cue.id, cue)
     addCueToFolderList(cue)
   })
+
   window.MakeShiftCtrl.onEv.cue.changed((garb: any, cue: Cue) => {
     state.cues.value.set(cue.id, cue)
   })
+
   window.MakeShiftCtrl.onEv.cue.removed((garb: any, cue: Cue) => {
     state.cues.value.delete(cue.id)
     removeCueFromFolderList(cue)
@@ -134,6 +136,7 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
     emplaceCue(cue, currFolder.subFolders[folderIdx], relativePath)
   }
 }
+
 function extractCue(currFolder: Folder, relativePath: string[]) {
   const topLevel = relativePath.shift()
   if (relativePath.length === 0) {

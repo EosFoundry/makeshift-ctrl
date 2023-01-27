@@ -17,6 +17,9 @@
     "out": "docs",
   },
   "include": [
-    "./"
+    "./main/*",
+    "./preload/*",
+    "./ipcApi.ts",
+    "./electron-env.d.ts"
   ],
 }
