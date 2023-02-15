@@ -1,0 +1,7 @@
+* Graphics Library
+
+2d graphics library will be needed eventually for visual cue builder
+
+Should it start early as a UI element?
+
+How will the size of the window change the display? Will the editor need to have a fixed size?

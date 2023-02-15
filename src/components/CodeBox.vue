@@ -60,6 +60,7 @@ function getBlankCueName() {
   return now + '_' + defaultCueNum
 }
 
+
 function createBlankCue() {
   const qName = getBlankCueName()
   const cue = {
@@ -380,9 +381,7 @@ watch(
           <label for="folder-name">
             Folder:
           </label>
-          <input id="folder-name" class="name-entry" v-model="cueFolder" type="text" :style="{
-            width: `${folderNameClone?.getBoundingClientRect().width as number + 10}px`
-          }" />
+          <input id="folder-name" class="name-entry" v-model="cueFolder" type="text"/>
           <icon :icon-url="breadcrumbIcon" size="14px" :style="{
             margin: `0px 4px`,
           }" />
@@ -391,9 +390,8 @@ watch(
             Cue Name:
           </label>
           <toolbar-spacer width="4px" />
-          <input id="cue-name" class="name-entry" v-model="cueName" type="text" :style="{
-            width: `${cueNameClone?.getBoundingClientRect().width as number + 10}px`
-          }" />
+          <input id="cue-name" class="name-entry" v-model="cueName" type="text" 
+           />
           <div class="toolbar-cluster" style="align-self: center;">
             .cue.js
           </div>
@@ -411,6 +409,7 @@ watch(
   </div>
 </template>
 
+          <!-- :style="{ width: `${folderNameClone?.getBoundingClientRect().width as number + 10}px` }" -->
 
 <style lang="scss">
 .codebox-border {

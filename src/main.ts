@@ -5,7 +5,6 @@ import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/index'
 import App from './App.vue'
 
-
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 const dcDevice: MakeShiftPortFingerprint = {
   devicePath: '',
@@ -152,7 +151,6 @@ function extractCue(currFolder: Folder, relativePath: string[]) {
     }
   }
 }
-
 
 export type Folder = {
   name: string,

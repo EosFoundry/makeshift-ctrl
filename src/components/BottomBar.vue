@@ -19,13 +19,12 @@ function needful() {
 }
 
 onMounted(() => {
-
   if (typeof currentDevice.value.portId === 'undefined' && connectedDevices.value.length > 0) {
     currentDevice.value = connectedDevices.value[0]
   }
 })
-
 </script>
+
 <template>
   <div id="toolbar-wrapper">
     <div class="status-text">
@@ -41,20 +40,19 @@ onMounted(() => {
         </label>
       </form>
     </div>
+    <div>
+      Log Level:
+    </div>
     <select name="log-level-selector" v-model="logLevel">
       <option v-for="lv in LogLevels">
         {{ lv }}
       </option>
     </select>
-    <div>
-      logging
-    </div>
     <!-- <div>
       <button @click="needful">
         Needful
       </button>
     </div> -->
-
   </div>
 </template>
 

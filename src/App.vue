@@ -7,8 +7,7 @@ import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
-import DeviceToolbar from './components/DeviceToolbar.vue'
-import StatusBar from './components/StatusBar.vue'
+import DeviceToolbar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 
@@ -97,6 +96,7 @@ input {
 	border-color: var(--color-hl);
 	caret-color: var(--color-neutral);
 	transition-duration: 0.2s;
+	width:fit-content;
 }
 
 
@@ -129,6 +129,16 @@ button {
 		border-color: var(--color-primary);
 		color: var(--color-text)
 	}
+}
+
+select {
+	background-color: var(--color-dark);
+	border-radius: .25rem;
+	border-width: 1px;
+	margin-left: .25rem;
+	margin-right: .25rem;
+	border-color: var(--color-neutral);
+	padding: .25rem;
 }
 
 :focus {
@@ -200,7 +210,9 @@ button {
 
 .hidden {
 	position: absolute;
-	visibility: hidden;
+	left: -200px;
+	top: -200px;
+	// visibility: hidden;
 }
 
 .toolbar {
