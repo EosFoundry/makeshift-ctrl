@@ -58,12 +58,12 @@ import {
   v4 as uuidv4,
   v5 as uuidv5,
 } from 'uuid'
+import { CueId, CueMap, CueModule, cues, cueWatcher, initCues, loadedCues, importCueModule, saveCueFile, newCueFromPath } from './cues'
 
 let nanoid
 import('nanoid').then((e) => {
   nanoid = e.customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 })
-
 
 // Disallow multiple instances due to makeshift-serial resource locking
 if (!app.requestSingleInstanceLock()) {
@@ -89,22 +89,18 @@ const store = new Store.default()
 const textDecoder = new TextDecoder()
 
 
-export type CueMap = Map<string, Cue>
 
 // TODO: Fix the API so these are real
 export type DeviceId = string
 export type MakeShiftEvent = string
 export type EventToCueMap = Map<MakeShiftEvent, CueId>
 
-const cues: CueMap = new Map()
 const cueMapLayers: EventToCueMap[] = [
   new Map()
 ]
 let currentLayer = 0;
-const loadedCues: { [key: string]: CueModule } = {}
-let cueWatcher: chokidar.FSWatcher
 
-// Log Levelup
+// Create Loggers
 const msgen = new Msg({ host: 'Ctrl', logLevel: 'all' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
@@ -117,6 +113,7 @@ process.env.DIST_ELECTRON = join(workingDir, '..')
 process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
 process.env.DIST_CLIENT = join(process.env.DIST, 'client')
+
 if (app.isPackaged) {
   msgen.logLevel = 'info'
   process.env.INSTALL_ROOT = join(process.env.APPROOT, '../..')
@@ -141,6 +138,7 @@ ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
 ensureDir(process.env.CUES)
 ensureDir(process.env.TEMP)
+
 // always cleanup temp from last startup
 if (existsSync(process.env.TEMP)) {
   rmSync(process.env.TEMP, {
@@ -151,7 +149,6 @@ mkdirSync(process.env.TEMP)
 
 const preload = join(process.env.DIST_ELECTRON, 'preload/index.js')
 const htmlEntry = join(process.env.DIST_CLIENT, './index.html')
-
 
 // Set up app constants
 const Api = ctrlIpcApi
@@ -196,7 +193,9 @@ if (store.has(storeKeys.UuidNamespace) === false) {
 process.env.NAMESPACE = store.get(storeKeys.UuidNamespace) as string
 initPlugins()
 initLayouts()
-initCues()
+initCues().then(() => {
+  attachWatchers()
+})
 // loadPlugins(process.env.APPDATA)
 
 setLogLevel('none')
@@ -432,39 +431,58 @@ async function serialLogToMainWindow(data: LogMessage) {
 //   createWindow()
 // })
 
-
 /**
- * Cue Section
+ * Cue section
  */
 
-
-async function initCues() {
-  const examplesFolder = join(process.env.CUES, 'examples')
-  if (existsSync(examplesFolder)) {
-
-  } else {
-    // this should be on first run or if the user nukes 
-    // the ../AppData/../makeshift-ctrl folder
-    const dest = examplesFolder
-    const src = join(process.env.INSTALL_ROOT, 'examples')
-    await ensureDir(dest)
-    const examples = readdirSync(src)
-    examples.forEach((filePath) => {
-      copyFileSync(join(src, filePath), join(dest, filePath))
-    })
-  }
-  cueWatcher = chokidar.watch(process.env.CUES, {
-    cwd: process.env.CUES
-  })
-  cueWatcher.on('ready', () => {
-    log.info('Now watching Cue directory')
-  })
+export async function attachWatchers() {
+  cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
   cueWatcher.on('add', path => cueHandler.add(path))
   cueWatcher.on('change', path => cueHandler.add(path))
   cueWatcher.on('unlink', path => cueHandler.unlink(path))
   cueWatcher.on('addDir', path => log.info(`Dir ${path} has been added`))
   cueWatcher.on('unlinkDir', path => log.info(`Dir ${path} has been unlinked`))
   cueWatcher.on('error', err => log.info(`err ${err}`))
+}
+
+export async function attachCueToEvent({ event, cueId }:
+  {
+    event: MakeShiftEvent;
+    cueId: CueId
+  }
+): Promise<void> {
+  if (Object.keys(Ports).length > 0) {
+    const deviceId = knownDevices[0].portId;
+    
+    // TODO: set up layouts by default
+    if (cueMapLayers[currentLayer].has(event)) {
+      log.debug(`Attempting to unload existing event: ${event}`)
+      // find and remove the existing event
+      const mappedCueId = cueMapLayers[currentLayer].get(event)
+      log.debug(`existing cue: ${nspct2(mappedCueId)}`)
+      Ports[deviceId].removeListener(event, loadedCues[mappedCueId].run)
+    }
+    log.debug(`Attaching cue ${cueId} to ${event}`)
+    try {
+      const importedCue = await importCueModule(cues.get(cueId))
+      cues.set(cueId, importedCue)
+
+      // clobbering all events is an option if the above is buggy
+      // Ports[deviceId].removeAllListeners(event)
+
+      Ports[deviceId].on(event, loadedCues[cueId].run as any)
+      cueMapLayers[currentLayer].set(event, cueId)
+      loadedCues[cueId].runTriggers.push({
+        deviceId: deviceId,
+        events: [event]
+      })
+      log.info(`Cue ${cueId} set to run for event: ${event}`)
+    } catch (e) {
+      log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
+    }
+  } else {
+    log.error('No MakeShift device found, cue not attached')
+  }
 }
 
 const cueHandler = {
@@ -500,230 +518,7 @@ const cueHandler = {
   error: function (path) { },
 }
 
-function newCueFromPath(path): Cue {
-  const fileName = basename(path)
-  const folderName = dirname(path)
-  const fullPath = resolve(join(process.env.CUES, path))
 
-  let ext = '.cue.js'
-  if (fileName.endsWith('.cue.js')) { ext = '.cue.js' }
-  else if (fileName.endsWith('.js')) { ext = '.js' }
-  else if (fileName.endsWith('.mjs')) { ext = '.mjs' }
-  else if (fileName.endsWith('.cjs')) { ext = '.cjs' }
-  else {
-    throw 'Path given does not contain a cue file.'
-  }
-  const cueName = basename(fileName, ext)
-  log.debug(`Adding new file...`)
-  log.debug(`path: ${path}`)
-  log.debug(`url: ${nspct2(fullPath)}`)
-  log.debug(`folder: ${folderName}`)
-  log.debug(`file: ${fileName}`)
-  log.debug(`cueName: ${cueName}`)
-  const id = normalizePosix(path)
-  return {
-    id: id,
-    file: fileName,
-    fullPath: fullPath,
-    name: cueName,
-    folder: folderName,
-    modulePath: '',
-  } as Cue
-}
-
-async function saveCueFile(data: { cueId: string, contents: Uint8Array }): Promise<string> {
-    const { cueId, contents } = data
-    // log.debug(nspct2(cueId))
-    log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
-    const contentString = textDecoder.decode(contents)
-    const fullPath = join(process.env.CUES, cueId)
-
-    try {
-      await writeFile(fullPath, contentString)
-      return fullPath
-    } catch (e) {
-      return ''
-    }
-  }
-
-// TODO: create temp directory for 'attached' cues
-async function importCueModule(cue: Cue): Promise<Cue> {
-  log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
-  if (typeof loadedCues[cue.id] !== 'undefined') {
-    // TODO: change to hash checking for better performance
-    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCues[cue.id])}`)
-    unloadCueModule(cue)
-  }
-  // the temporary cue file naming scheme:
-  // [folder]-[name]_[id].cue.js
-  // where all the path separators are replaced with '-'
-  let moduleFile = cue.name
-  moduleFile += '_'
-  moduleFile += uuidv5(cue.name, process.env.NAMESPACE)
-  // moduleFile += nanoid()
-  moduleFile += '.cue.js'
-
-  if (cue.folder !== '.' && cue.folder !== '' && cue.folder !== '..') {
-    moduleFile = cue.folder.replaceAll(pathSep, '-') + '-' + moduleFile
-  }
-
-  const modulePath = join(process.env.TEMP, 'cues', moduleFile)
-  const id = cue.id
-
-  log.debug(modulePath)
-  await ensureDir(join(process.env.TEMP, 'cues'))
-  await copyFile(cue.fullPath, modulePath)
-  loadedCues[id] = require(modulePath) as CueModule
-  loadedCues[id].moduleId = modulePath
-  const cueExports = Object.keys(loadedCues[id])
-  // log.debug(nspct2(require.cache))
-  // big fat type checker
-  if (cueExports.includes('requiredPlugins') && Array.isArray(loadedCues[id].requiredPlugins)
-    && cueExports.includes('plugins') && typeof loadedCues[id].plugins === 'object'
-    && cueExports.includes('setup') && typeof loadedCues[id].setup === 'function'
-    && cueExports.includes('run') && typeof loadedCues[id].run === 'function') {
-    if (typeof loadedCues[id].requiredPlugins !== 'undefined') {
-      loadedCues[id].requiredPlugins.forEach((pluginName) => {
-        if (typeof plugins[pluginName] !== 'undefined'
-          && pluginName !== 'ctrlTerm') {
-          loadedCues[id].plugins[pluginName] = plugins[pluginName]
-        }
-      })
-    }
-    loadedCues[id].plugins.msg = new Msg({
-      host: 'cue:' + id,
-      logger: ctrlLogger,
-      showTime: false,
-      logLevel: 'all'
-    })
-    loadedCues[id].plugins.ctrlTerm = loadedCues[id].plugins.msg.getLevelLoggers()
-    loadedCues[id].plugins.ctrlTerm.log = loadedCues[id].plugins.ctrlTerm.info
-    loadedCues[id].runTriggers = []
-    loadedCues[id].setup()
-    cue.modulePath = modulePath
-    return cue
-  } else {
-    unloadCueModule(cue)
-    delete loadedCues[id]
-    throw 'Module missing required exports.'
-  }
-}
-
-async function unloadCueModule(cue: Cue) {
-  // this deliberately does not detach any loaded cues
-  // to avoid running errors if an event is still attached
-  if (typeof loadedCues[cue.id] !== 'undefined') {
-    const moduleId = loadedCues[cue.id].moduleId
-    log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
-    log.debug(`Require cache: ${nspct2(require.cache)}`)
-    delete require.cache[moduleId]
-  }
-}
-
-async function attachCueToEvent({ event, cueId }:
-  {
-    event: MakeShiftEvent;
-    cueId: CueId
-  }
-): Promise<void> {
-  if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDevices[0].portId;
-    
-    // TODO: set up layouts by default
-    if (cueMapLayers[currentLayer].has(event)) {
-      log.debug(`Attempting to unload existing event: ${event}`)
-      // find and remove the existing event
-      const mappedCueId = cueMapLayers[currentLayer].get(event)
-      log.debug(`existing cue: ${nspct2(mappedCueId)}`)
-      Ports[deviceId].removeListener(event, loadedCues[mappedCueId].run)
-    }
-    log.debug(`Attaching cue ${cueId} to ${event}`)
-    try {
-      const importedCue = await importCueModule(cues.get(cueId))
-      cues.set(cueId, importedCue)
-
-      // // clobbering all events is an option if the above is buggy
-      // Ports[deviceId].removeAllListeners(event)
-
-      Ports[deviceId].on(event, loadedCues[cueId].run as any)
-      cueMapLayers[currentLayer].set(event, cueId)
-      loadedCues[cueId].runTriggers.push({
-        deviceId: deviceId,
-        events: [event]
-      })
-      log.info(`Cue ${cueId} set to run for event: ${event}`)
-    } catch (e) {
-      log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
-    }
-  } else {
-    log.error('No MakeShift device found, cue not attached')
-  }
-}
-
-
-async function loadCueDialog(): Promise<{ name: string; path: string }> {
-  const openResult = await dialog.showOpenDialog({
-    filters: [
-      {
-        name: 'Javascript',
-        extensions: ['js', 'mjs', 'cjs']
-      },
-      {
-        name: 'All Files',
-        extensions: ['*'],
-      },
-    ],
-    properties: [
-      'openFile',
-    ]
-  })
-  if (openResult.canceled === false) {
-    try {
-      const fp = resolve(openResult.filePaths[0])
-      const pathUrl = pathToFileURL(fp)
-      let cueName = basename(fp)
-      let ext = '.cue.js'
-      if (cueName.endsWith('.cue.js')) { ext = '.cue.js' }
-      else if (cueName.endsWith('.js')) { ext = '.js' }
-      else if (cueName.endsWith('.mjs')) { ext = '.mjs' }
-      else if (cueName.endsWith('.cjs')) { ext = '.cjs' }
-      else {
-        //something has gone wrong
-      }
-
-      cueName = basename(fp, ext)
-
-      return {
-        name: cueName,
-        path: fp,
-      }
-    } catch (e) {
-      log.error(e)
-    }
-  }
-}
-
-type IModule = typeof Electron.CrossProcessExports
-type CueId = string
-
-export interface CueModule extends IModule {
-  requiredPlugins?: string[],
-  plugins?: any,
-  setup: Function,
-  run: () => void,
-  runTriggers: { deviceId: string, events: string[] }[],
-  moduleId: string,
-}
-
-export interface Cue {
-  id: CueId,
-  file: string,
-  fullPath: string,
-  name: string,
-  folder: string,
-  contents?: Buffer
-  modulePath?: string
-}
 
 /**
  * Layout section

@@ -1,8 +1,7 @@
-/// <reference types="node" />
 import { BrowserWindow } from 'electron';
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial';
+import { CueId, CueMap, saveCueFile } from './cues';
 export declare let mainWindow: BrowserWindow | null;
-export type CueMap = Map<string, Cue>;
 export type DeviceId = string;
 export type MakeShiftEvent = string;
 export type EventToCueMap = Map<MakeShiftEvent, CueId>;
@@ -44,7 +43,7 @@ declare const ipcMainGetHandler: {
         none: number;
     };
     allCues: () => CueMap;
-    cueById: (id: any) => Cue;
+    cueById: (id: any) => import("./cues").Cue;
     cueByFolder: (folder: any) => CueMap;
 };
 declare const ipcMainSetHandler: {
@@ -58,30 +57,12 @@ declare const ipcMainSetHandler: {
 export type IpcMainCallHandler = typeof ipcMainCallHandler;
 export type IpcMainGetHandler = typeof ipcMainGetHandler;
 export type IpcMainSetHandler = typeof ipcMainSetHandler;
-declare function saveCueFile(data: {
-    cueId: string;
-    contents: Uint8Array;
-}): Promise<string>;
-type IModule = typeof Electron.CrossProcessExports;
-type CueId = string;
-export interface CueModule extends IModule {
-    requiredPlugins?: string[];
-    plugins?: any;
-    setup: Function;
-    run: () => void;
-    runTriggers: {
-        deviceId: string;
-        events: string[];
-    }[];
-    moduleId: string;
-}
-export interface Cue {
-    id: CueId;
-    file: string;
-    fullPath: string;
-    name: string;
-    folder: string;
-    contents?: Buffer;
-    modulePath?: string;
-}
+/**
+ * Cue section
+ */
+export declare function attachWatchers(): Promise<void>;
+export declare function attachCueToEvent({ event, cueId }: {
+    event: MakeShiftEvent;
+    cueId: CueId;
+}): Promise<void>;
 export {};
