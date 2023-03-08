@@ -302,8 +302,7 @@ const ipcMainCallHandler = {
   runCue: async (cueId) => {
     log.debug(`Running cue ${cueId}`)
     try {
-      const importedCue = await importCueModule(cues.get(cueId))
-      cues.set(cueId, importedCue)
+      await importCueModule(cues.get(cueId))
       loadedCueModules[cueId].run()
     } catch (e) {
       log.error(`Cue ${cueId} could not be run\n\tIssue: ${e}`)
@@ -627,11 +626,11 @@ async function loadLayouts() {
   let savedLayout = store.get(storeKeys.DeviceLayout, layout) as any
   currentLayer = 0;
   log.debug('Loading Layouts:')
-  layout.layerLabels = savedLayout.layerLabels
-  layout.layers = []
-  savedLayout.layers.forEach((layerArray) => {
-    layout.layers.push(new Map(layerArray))
-  })
+  // layout.layerLabels = savedLayout.layerLabels
+  // layout.layers = []
+  // savedLayout.layers.forEach((layerArray) => {
+  //   layout.layers.push(new Map(layerArray))
+  // })
   log.debug(nspct2(savedLayout))
   log.debug(nspct2(layout))
 }

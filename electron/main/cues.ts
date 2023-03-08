@@ -23,6 +23,7 @@ export interface Cue {
   fullPath: string,
   name: string,
   folder: string,
+  contents?: Buffer
 }
 
 export type CueId = string
@@ -176,7 +177,7 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
     try {
       loadedCueModules[id].setup()
     } catch (e) {
-      unloadCueModule(cue)
+      unloadCueModule(cue)      
       delete loadedCueModules[id]
       throw 'Error when running setup()'
     }

@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import * as chokidar from 'chokidar';
 import { DeviceId } from '.';
 export type IModule = typeof Electron.CrossProcessExports;
@@ -8,8 +7,6 @@ export interface Cue {
     fullPath: string;
     name: string;
     folder: string;
-    contents?: Buffer;
-    modulePath?: string;
 }
 export type CueId = string;
 export type CueMap = Map<string, Cue>;

@@ -1,9 +1,9 @@
 import { BrowserWindow } from 'electron';
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial';
-import { saveCueFile, CueId, CueMap } from './cues';
+import { saveCueFile, CueId, CueMap, Cue } from './cues';
 export type DeviceId = string;
 export type MakeShiftEvent = string;
-export type EventCueMap = Map<MakeShiftEvent, CueId>;
+export type EventCueMap = Map<MakeShiftEvent, Cue>;
 export type LayerLabel = {
     name: string;
     color: string;
@@ -63,7 +63,7 @@ declare const ipcMainGetHandler: {
         none: number;
     };
     allCues: () => CueMap;
-    cueById: (id: any) => import("./cues").Cue;
+    cueById: (id: any) => Cue;
     cueByFolder: (folder: any) => CueMap;
 };
 /**
