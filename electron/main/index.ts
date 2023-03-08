@@ -11,7 +11,7 @@
 // │
 
 // File handling imports
-import { release } from 'node:os'
+import { release, type } from 'node:os'
 import { readdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
@@ -62,7 +62,7 @@ import {
   // data structures
   cues, cueWatcher,
   // functions
-  initCues, loadedCueModules, importCueModule, saveCueFile, newCueFromPath,
+  initCues, loadedCueModules, importCueModule, saveCueFile, cueFromRelativePath,
   // types
   CueId, CueMap, CueModule, Cue,
 } from './cues'
@@ -114,6 +114,11 @@ export type Layout = {
   layers: EventCueMap[],
   layerLabels: LayerLabel[],
 }
+export type CompactedLayout = {
+  layers: Map<MakeShiftEvent, string>[],
+  layerLabels: LayerLabel[],
+}
+
 export function getMainWindow(): BrowserWindow { return mainWindow }
 
 const layout: Layout = {
@@ -266,7 +271,9 @@ Promise.all(preloadBarrier).then(() => {
   // loadingBarrier.push(loadLayouts())
   loadingBarrier.push(attachWatchers())
 
-  PortAuthority.addListener(PortAuthorityEvents.port.opened, addKnownDevice)
+  PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
+  PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
+
   startAutoScan()
 }).then(() => {
   // Start application when loading finishes
@@ -303,7 +310,10 @@ const ipcMainCallHandler = {
     log.debug(`Running cue ${cueId}`)
     try {
       await importCueModule(cues.get(cueId))
-      loadedCueModules[cueId].run()
+      loadedCueModules[cueId].run({
+        state: true,
+        event: 'test',
+      })
     } catch (e) {
       log.error(`Cue ${cueId} could not be run\n\tIssue: ${e}`)
     }
@@ -353,6 +363,7 @@ const ipcMainSetHandler = {
       contents: data.contents,
     })
     await attachCueToEvent({
+      layerName: 'base',
       cueId: data.cueId,
       event: data.event,
     })
@@ -440,6 +451,14 @@ async function createMainWindow() {
       width: size[0],
     }
 
+
+    store.set(storeKeys.MainWindowState, newPosition)
+    log.debug(nspct2(newPosition))
+
+    // detach listeners from PortAuth
+    PortAuthority.removeListener(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
+    PortAuthority.removeListener(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
+
     // detach listeners from Ports
     attachedDeviceIds.forEach((fp) => {
       for (const lv in DeviceEvents.Terminal.Log) {
@@ -449,14 +468,6 @@ async function createMainWindow() {
         )
       }
     })
-
-    store.set(storeKeys.MainWindowState, newPosition)
-    log.debug(nspct2(newPosition))
-
-    // detach listeners from PortAuth
-    PortAuthority.removeListener(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
-    PortAuthority.removeListener(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
-
   })
 
   // mainWindow.on('move', () => {
@@ -504,6 +515,15 @@ async function serialLogToMainWindow(data: LogMessage) {
  * Cue section
  */
 
+function runCue(eventData) {
+  log.debug(`running cue with eventData: ${nspct2(eventData)}`)
+  const targetCue = layout.layers[currentLayer].get(eventData.event)
+  log.debug(`got targetCue: ${nspct2(targetCue)}`)
+  if (typeof targetCue !== 'undefined') {
+    loadedCueModules[targetCue.id].run(eventData)
+  }
+}
+
 export async function attachWatchers() {
   cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
   cueWatcher.on('add', path => cueHandler.add(path))
@@ -514,8 +534,9 @@ export async function attachWatchers() {
   cueWatcher.on('error', err => log.info(`err ${err}`))
 }
 
-export async function attachCueToEvent({ event, cueId }:
+export async function attachCueToEvent({ layerName, event, cueId }:
   {
+    layerName: string,
     event: MakeShiftEvent;
     cueId: CueId
   }
@@ -523,26 +544,23 @@ export async function attachCueToEvent({ event, cueId }:
   if (Object.keys(Ports).length > 0) {
     const deviceId = knownDevices[0].portId;
 
+    let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
+    if (targetLayer === -1) { targetLayer = 0 }
+
     // TODO: set up layouts by default
-    if (layout.layers[currentLayer].has(event)) {
+    if (layout.layers[targetLayer].has(event)) {
       log.debug(`Attempting to unload existing event: ${event}`)
       // find and remove the existing event
-      const mappedCue = layout.layers[currentLayer].get(event)
+      const mappedCue = layout.layers[targetLayer].get(event)
       log.debug(`existing cue: ${nspct2(mappedCue)}`)
-      Ports[deviceId].removeListener(event, loadedCueModules[mappedCue.id].run)
     }
     log.debug(`Attaching cue ${cueId} to ${event}`)
     try {
       const importedCue = await importCueModule(cues.get(cueId))
       cues.set(cueId, importedCue)
 
-      // clobbering all events is an option if the above is buggy
-      // Ports[deviceId].removeAllListeners(event)
-
-      Ports[deviceId].on(event, loadedCueModules[cueId].run as any)
-
       const layerCue = cues.get(cueId)
-      layout.layers[currentLayer].set(event, layerCue)
+      layout.layers[targetLayer].set(event, layerCue)
 
       if (typeof loadedCueModules[cueId].runTriggers[deviceId] === 'undefined') {
         log.debug(`Creating run trigger record for device: ${deviceId}`)
@@ -562,11 +580,22 @@ export async function attachCueToEvent({ event, cueId }:
   }
 }
 
+export async function detachCueFromEvent({ layerName, event, cueId }:
+  {
+    layerName: string,
+    event: MakeShiftEvent;
+    cueId: CueId
+  }
+): Promise<void> {
+
+}
+
 const cueHandler = {
   add: async function (path) {
     let newCue
+    log.debug(`New cue from: ${path}`)
     try {
-      newCue = newCueFromPath(path)
+      newCue = cueFromRelativePath(path)
       cues.set(newCue.id, newCue)
       newCue.contents = await readFile(newCue.fullPath)
       cues.set(newCue.id, newCue)
@@ -580,7 +609,7 @@ const cueHandler = {
   },
   unlink: function (path) {
     try {
-      const maybeCue = newCueFromPath(path)
+      const maybeCue = cueFromRelativePath(path)
       if (mainWindow !== null) {
         mainWindow.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
       }
@@ -615,7 +644,11 @@ async function saveLayouts() {
 
   layout.layers.forEach((layer) => {
     log.debug(layer)
-    serializedLayout.layers.push(Array.from(layer.entries()))
+    const serialLayer = new Map()
+    layer.forEach((cue, event) => {
+      serialLayer.set(event, cue.id)
+    })
+    serializedLayout.layers.push(Array.from(serialLayer.entries()))
   })
 
   log.debug(nspect(serializedLayout, 4))
@@ -623,21 +656,58 @@ async function saveLayouts() {
 }
 
 async function loadLayouts() {
-  let savedLayout = store.get(storeKeys.DeviceLayout, layout) as any
+  let savedLayout = store.get(storeKeys.DeviceLayout, null) as any
   currentLayer = 0;
   log.debug('Loading Layouts:')
-  // layout.layerLabels = savedLayout.layerLabels
-  // layout.layers = []
-  // savedLayout.layers.forEach((layerArray) => {
-  //   layout.layers.push(new Map(layerArray))
-  // })
-  log.debug(nspct2(savedLayout))
+  let tempLayout: Layout = {
+    layerLabels: savedLayout.layerLabels,
+    layers: []
+  }
+  savedLayout.layers.forEach(async (layerArray) => {
+    log.debug(`layerArray: ${nspct2(layerArray)}`)
+    const existsArray = []
+    for (const pair of layerArray) {
+      log.debug(`array pair: ${pair}`)
+      try {
+        const cueId = pair[1]
+        await cueHandler.add(cueId)
+
+        importCueModule(cues.get(cueId))
+        pair[1] = cues.get(cueId)
+        existsArray.push(pair)
+        log.debug(`array pair pt 2 ${nspct2(pair)}`)
+      } catch (e) { }
+    }
+
+    log.debug(`existsArray: ${nspct2(existsArray)}`)
+    const layerMap = new Map(existsArray) as EventCueMap
+    log.debug(`layerMap: ${nspct2(layerMap)}`)
+    tempLayout.layers.push(layerMap)
+  })
+
+  layout.layers = tempLayout.layers
+  layout.layerLabels = tempLayout.layerLabels
+
+  log.debug(nspect(savedLayout, 4))
+  log.debug(nspct2(tempLayout))
   log.debug(nspct2(layout))
 }
 
 // Handler function, declared here
 async function addKnownDevice(fp: MakeShiftPortFingerprint) {
   knownDevices.push(fp)
+  DeviceEvents.BUTTON.forEach((evObj) => {
+    Ports[fp.portId].on(evObj.PRESSED, runCue)
+    Ports[fp.portId].on(evObj.RELEASED, runCue)
+  })
+  DeviceEvents.DIAL.forEach((evObj) => {
+    Ports[fp.portId].on(evObj.INCREMENT, runCue)
+    Ports[fp.portId].on(evObj.DECREMENT, runCue)
+  })
+}
+
+async function removeKnownDevice(fp: MakeShiftPortFingerprint) {
+  knownDevices = knownDevices.filter(knownFingerprint => fp.portId !== knownFingerprint.portId)
 }
 
 /**

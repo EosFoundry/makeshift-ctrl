@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as chokidar from 'chokidar';
 import { DeviceId } from '.';
 export type IModule = typeof Electron.CrossProcessExports;
@@ -7,6 +8,7 @@ export interface Cue {
     fullPath: string;
     name: string;
     folder: string;
+    contents?: Buffer;
 }
 export type CueId = string;
 export type CueMap = Map<string, Cue>;
@@ -15,7 +17,7 @@ export interface CueModule extends IModule {
     requiredPlugins?: string[];
     plugins?: any;
     setup: Function;
-    run: () => void;
+    run: (eventData?: any) => void;
     runTriggers: {
         [key: DeviceId]: {
             events: string[];
@@ -29,7 +31,7 @@ export declare const loadedCueModules: {
     [key: CueId]: CueModule;
 };
 export declare function initCues(): Promise<void>;
-export declare function newCueFromPath(path: any): Cue;
+export declare function cueFromRelativePath(path: any): Cue;
 export declare function saveCueFile(data: {
     cueId: string;
     contents: Uint8Array;

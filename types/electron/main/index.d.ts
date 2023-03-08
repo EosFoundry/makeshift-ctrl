@@ -14,6 +14,10 @@ export type Layout = {
     layers: EventCueMap[];
     layerLabels: LayerLabel[];
 };
+export type CompactedLayout = {
+    layers: Map<MakeShiftEvent, string>[];
+    layerLabels: LayerLabel[];
+};
 export declare function getMainWindow(): BrowserWindow;
 /**
  * IPC Call API
@@ -79,11 +83,14 @@ declare const ipcMainSetHandler: {
         contents: Uint8Array;
     }) => Promise<string>;
 };
-/**
- * Cue section
- */
 export declare function attachWatchers(): Promise<void>;
-export declare function attachCueToEvent({ event, cueId }: {
+export declare function attachCueToEvent({ layerName, event, cueId }: {
+    layerName: string;
+    event: MakeShiftEvent;
+    cueId: CueId;
+}): Promise<void>;
+export declare function detachCueFromEvent({ layerName, event, cueId }: {
+    layerName: string;
     event: MakeShiftEvent;
     cueId: CueId;
 }): Promise<void>;

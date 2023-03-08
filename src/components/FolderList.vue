@@ -6,7 +6,7 @@ import collapsedIconUrl from '../assets/icon/bootstrap/chevron-right.svg?url'
 import { ref, watch } from 'vue';
 import { stat } from 'fs';
 import { Folder } from 'src/main';
-import { Cue } from 'types/electron/main';
+import { Cue } from 'types/electron/main/cues';
 
 const props = defineProps<{
   folder: Folder,

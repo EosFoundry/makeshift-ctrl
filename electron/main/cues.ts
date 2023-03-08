@@ -35,7 +35,7 @@ export interface CueModule extends IModule {
   requiredPlugins?: string[],
   plugins?: any,
   setup: Function,
-  run: () => void,
+  run: (eventData?:any) => void,
   runTriggers: {
     [key: DeviceId]: {
       events: string[]
@@ -74,7 +74,7 @@ export async function initCues() {
   })
 }
 
-export function newCueFromPath(path): Cue {
+export function cueFromRelativePath(path): Cue {
   const fileName = basename(path)
   const folderName = dirname(path)
   const fullPath = resolve(join(process.env.CUES, path))
@@ -200,7 +200,6 @@ export async function unloadCueModule(cue: Cue) {
     const cacheList = Object.keys(require.cache)
     const cueModulesCacheList = cacheList.filter((val) => {
       const posixPath = normalize(val)
-      log.debug(posixPath)
       return posixPath.startsWith(process.env.CUES) || posixPath.startsWith(cueTempDir)
     })
 

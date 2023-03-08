@@ -2,7 +2,7 @@
 import { Folder } from 'src/main';
 import { fileURLToPath } from 'url';
 import { inject, onBeforeMount, ref, Ref } from 'vue';
-import { Cue, CueMap } from '../../types/electron/main/index'
+import { Cue, CueMap } from '../../types/electron/main/cues'
 
 import folderIcon from '../assets/icon/bootstrap/folder2-open.svg?url'
 
