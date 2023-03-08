@@ -2,7 +2,7 @@ import { createApp, Ref, ref, watch } from 'vue'
 import { customAlphabet } from 'nanoid'
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
-import { Cue, CueMap } from '../types/electron/main/index'
+import { Cue, CueMap } from '../types/electron/main/cues'
 import App from './App.vue'
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);

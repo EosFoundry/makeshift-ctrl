@@ -13,6 +13,7 @@ import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift
 import { ctrlLogger } from './utils'
 import { dialog } from 'electron'
 import { plugins } from './plugins'
+import { DeviceId } from '.'
 
 export type IModule = typeof Electron.CrossProcessExports
 
@@ -22,8 +23,6 @@ export interface Cue {
   fullPath: string,
   name: string,
   folder: string,
-  contents?: Buffer
-  modulePath?: string
 }
 
 export type CueId = string
@@ -31,30 +30,34 @@ export type CueId = string
 export type CueMap = Map<string, Cue>
 
 export interface CueModule extends IModule {
+  id: CueId,
   requiredPlugins?: string[],
   plugins?: any,
   setup: Function,
   run: () => void,
-  runTriggers: { deviceId: string, events: string[] }[],
-  moduleId: string,
+  runTriggers: {
+    [key: DeviceId]: {
+      events: string[]
+    }
+  },
+  modulePath: string,
 }
 
 // Create Loggers
-const msgen = new Msg({ host: 'CueHost', logLevel: 'all' })
+const msgen = new Msg({ host: 'CueHandler', logLevel: 'all' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 const textDecoder = new TextDecoder()
 
 export let cueWatcher: chokidar.FSWatcher
 export const cues: CueMap = new Map()
-export const loadedCues: { [key: string]: CueModule } = {}
+export const loadedCueModules: { [key: CueId]: CueModule } = {}
+let cueTempDir = join(process.env.TEMP, 'cues')
 
 
 export async function initCues() {
   const examplesFolder = join(process.env.CUES, 'examples')
-  if (existsSync(examplesFolder)) {
-
-  } else {
+  if (existsSync(examplesFolder)) { } else {
     // this should be on first run or if the user nukes 
     // the ../AppData/../makeshift-ctrl folder
     const dest = examplesFolder
@@ -69,7 +72,6 @@ export async function initCues() {
     cwd: process.env.CUES
   })
 }
-
 
 export function newCueFromPath(path): Cue {
   const fileName = basename(path)
@@ -98,31 +100,29 @@ export function newCueFromPath(path): Cue {
     fullPath: fullPath,
     name: cueName,
     folder: folderName,
-    modulePath: '',
   } as Cue
 }
 
 export async function saveCueFile(data: { cueId: string, contents: Uint8Array }): Promise<string> {
-    const { cueId, contents } = data
-    // log.debug(nspct2(cueId))
-    log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
-    const contentString = textDecoder.decode(contents)
-    const fullPath = join(process.env.CUES, cueId)
+  const { cueId, contents } = data
+  // log.debug(nspct2(cueId))
+  log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
+  const contentString = textDecoder.decode(contents)
+  const fullPath = join(process.env.CUES, cueId)
 
-    try {
-      await writeFile(fullPath, contentString)
-      return fullPath
-    } catch (e) {
-      return ''
-    }
+  try {
+    await writeFile(fullPath, contentString)
+    return fullPath
+  } catch (e) {
+    return ''
   }
+}
 
-// TODO: create temp directory for 'attached' cues
 export async function importCueModule(cue: Cue): Promise<Cue> {
-  log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCues[cue.id]}`)
-  if (typeof loadedCues[cue.id] !== 'undefined') {
+  log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCueModules[cue.id]}`)
+  if (typeof loadedCueModules[cue.id] !== 'undefined') {
     // TODO: change to hash checking for better performance
-    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCues[cue.id])}`)
+    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCueModules[cue.id])}`)
     unloadCueModule(cue)
   }
   // the temporary cue file naming scheme:
@@ -138,44 +138,52 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
     moduleFile = cue.folder.replaceAll(pathSep, '-') + '-' + moduleFile
   }
 
-  const modulePath = join(process.env.TEMP, 'cues', moduleFile)
+  const modulePath = join(cueTempDir, moduleFile)
   const id = cue.id
 
   log.debug(modulePath)
-  await ensureDir(join(process.env.TEMP, 'cues'))
+  await ensureDir(join(cueTempDir))
   await copyFile(cue.fullPath, modulePath)
-  loadedCues[id] = require(modulePath) as CueModule
-  loadedCues[id].moduleId = modulePath
-  const cueExports = Object.keys(loadedCues[id])
+  loadedCueModules[id] = require(modulePath) as CueModule
+  loadedCueModules[id].id = cue.id
+  loadedCueModules[id].modulePath = modulePath
+  const cueExports = Object.keys(loadedCueModules[id])
   // log.debug(nspct2(require.cache))
   // big fat type checker
-  if (cueExports.includes('requiredPlugins') && Array.isArray(loadedCues[id].requiredPlugins)
-    && cueExports.includes('plugins') && typeof loadedCues[id].plugins === 'object'
-    && cueExports.includes('setup') && typeof loadedCues[id].setup === 'function'
-    && cueExports.includes('run') && typeof loadedCues[id].run === 'function') {
-    if (typeof loadedCues[id].requiredPlugins !== 'undefined') {
-      loadedCues[id].requiredPlugins.forEach((pluginName) => {
+  if (cueExports.includes('requiredPlugins') && Array.isArray(loadedCueModules[id].requiredPlugins)
+    && cueExports.includes('plugins') && typeof loadedCueModules[id].plugins === 'object'
+    && cueExports.includes('setup') && typeof loadedCueModules[id].setup === 'function'
+    && cueExports.includes('run') && typeof loadedCueModules[id].run === 'function') {
+    if (typeof loadedCueModules[id].requiredPlugins !== 'undefined') {
+      loadedCueModules[id].requiredPlugins.forEach((pluginName) => {
         if (typeof plugins[pluginName] !== 'undefined'
           && pluginName !== 'ctrlTerm') {
-          loadedCues[id].plugins[pluginName] = plugins[pluginName]
+          loadedCueModules[id].plugins[pluginName] = plugins[pluginName]
         }
       })
     }
-    loadedCues[id].plugins.msg = new Msg({
+    loadedCueModules[id].plugins.msg = new Msg({
       host: 'cue:' + id,
       logger: ctrlLogger,
       showTime: false,
       logLevel: 'all'
     })
-    loadedCues[id].plugins.ctrlTerm = loadedCues[id].plugins.msg.getLevelLoggers()
-    loadedCues[id].plugins.ctrlTerm.log = loadedCues[id].plugins.ctrlTerm.info
-    loadedCues[id].runTriggers = []
-    loadedCues[id].setup()
-    cue.modulePath = modulePath
+    loadedCueModules[id].plugins.ctrlTerm = loadedCueModules[id].plugins.msg.getLevelLoggers()
+    loadedCueModules[id].plugins.ctrlTerm.log = loadedCueModules[id].plugins.ctrlTerm.info
+    loadedCueModules[id].runTriggers = {}
+
+    // Run module setup
+    try {
+      loadedCueModules[id].setup()
+    } catch (e) {
+      unloadCueModule(cue)
+      delete loadedCueModules[id]
+      throw 'Error when running setup()'
+    }
     return cue
   } else {
     unloadCueModule(cue)
-    delete loadedCues[id]
+    delete loadedCueModules[id]
     throw 'Module missing required exports.'
   }
 }
@@ -183,15 +191,25 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
 export async function unloadCueModule(cue: Cue) {
   // this deliberately does not detach any loaded cues
   // to avoid running errors if an event is still attached
-  if (typeof loadedCues[cue.id] !== 'undefined') {
-    const moduleId = loadedCues[cue.id].moduleId
-    log.debug(`Unloading ${cue.id} loaded as ${moduleId}`)
-    log.debug(`Require cache: ${nspct2(require.cache)}`)
+  if (typeof loadedCueModules[cue.id] !== 'undefined') {
+    const moduleId = loadedCueModules[cue.id].modulePath
+
+    log.info(`Unloading ${cue.id} loaded as ${moduleId}`)
+
+    const cacheList = Object.keys(require.cache)
+    const cueModulesCacheList = cacheList.filter((val) => {
+      const posixPath = normalize(val)
+      log.debug(posixPath)
+      return posixPath.startsWith(process.env.CUES) || posixPath.startsWith(cueTempDir)
+    })
+
+    log.debug(process.env.CUES)
+    log.debug(cueTempDir)
+    log.debug(`Require cache: ${nspct2(cueModulesCacheList)}`)
+
     delete require.cache[moduleId]
   }
 }
-
-
 
 export async function loadCueDialog(): Promise<{ name: string; path: string }> {
   const openResult = await dialog.showOpenDialog({

@@ -29,6 +29,7 @@
     "@eos-makeshift/serial": "^2.2.2",
     "autoprefixer": "^10.4.13",
     "chokidar": "^3.5.3",
+    "colorjs.io": "^0.4.3",
     "defu": "^6.1.2",
     "electron-store": "^8.1.0",
     "fs-extra": "^11.1.0",

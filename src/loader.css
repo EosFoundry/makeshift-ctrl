@@ -1,0 +1,23 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  align-items: stretch;
+}
+
+#loader {
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  border-radius: 18px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: var(--color-hl);
+  background-color: var(--color-hl);
+  width: 100%;
+}

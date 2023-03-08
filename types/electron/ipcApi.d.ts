@@ -35,7 +35,7 @@ export declare const ctrlIpcApi: {
 export declare const storeKeys: {
     UuidNamespace: string;
     MainWindowState: string;
-    DeviceLayouts: string;
+    DeviceLayout: string;
 };
 export type CtrlIpcApi = typeof ctrlIpcApi;
 export type StoreKeys = typeof storeKeys;

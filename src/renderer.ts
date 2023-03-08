@@ -1,10 +1,10 @@
 import { LogMessage, MakeShiftPortFingerprint } from "@eos-makeshift/serial"
 import {
-  Cue,
   IpcMainCallHandler,
   IpcMainGetHandler,
   IpcMainSetHandler
 } from 'types/electron/main/index'
+import { Cue } from 'types/electron/main/cues'
 
 export interface rndrCtrlAPI {
   test: () => void,

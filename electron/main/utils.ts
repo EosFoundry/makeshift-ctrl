@@ -1,7 +1,7 @@
 import { LogMessage } from "@eos-makeshift/serial"
 import { LogLevel } from "@eos-makeshift/msg"
 import { ctrlIpcApi } from "../ipcApi"
-import { mainWindow } from "./index"
+import { getMainWindow } from "./index"
 
 export function ctrlLogger(loggable: string, logLevel: LogLevel) {
   const data = {
@@ -9,6 +9,7 @@ export function ctrlLogger(loggable: string, logLevel: LogLevel) {
     message: loggable.toString(),
     buffer: Buffer.from(loggable.toString())
   } as LogMessage
+  const mainWindow = getMainWindow()
   if (mainWindow !== null) {
     mainWindow.webContents.send(ctrlIpcApi.onEv.terminal.data, data)
   }
