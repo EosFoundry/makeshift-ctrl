@@ -1,6 +1,6 @@
 // import * as chokidar from 'chokidar'
 import { Msg } from '@eos-makeshift/msg'
-import { dialog } from 'electron'
+import { dialog, utilityProcess } from 'electron'
 import { readdir, mkdir } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'original-fs'
@@ -78,6 +78,6 @@ async function load(pluginFolder: string) {
   // log.info(isAbsolute(pluginPath))
   // log.info(plugPathUrl)
   // log.info(lstatSync(pluginPath).isFile())
-  plugins[name] = await import(plugPathUrl.href)
+  plugins[name] = await utilityProcess.fork(plugPathUrl.href)
   // log.info(plugins)
 }

@@ -5,3 +5,22 @@
 Should it start early as a UI element?
 
 How will the size of the window change the display? Will the editor need to have a fixed size?
+
+* UI interface insights
+
+- Teach core concepts of the system
+  - Buttons --> cues --> envoy
+                  ^________| 
+- reduce decision complexity for initiates
+
+** Ideal Workflow
+
+Requires user to have a clear task/goal in mind - do A or B in some software
+
+*** cue creation and organization
+
+having an approachable scheme to organise cues
+
+- detach the idea of cues from the actual layout
+- cues like a shelf - pick and choose which cues to run for what
+-
