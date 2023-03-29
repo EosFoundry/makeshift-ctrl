@@ -433,7 +433,7 @@ async function createMainWindow() {
   } else {
     mainWindow.loadURL(devUrl)
     // Open devTool if the app is not packaged
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
   }
 
   // attach PA listeners

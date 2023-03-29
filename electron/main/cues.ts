@@ -53,11 +53,12 @@ const textDecoder = new TextDecoder()
 export let cueWatcher: chokidar.FSWatcher
 export const cues: CueMap = new Map()
 export const loadedCueModules: { [key: CueId]: CueModule } = {}
-let cueTempDir = join(process.env.TEMP, 'cues')
+let cueTempDir = ''
 
 
 export async function initCues() {
   const examplesFolder = join(process.env.CUES, 'examples')
+  cueTempDir = join(process.env.TEMP, 'temp')
   if (existsSync(examplesFolder)) { } else {
     // this should be on first run or if the user nukes 
     // the ../AppData/../makeshift-ctrl folder
