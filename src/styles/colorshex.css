@@ -33,3 +33,39 @@
     --color-green: 88 138 0;
     --color-blue: 0 122 196;
 }
+
+:root {
+    --light-theme: false;
+    --color-bg: #242228;
+    --color-dark: #17171c;
+    --color-neutral: #98938D;
+    --color-text: #EEE7DD;
+    --color-hl: #423F3D;
+    --color-hl1: #E0D4CC;
+    --color-primary: #D6B2EB;
+    --color-primary1: #A370B7;
+    --color-primary2: #804B95;
+    --color-secondary: #C74E29;
+    --color-secondary1: #FF9A7A;
+    --color-secondary2: #FFB199;
+    --color-red: #BE5B70;
+    --color-green: #A7C07B;
+    --color-blue: #AACEDE;
+}
+
+.light-theme {
+    --color-bg: #EEE7DD;
+    --color-neutral: #98938D;
+    --color-text: #423F3D;
+    --color-hl: #E0D4CC;
+    --color-hl1: #242228;
+    --color-primary: #FFB199;
+    --color-primary1: #FF9A7A;
+    --color-primary2: #C74E29;
+    --color-secondary: #D6B2EB;
+    --color-secondary1: #A370B7;
+    --color-secondary2: #804B95;
+    --color-red: #BB2A49;
+    --color-green: #588A00;
+    --color-blue: #007AC4;
+}

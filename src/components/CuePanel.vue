@@ -73,7 +73,7 @@ function sendLoadEvent(cue: Cue) {
 
 <style lang="scss">
 .cue-panel {
-  background-color: var(--color-dark);
+  background-color: rgb(var(--color-dark));
 }
 
 .pane-title {
@@ -82,8 +82,8 @@ function sendLoadEvent(cue: Cue) {
   padding-bottom: 6px;
   padding-left: 1em;
   font-size: 10pt;
-  background-color: var(--color-bg);
-  color: var(--color-hl1);
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-hl1));
 }
 
 .list-entry {
@@ -98,7 +98,7 @@ function sendLoadEvent(cue: Cue) {
   align-items: center;
 
   &:hover {
-    background-color: var(--color-primary2);
+    background-color: rgb(var(--color-primary2));
   }
 }
 
@@ -110,7 +110,7 @@ function sendLoadEvent(cue: Cue) {
   text-align: left;
   list-style-type: none;
   padding: 0px;
-  border-left: 1px solid var(--color-neutral);
+  border-left: 1px solid rgb(var(--color-neutral));
   margin-left: 14px;
 
   &.top-level {

@@ -402,7 +402,7 @@ watch(
     </div>
 
     <div id="codebox-inner-border" class="pane-rounded-inner" :style="{
-      borderColor: saveStateStyles.borderColor
+      borderColor: `rgb(${saveStateStyles.borderColor})`,
     }">
       <div id="codebox-editor" ref="codeboxEditorElement" />
     </div>
@@ -444,13 +444,13 @@ watch(
   width: 5px;
   // paddingTop: '5px',
   margin: auto 0px;
-  background-color: var(--color-neutral);
+  background-color: rgb(var(--color-neutral));
   border-radius: 50%;
 }
 
 .name-entry {
   box-sizing: border-box;
-  border-color: var(--color-hl);
+  border-color: rgb(var(--color-hl));
   border-width: 1px;
   border-style: solid;
   // outline: 2px solid rgba($color: var(--color-neutral), $alpha: 1.0);
@@ -471,7 +471,7 @@ watch(
   }
 
   &:focus {
-    background-color: var(--color-hl);
+    background-color: rgb(var(--color-hl));
     // border-bottom-color: var(--color-primary1);
   }
 }

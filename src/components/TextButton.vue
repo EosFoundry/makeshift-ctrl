@@ -38,6 +38,7 @@ if (props.hoverColor) {
     </div>
   </button>
 </template>
+
 <style>
 button {
   display: flex;

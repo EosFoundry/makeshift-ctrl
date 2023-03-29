@@ -23,4 +23,3 @@ having an approachable scheme to organise cues
 
 - detach the idea of cues from the actual layout
 - cues like a shelf - pick and choose which cues to run for what
--

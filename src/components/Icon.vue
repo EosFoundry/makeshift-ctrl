@@ -14,7 +14,7 @@ const props = defineProps<{
     height: props.size ? props.size : '20px',
     width: props.size ? props.size : '20px',
     maskImage: `url(${props.iconUrl})`,
-    backgroundColor: props.color ? props.color : 'var(--color-secondary2)',
+    backgroundColor: props.color ? `rgb(${props.color}` : 'rgb(var(--color-secondary2))',
     cursor: props.clickable ? 'pointer' : 'default',
   }" :title="props.title" />
 </template>
