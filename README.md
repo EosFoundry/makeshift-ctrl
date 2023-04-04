@@ -16,7 +16,7 @@ Required tooling:
 
 ### NodeJS version management
 
-Using nvm is *highly* recommended to keep the chaos of node versioning somewhat contained.
+Using nvm is optional but *highly* recommended to keep the chaos of node versioning somewhat contained.
 
 Linuxs/MacOS: nvm - <https://github.com/nvm-sh/nvm>
 
@@ -56,7 +56,11 @@ Useful extensions:
 - vterm: <https://github.com/akermu/emacs-libvterm>
 - lsp-mode with volar client: <https://github.com/emacs-lsp/lsp-mode>
 
-### Starting Development
+## Development First Steps
+
+Once your environment is ready, you'll need to get the code through git.
+
+### Obtaining Code
 
 Clone repo:
 
@@ -71,9 +75,13 @@ cd makeshift-ctrl/
 npm install
 ```
 
-Now you're ready to run the dev server.
+### Branch
 
-## Building and Runninng
+Generally `dev` branch will contain the latest, likely-broken code that is being worked on. `main` is where stable commits are applied to.
+
+### Building and Runninng
+
+Once you have the code, you're ready to run the dev server.
 
 This section assumes the reader has set up a dev environment and has cloned the project
 
