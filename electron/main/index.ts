@@ -661,7 +661,9 @@ async function saveLayouts() {
 async function loadLayouts() {
   let savedLayout = store.get(storeKeys.DeviceLayout, null) as any
   currentLayer = 0;
-  log.debug('Loading Layouts:')
+  log.debug('Loading Layouts...')
+  if (typeof savedLayout === 'undefined') { return }
+  if (typeof savedLayout.layerLabels === 'undefined') { return }
   let tempLayout: Layout = {
     layerLabels: savedLayout.layerLabels,
     layers: []
