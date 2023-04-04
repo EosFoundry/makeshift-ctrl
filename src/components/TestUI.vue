@@ -12,7 +12,7 @@ import { ref } from 'vue';
 const buttonClass = ref(`w-12 h-12 
   mx-2 mt-2 mb-2 hover:mt-3 hover:mb-1
   rounded-lg 
-  shadow-md hover:shadow-none
+  shadow-md hover:shadow-test
   border-solid border-4 
   device-layout-button
   `)
@@ -20,7 +20,7 @@ const buttonClass = ref(`w-12 h-12
 const dialClass = ref(`w-12 h-12
   mx-2 mt-2 mb-2 hover:mt-3 hover:mb-1
   rounded-full
-  shadow-md hover:shadow-none
+  shadow-md hover:shadow-test
   border-solid border-4 
   device-layout-button
   `)

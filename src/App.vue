@@ -33,8 +33,8 @@ nextTick(() => {
 </script>
 
 <template>
-	<!-- <test-interface/> -->
-	<splitpanes id="main-container" horizontal>
+	<test-interface/>
+	<!-- <splitpanes id="main-container" horizontal>
 		<pane :size="topPanelHeight">
 			<splitpanes vertical>
 				<pane size="69">
@@ -55,7 +55,7 @@ nextTick(() => {
 		<pane @resize="terminalResize">
 			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
-	</splitpanes>
+	</splitpanes> -->
 	<bottom-bar />
 </template>
 
