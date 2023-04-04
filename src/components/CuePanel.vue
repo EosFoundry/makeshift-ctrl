@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Folder } from 'src/main';
 import { fileURLToPath } from 'url';
 import { inject, onBeforeMount, ref, Ref } from 'vue';
+import { Folder } from '../main';
 import { Cue, CueMap } from '../../types/electron/main/cues'
 
 import folderIcon from '../assets/icon/bootstrap/folder2-open.svg?url'

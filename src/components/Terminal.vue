@@ -20,7 +20,7 @@ import { colors as makeShiftTheme } from '../styles/makeshift.theme.json'
 import chevronUpUrl from '../assets/icon/bootstrap/chevron-up.svg?url'
 import chevronDownUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
 import TextButton from './TextButton.vue'
-import { rndrCtrlAPI } from 'src/renderer'
+import { rndrCtrlAPI } from '../renderer'
 import { watchResize } from '../composables/resizer'
 
 // reactive elements

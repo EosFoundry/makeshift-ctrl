@@ -24,7 +24,7 @@ import Icon from './Icon.vue'
 import IconButton from './IconButton.vue'
 import toolbarSpacer from './ToolBarSpacer.vue'
 import { watchResize } from "../composables/resizer";
-import { Cue, CueMap } from "types/electron/main/cues";
+import { Cue, CueMap } from "../../types/electron/main/cues";
 import TextButton from "./TextButton.vue";
 
 const nanoid = inject('nanoid') as () => string

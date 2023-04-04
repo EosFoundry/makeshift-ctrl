@@ -64,9 +64,9 @@ import {
   // functions
   initCues, loadedCueModules, importCueModule, saveCueFile, cueFromRelativePath,
   // types
-  CueId, CueMap, CueModule, Cue,
+  CueId, CueMap, CueModule, Cue, cueExists,
 } from './cues'
-import internal from 'node:stream'
+// import internal from 'node:stream'
 
 
 let nanoid
@@ -257,32 +257,36 @@ preloadBarrier.push(initPlugins())
 preloadBarrier.push(initCues())
 
 // Open splash
-app.whenReady().then(createSplashWindow)
+app.whenReady()
+  .then(createSplashWindow)
+  .then(async () => {
+    // Load resources with preload requirements
+    const loadingBarrier = []
+    await Promise.all(preloadBarrier)
+    await initLayouts()
+    log.debug('Loaded Cues:')
+    cues.forEach((val, key) => {
+      log.debug(`${key}: ${nspect(val, 1)}`)
+    })
+    // loadingBarrier.push(loadLayouts())
+    loadingBarrier.push(attachWatchers())
 
-// Load resources with preload requirements
-const loadingBarrier = []
-Promise.all(preloadBarrier).then(() => {
-  initLayouts()
-}).then(() => {
-  log.debug('Loaded Cues:')
-  cues.forEach((val, key) => {
-    log.debug(`${key}: ${nspect(val, 1)}`)
-  })
-  // loadingBarrier.push(loadLayouts())
-  loadingBarrier.push(attachWatchers())
+    PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
+    PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
 
-  PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
-  PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
+    log.debug('Starting Port Authority')
+    startAutoScan()
+    log.debug('Awaiting loading barrier')
 
-  startAutoScan()
-}).then(() => {
-  // Start application when loading finishes
-  Promise.all(loadingBarrier).then(() => {
+    // Start application when loading finishes
+    await Promise.all(loadingBarrier)
+    log.debug('Loading finished')
     splashWindow.hide()
     splashWindow.close()
     createMainWindow()
+
   })
-})
+
 
 
 ipcMain.handle(Api.test, () => {
@@ -526,9 +530,9 @@ function runCue(eventData) {
 
 export async function attachWatchers() {
   cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
-  cueWatcher.on('add', path => cueHandler.add(path))
-  cueWatcher.on('change', path => cueHandler.add(path))
-  cueWatcher.on('unlink', path => cueHandler.unlink(path))
+  cueWatcher.on('add', path => cueWatcherHandler.add(path))
+  cueWatcher.on('change', path => cueWatcherHandler.add(path))
+  cueWatcher.on('unlink', path => cueWatcherHandler.unlink(path))
   cueWatcher.on('addDir', path => log.info(`Dir ${path} has been added`))
   cueWatcher.on('unlinkDir', path => log.info(`Dir ${path} has been unlinked`))
   cueWatcher.on('error', err => log.info(`err ${err}`))
@@ -590,7 +594,7 @@ export async function detachCueFromEvent({ layerName, event, cueId }:
 
 }
 
-const cueHandler = {
+const cueWatcherHandler = {
   add: async function (path) {
     let newCue
     log.debug(`New cue from: ${path}`)
@@ -631,7 +635,6 @@ const cueHandler = {
 
 async function initLayouts() {
   await loadLayouts()
-
 }
 
 async function saveLayouts() {
@@ -667,16 +670,18 @@ async function loadLayouts() {
     log.debug(`layerArray: ${nspct2(layerArray)}`)
     const existsArray = []
     for (const pair of layerArray) {
-      log.debug(`array pair: ${pair}`)
-      try {
-        const cueId = pair[1]
-        await cueHandler.add(cueId)
+      log.debug(`array pair: ${nspct2(pair)}`)
+      const cueId = pair[1]
+      if (cueExists(pair[1])) {
+        try {
+          await cueWatcherHandler.add(cueId)
 
-        importCueModule(cues.get(cueId))
-        pair[1] = cues.get(cueId)
-        existsArray.push(pair)
-        log.debug(`array pair pt 2 ${nspct2(pair)}`)
-      } catch (e) { }
+          importCueModule(cues.get(cueId))
+          pair[1] = cues.get(cueId)
+          existsArray.push(pair)
+          log.debug(`array pair pt 2 ${nspct2(pair)}`)
+        } catch (e) { }
+      }
     }
 
     log.debug(`existsArray: ${nspct2(existsArray)}`)

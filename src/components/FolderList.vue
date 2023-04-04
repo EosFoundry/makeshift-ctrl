@@ -5,8 +5,8 @@ import expandedIconUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
 import collapsedIconUrl from '../assets/icon/bootstrap/chevron-right.svg?url'
 import { ref, watch } from 'vue';
 import { stat } from 'fs';
-import { Folder } from 'src/main';
-import { Cue } from 'types/electron/main/cues';
+import { Folder } from '../main';
+import { Cue } from '../../types/electron/main/cues';
 
 const props = defineProps<{
   folder: Folder,

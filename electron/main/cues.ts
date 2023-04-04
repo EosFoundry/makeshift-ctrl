@@ -75,6 +75,10 @@ export async function initCues() {
   })
 }
 
+export function cueExists(cueId: CueId): boolean {
+  return existsSync(join(process.env.CUES, cueId))
+}
+
 export function cueFromRelativePath(path): Cue {
   const fileName = basename(path)
   const folderName = dirname(path)

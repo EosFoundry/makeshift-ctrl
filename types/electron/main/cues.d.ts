@@ -31,6 +31,7 @@ export declare const loadedCueModules: {
     [key: CueId]: CueModule;
 };
 export declare function initCues(): Promise<void>;
+export declare function cueExists(cueId: CueId): boolean;
 export declare function cueFromRelativePath(path: any): Cue;
 export declare function saveCueFile(data: {
     cueId: string;

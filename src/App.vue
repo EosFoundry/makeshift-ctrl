@@ -7,7 +7,7 @@ import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
-import DeviceToolbar from './components/BottomBar.vue'
+import BottomBar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
@@ -33,32 +33,30 @@ nextTick(() => {
 </script>
 
 <template>
-	<test-interface/>
-	<!-- <h1></h1> -->
-	<!-- <splitpanes id="main-container" horizontal>
-			<pane :size="topPanelHeight">
-				<splitpanes vertical>
-					<pane size="69">
-						<code-box />
-					</pane>
-					<pane>
-						<splitpanes horizontal>
-							<pane>
-								<device-panel />
-							</pane>
-							<pane size="69">
-								<cue-panel />
-							</pane>
-						</splitpanes>
-					</pane>
-				</splitpanes>
-			</pane>
-			<pane @resize="terminalResize">
-				<terminal :pane-height-percent="bottomPanelHeight" />
-			</pane>
-		</splitpanes>
-	<device-toolbar /> -->
-	<!-- <status-bar /> -->
+	<!-- <test-interface/> -->
+	<splitpanes id="main-container" horizontal>
+		<pane :size="topPanelHeight">
+			<splitpanes vertical>
+				<pane size="69">
+					<code-box />
+				</pane>
+				<pane>
+					<splitpanes horizontal>
+						<pane>
+							<device-panel />
+						</pane>
+						<pane size="69">
+							<cue-panel />
+						</pane>
+					</splitpanes>
+				</pane>
+			</splitpanes>
+		</pane>
+		<pane @resize="terminalResize">
+			<terminal :pane-height-percent="bottomPanelHeight" />
+		</pane>
+	</splitpanes>
+	<bottom-bar />
 </template>
 
 <style lang="scss">

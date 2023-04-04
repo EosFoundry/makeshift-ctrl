@@ -31,8 +31,7 @@ const rowClass = ref(`flex flex-row`)
 <template>
   <div class="
         md:container 
-        md:mx-auto 
-        bg-slate-800">
+        md:mx-auto ">
 
     <div :class=rowClass>
       <div v-for="num in [0, 1, 2, 3]" :class=dialClass :key="num" />

@@ -2,7 +2,7 @@
 import { inject, onMounted, Ref } from 'vue';
 import { MakeShiftDeviceEvents, MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg';
-import { rndrCtrlAPI } from 'src/renderer';
+import { rndrCtrlAPI } from '../renderer';
 
 const Events = inject('makeshift-events') as MakeShiftDeviceEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
@@ -63,7 +63,7 @@ input[type="radio"]+svg {
 }
 
 #toolbar-wrapper {
-  background-color: var(--color-hl);
+  background-color: rgb(var(--color-hl));
   display: flex;
   align-items: center;
   height: fit-content;
@@ -93,8 +93,8 @@ input[type="radio"]+svg {
   padding: 4px;
   padding-left: 8px;
   padding-right: 8px;
-  color: var(--color-text);
-  background-color: var(--color-bg);
+  color: rgb(var(--color-text));
+  background-color: rgb(var(--color-bg));
   border-radius: 3px;
 }
 </style>
