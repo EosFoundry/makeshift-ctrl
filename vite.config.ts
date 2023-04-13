@@ -17,7 +17,7 @@ export default defineConfig({
       include: ['electron'],
       transformOptions: {
         sourcemap: !!process.env.VSCODE_DEBUG,
-        target: 'node16',
+        target: 'node18',
         format: 'cjs',
       },
       outDir: 'dist/electron',

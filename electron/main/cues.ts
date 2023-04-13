@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url'
 
 import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
 
+import { keyboard, Key } from '@nut-tree/nut-js'
 import { ctrlLogger } from './utils'
 import { dialog } from 'electron'
 import { plugins } from './plugins'
@@ -31,11 +32,12 @@ export type CueId = string
 export type CueMap = Map<string, Cue>
 
 export interface CueModule extends IModule {
+  suspicions: any,
   id: CueId,
   requiredPlugins?: string[],
   plugins?: any,
   setup: Function,
-  run: (eventData?:any) => void,
+  run: (eventData?: any) => void,
   runTriggers: {
     [key: DeviceId]: {
       events: string[]
@@ -154,7 +156,9 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
   loadedCueModules[id].id = cue.id
   loadedCueModules[id].modulePath = modulePath
   const cueExports = Object.keys(loadedCueModules[id])
+
   // log.debug(nspct2(require.cache))
+
   // big fat type checker
   if (cueExports.includes('requiredPlugins') && Array.isArray(loadedCueModules[id].requiredPlugins)
     && cueExports.includes('plugins') && typeof loadedCueModules[id].plugins === 'object'
@@ -176,13 +180,15 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
     })
     loadedCueModules[id].plugins.ctrlTerm = loadedCueModules[id].plugins.msg.getLevelLoggers()
     loadedCueModules[id].plugins.ctrlTerm.log = loadedCueModules[id].plugins.ctrlTerm.info
+    loadedCueModules[id].plugins.keyboard = keyboard
+    loadedCueModules[id].plugins.Key = Key
     loadedCueModules[id].runTriggers = {}
 
     // Run module setup
     try {
       loadedCueModules[id].setup()
     } catch (e) {
-      unloadCueModule(cue)      
+      unloadCueModule(cue)
       delete loadedCueModules[id]
       throw 'Error when running setup()'
     }

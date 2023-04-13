@@ -106,3 +106,37 @@ npm run build
 The build output can be found in `./release` once the build completes, the options can be tweaked and fiddled with in `./electron-builder.yml` - see <https://www.electron.build/> for more details (however the documentation is... spotty).
 
 Currently this project uses [electron-builder](https://www.electron.build/), a move to [electron forge](https://www.electronforge.io/) is planned in the near future.
+
+## Directory Structure - AKA wtf are all these folders
+
+Important directories are marked with an asterisk (\*)
+
+```tree
+makeshift-ctrl/ --- main project folder
+├── * electron/   --- electron/nodejs source
+│   ├── main/         --- main process code
+│   └── preload/      --- preload/API setup code
+|
+├── * src/        --- UI source code
+│   ├── assets/       --- resources that will be bundled by vite [2]
+│   ├── components/   --- vue components
+│   ├── composables/  --- vue functions
+|
+├── dist/       --- build process outputs
+│   ├── client/       --- compiled UI files
+│   ├── electron/     --- compiled electron/nodejs files
+│   └── release/      --- packaged application
+|
+├── docs/       --- notes + documentation
+│   └── styles/       --- CSS
+|
+├── build/      --- electron-builder artifacts
+├── examples/   --- example cues
+├── public/     --- loose files (directly routed in UI) [1]
+├── scripts/    --- misc utility scripts
+└── types/      --- emitted types from electron sources
+```
+
+[1] - for more details on the public directory, see <https://vitejs.dev/guide/assets.html#the-public-directory>
+
+[2] - for more details on how vite bundles assets, see <https://vitejs.dev/guide/assets.html>

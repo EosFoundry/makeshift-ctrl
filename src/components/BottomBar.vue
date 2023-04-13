@@ -9,6 +9,7 @@ const logLevel = inject('logLevel') as Ref<LogLevel>
 const makeshift = inject('makeshift') as rndrCtrlAPI
 const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftPortFingerprint[]>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
+const selectedEvent = inject('selected-event') as Ref<string>
 
 // console.log(logLevel.value);
 
@@ -48,11 +49,9 @@ onMounted(() => {
         {{ lv }}
       </option>
     </select>
-    <!-- <div>
-      <button @click="needful">
-        Needful
-      </button>
-    </div> -->
+    <div>
+    {{ selectedEvent }}
+    </div>
   </div>
 </template>
 

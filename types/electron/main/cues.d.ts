@@ -13,6 +13,7 @@ export interface Cue {
 export type CueId = string;
 export type CueMap = Map<string, Cue>;
 export interface CueModule extends IModule {
+    suspicions: any;
     id: CueId;
     requiredPlugins?: string[];
     plugins?: any;
