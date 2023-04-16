@@ -45,7 +45,7 @@
     "@types/splitpanes": "^2.2.1",
     "@types/uuid": "^9.0.1",
     "@vitejs/plugin-vue": "^4.1.0",
-    "ace-builds": "^1.16.0",
+    "ace-builds": "^1.17.0",
     "electron": "^24.0.0",
     "electron-builder": "^23.6.0",
     "highlight.js": "^11.7.0",
