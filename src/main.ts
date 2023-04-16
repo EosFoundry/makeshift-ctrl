@@ -23,6 +23,7 @@ const cueRoot: Folder = {
 (async () => {
   const state = {
     makeShift: window.MakeShiftCtrl,
+    deviceMaps: ref({}) as any,
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
@@ -34,6 +35,14 @@ const cueRoot: Folder = {
     logRank: await window.MakeShiftCtrl.get.logRank(),
     initialDevices: await window.MakeShiftCtrl.get.connectedDevices(),
   }
+
+  const makeshiftMapUrl = new URL('/devicemaps/makeshift.json', import.meta.url).href
+
+  const makeshiftMapResp = await fetch(makeshiftMapUrl)
+  state.deviceMaps.value.makeshift = await makeshiftMapResp.json()
+  console.log(makeshiftMapUrl)
+  console.log(makeshiftMapResp)
+  console.log(state.deviceMaps.value)
 
   // Set up event hooks for device connections
   state.connectedDevices.value = state.initialDevices
@@ -95,6 +104,7 @@ const cueRoot: Folder = {
     .provide('makeshift-events-flat', state.EventsList)
     .provide('selected-event', state.selectedEvent)
     .provide('makeshift', state.makeShift)
+    .provide('device-maps', state.deviceMaps)
     .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('current-device', state.currentDevice)
     .provide('cues', state.cues)

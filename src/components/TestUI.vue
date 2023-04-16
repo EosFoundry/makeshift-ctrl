@@ -8,19 +8,11 @@ export default {
 <script setup lang="ts">
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed } from 'vue';
-import makeshiftMap from '/src/devicemaps/makeshift.json'
-
-console.log(makeshiftMap)
-
-// const makeshiftMapUrl = new URL('/devicemaps/makeshift.json', import.meta.url).href
-
-// const makeshiftMapResp = await fetch(makeshiftMapUrl)
-// const makeshiftMap = await makeshiftMapResp.json()
-// console.log(makeshiftMapUrl)
-// console.log(makeshiftMapResp)
-// console.log(makeshiftMap)
 
 
+
+
+const makeshiftMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
 console.log(DeviceEvents)
 
@@ -79,7 +71,10 @@ function toast(input: any) {
       <div :class="colClass + ` events-panel`">
         <div v-for="sensor in makeshiftMap.sensors[selectedInputId]" :key="sensor">
         </div>
-        {{ selectedInput }}
+        butt
+        <div>
+          {{ selectedInput }}
+        </div>
       </div>
     </div>
   </div>
