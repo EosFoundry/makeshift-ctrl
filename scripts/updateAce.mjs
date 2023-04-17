@@ -1,50 +1,54 @@
-import { exec } from 'child_process'
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
+import fsEx from 'fs-extra'
+import chalk from 'chalk'
 import semver, { minVersion } from 'semver'
 
 const rawFile = await readFile('package.json', 'utf-8')
+const pubAceVersion = await readFile('public/ace-builds/aceversion', 'utf-8')
 const packageJson = JSON.parse(rawFile)
 
 
 const CWD = process.cwd()
+const pkgAceVersion = packageJson.devDependencies['ace-builds']
+const targetAceVersion = minVersion(pkgAceVersion)
 
-console.log(CWD)
 
-const aceVersion = packageJson.devDependencies['ace-builds']
+console.log(`Updating public ace-builds to ${targetAceVersion.raw}`)
 
-console.log(aceVersion)
-console.log(semver.valid('^1.16.0'))
-console.log(semver.valid(aceVersion))
-
-if (semver.valid(aceVersion) === null) {
+if (semver.valid(targetAceVersion) === null) {
   console.log('invalid ace-builds version detected in package.json, exiting')
   process.exit(1)
 }
+let color = chalk.yellow
 
-const minAceVersion = minVersion(aceVersion)
+if (semver.satisfies(targetAceVersion, pubAceVersion)) {
+  color = chalk.green
+}
 
-console.log(minAceVersion.version)
+console.log(`public/ace-builds version: ${color(pubAceVersion)}`)
 
-await exec('git status', {
-  cwd: CWD + '\\lib\\ace-builds'
-},
-  (error, stdout, stderr) => {
-    console.log(stdout)
-    console.log(stderr)
-  })
+if (semver.satisfies(targetAceVersion, pubAceVersion)) {
+  console.log('public/ace-builds is up to date')
+  process.exit(0)
+}
 
-const aceTagString = 'v' + minAceVersion.version
+console.log('public/ace-builds is outdated, copying...')
 
-const checkoutTagCommand = `git checkout ${aceTagString}`
-const testCommand = `git status`
-
-await exec(checkoutTagCommand, {
-  cwd: CWD + '\\lib\\ace-builds'
-}, (error, stdout, stderr) => {
-  if (error !== null) {
-    console.log(error)
+await fsEx.copy(`${CWD}/node_modules/ace-builds/src-min-noconflict`, `${CWD}/public/ace-builds/src-min-noconflict`, async (err) => {
+  if (err) {
+    console.log(err)
+    process.exit(1)
   } else {
-    console.log(stdout)
-    console.log(stderr)
+    console.log('Copying finished, updating aceversion file...')
+    try {
+      const data = new Uint8Array(Buffer.from(targetAceVersion.raw))
+      await writeFile('public/ace-builds/aceversion', data)
+      console.log('Finished.')
+    } catch (err) {
+      console.log(err)
+      console.log(`Error writing \'${targetAceVersion.raw}\' into aceversion file, exiting`)
+      process.exit(1)
+    }
   }
 })
+

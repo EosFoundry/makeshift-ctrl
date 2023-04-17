@@ -29,6 +29,7 @@
     "@eos-makeshift/serial": "^3.0.0",
     "@nut-tree/nut-js": "^3.1.1",
     "autoprefixer": "^10.4.14",
+    "chalk": "^5.2.0",
     "chokidar": "^3.5.3",
     "colorjs.io": "^0.4.3",
     "defu": "^6.1.2",

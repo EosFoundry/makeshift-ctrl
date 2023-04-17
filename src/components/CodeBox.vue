@@ -29,7 +29,7 @@ import TextButton from "./TextButton.vue";
 
 const nanoid = inject('nanoid') as () => string
 const editorContents = inject('current-session') as Ref<string>
-const acePath = import.meta.env.BASE_URL + 'ace-pkg/src-min-noconflict'
+const acePath = import.meta.env.BASE_URL + 'ace-builds/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
