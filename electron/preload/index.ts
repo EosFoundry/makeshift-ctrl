@@ -3,10 +3,6 @@ import { CtrlIpcApi } from '../ipcApi'
 const election = require('electron')
 const MakeShiftApi: CtrlIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
 
-election.contextBridge.exposeInMainWorld('buttAPI', {
-  onMPM: (callback: any) => election.ipcRenderer.on('main-process-message', callback),
-  onCounterr: (callback: any) => election.ipcRenderer.on('update-counter', callback),
-})
 const ipcRndr = election.ipcRenderer
 
 let dryMakeShiftApi: any = {}
@@ -31,7 +27,7 @@ const hydratedMakeShiftApi = {
   set: hydrate(dryMakeShiftApi.set, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
   onEv: hydrate(dryMakeShiftApi.onEv, (evStr) => { return (cb: any) => ipcRndr.on(evStr, cb) }),
 }
-console.log(hydratedMakeShiftApi)
+// console.log(hydratedMakeShiftApi)
 
 
 // const hydratedApi = {

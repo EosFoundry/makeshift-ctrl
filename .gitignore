@@ -5,6 +5,7 @@
 # Tooling/IDE stuff
 .idea
 .volarrc
+*.volarrc
 
 # VScode vue plugin
 env.d.ts

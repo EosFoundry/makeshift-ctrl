@@ -33,6 +33,6 @@ onMounted(() => {
 
 <style>
 .device-panel {
-  background-color: var(--color-bg);
+  background-color: rgb(var(--color-hl));
 }
 </style>

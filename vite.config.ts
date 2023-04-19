@@ -7,7 +7,7 @@ import pkg from './package.json'
 const PACKAGE_ROOT = __dirname
 
 
-rmSync('dist/electron', { recursive: true, force: true }) // v14.14.0
+rmSync('dist/electron', { recursive: true, force: true })
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,7 +17,7 @@ export default defineConfig({
       include: ['electron'],
       transformOptions: {
         sourcemap: !!process.env.VSCODE_DEBUG,
-        target: 'node16',
+        target: 'node18',
         format: 'cjs',
       },
       outDir: 'dist/electron',

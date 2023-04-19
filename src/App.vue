@@ -7,10 +7,10 @@ import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
-import DeviceToolbar from './components/DeviceToolbar.vue'
-import StatusBar from './components/StatusBar.vue'
+import BottomBar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
+import TestInterface from './components/TestUI.vue'
 
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 provide<Ref<string>>('current-session', editorContents)
@@ -33,7 +33,7 @@ nextTick(() => {
 </script>
 
 <template>
-	<!-- <h1></h1> -->
+	<!-- <test-interface/> -->
 	<splitpanes id="main-container" horizontal>
 		<pane :size="topPanelHeight">
 			<splitpanes vertical>
@@ -56,8 +56,7 @@ nextTick(() => {
 			<terminal :pane-height-percent="bottomPanelHeight" />
 		</pane>
 	</splitpanes>
-	<device-toolbar />
-	<!-- <status-bar /> -->
+	<bottom-bar />
 </template>
 
 <style lang="scss">
@@ -69,8 +68,8 @@ nextTick(() => {
 
 	font-size: 12pt;
 	text-align: center;
-	background-color: var(--color-bg);
-	color: var(--color-text);
+	background-color: rgb(var(--color-bg));
+	color: rgb(var(--color-text));
 	display: flex;
 	flex-direction: column;
 	user-select: none;
@@ -92,19 +91,19 @@ code {
 
 input {
 	font-size: 12pt;
-	color: var(--color-text);
-	background-color: var(--color-dark);
-	border-color: var(--color-hl);
-	caret-color: var(--color-neutral);
+	color: rgb(var(--color-text));
+	background-color: rgb(var(--color-dark));
+	border-color: rgb(var(--color-hl));
+	caret-color: rgb(var(--color-neutral));
 	transition-duration: 0.2s;
+	width: fit-content;
 }
-
 
 button {
 	cursor: pointer;
 	box-sizing: border-box;
-	background-color: var(--color-primary);
-	color: var(--color-bg);
+	background-color: rgb(var(--color-primary));
+	color: rgb(var(--color-bg));
 	display: flex;
 
 	font-size: 11pt;
@@ -114,7 +113,7 @@ button {
 	border: solid;
 	border-width: 4px;
 	border-radius: 6px;
-	border-color: var(--color-primary);
+	border-color: rgb(var(--color-primary));
 
 	padding: 1px 8px;
 
@@ -125,14 +124,24 @@ button {
 	transition-duration: 0.2s;
 
 	&:hover {
-		background-color: var(--color-primary2);
-		border-color: var(--color-primary);
-		color: var(--color-text)
+		background-color: rgb(var(--color-primary2));
+		border-color: rgb(var(--color-primary));
+		color: rgb(var(--color-text));
 	}
 }
 
+select {
+	background-color: rgb(var(--color-dark));
+	border-radius: .25rem;
+	border-width: 1px;
+	margin-left: .25rem;
+	margin-right: .25rem;
+	border-color: rgb(var(--color-neutral));
+	padding: .25rem;
+}
+
 :focus {
-	outline: 1px solid var(--color-primary);
+	outline: 1px solid rgb(var(--color-primary));
 }
 
 
@@ -149,7 +158,7 @@ button {
 }
 
 .pane-border {
-	// background-color: var(--color-bg);
+	// background-color: rgb(var(--color-bg));
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -165,7 +174,7 @@ button {
 .pane-rounded-inner {
 	box-sizing: border-box;
 	border: solid;
-	border-color: var(--color-hl);
+	border-color: rgb(var(--color-hl));
 	border-width: 2px;
 	border-radius: 8px;
 	width: 100%;
@@ -177,12 +186,12 @@ button {
 
 
 .splitpanes {
-	background-color: var(--color-bg);
+	background-color: rgb(var(--color-bg));
 
 	// &__pane {}
 
 	&--vertical>&__splitter {
-		background-color: var(--color-neutral);
+		background-color: rgb(var(--color-neutral));
 		min-width: 4px;
 		border-radius: 2px;
 		height: 70px;
@@ -190,7 +199,7 @@ button {
 	}
 
 	&--horizontal>&__splitter {
-		background-color: var(--color-neutral);
+		background-color: rgb(var(--color-neutral));
 		min-height: 4px;
 		border-radius: 2px;
 		margin: auto;
@@ -200,7 +209,9 @@ button {
 
 .hidden {
 	position: absolute;
-	visibility: hidden;
+	left: -200px;
+	top: -200px;
+	// visibility: hidden;
 }
 
 .toolbar {
@@ -216,7 +227,8 @@ button {
 	padding-top: 8px;
 	padding-bottom: 8px;
 	width: 100%;
-	&.thin{
+
+	&.thin {
 		height: 2.5em;
 	}
 }

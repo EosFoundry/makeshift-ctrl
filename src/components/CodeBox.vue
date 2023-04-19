@@ -24,12 +24,12 @@ import Icon from './Icon.vue'
 import IconButton from './IconButton.vue'
 import toolbarSpacer from './ToolBarSpacer.vue'
 import { watchResize } from "../composables/resizer";
-import { Cue, CueMap } from "types/electron/main";
+import { Cue, CueMap } from "../../types/electron/main/cues";
 import TextButton from "./TextButton.vue";
 
 const nanoid = inject('nanoid') as () => string
 const editorContents = inject('current-session') as Ref<string>
-const acePath = import.meta.env.BASE_URL + 'ace-pkg/src-min-noconflict'
+const acePath = import.meta.env.BASE_URL + 'ace-builds/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
@@ -59,6 +59,7 @@ function getBlankCueName() {
     .replace(/\ /, '')
   return now + '_' + defaultCueNum
 }
+
 
 function createBlankCue() {
   const qName = getBlankCueName()
@@ -380,9 +381,7 @@ watch(
           <label for="folder-name">
             Folder:
           </label>
-          <input id="folder-name" class="name-entry" v-model="cueFolder" type="text" :style="{
-            width: `${folderNameClone?.getBoundingClientRect().width as number + 10}px`
-          }" />
+          <input id="folder-name" class="name-entry" v-model="cueFolder" type="text"/>
           <icon :icon-url="breadcrumbIcon" size="14px" :style="{
             margin: `0px 4px`,
           }" />
@@ -391,9 +390,8 @@ watch(
             Cue Name:
           </label>
           <toolbar-spacer width="4px" />
-          <input id="cue-name" class="name-entry" v-model="cueName" type="text" :style="{
-            width: `${cueNameClone?.getBoundingClientRect().width as number + 10}px`
-          }" />
+          <input id="cue-name" class="name-entry" v-model="cueName" type="text" 
+           />
           <div class="toolbar-cluster" style="align-self: center;">
             .cue.js
           </div>
@@ -404,13 +402,14 @@ watch(
     </div>
 
     <div id="codebox-inner-border" class="pane-rounded-inner" :style="{
-      borderColor: saveStateStyles.borderColor
+      borderColor: `rgb(${saveStateStyles.borderColor})`,
     }">
       <div id="codebox-editor" ref="codeboxEditorElement" />
     </div>
   </div>
 </template>
 
+          <!-- :style="{ width: `${folderNameClone?.getBoundingClientRect().width as number + 10}px` }" -->
 
 <style lang="scss">
 .codebox-border {
@@ -445,13 +444,13 @@ watch(
   width: 5px;
   // paddingTop: '5px',
   margin: auto 0px;
-  background-color: var(--color-neutral);
+  background-color: rgb(var(--color-neutral));
   border-radius: 50%;
 }
 
 .name-entry {
   box-sizing: border-box;
-  border-color: var(--color-hl);
+  border-color: rgb(var(--color-hl));
   border-width: 1px;
   border-style: solid;
   // outline: 2px solid rgba($color: var(--color-neutral), $alpha: 1.0);
@@ -472,7 +471,7 @@ watch(
   }
 
   &:focus {
-    background-color: var(--color-hl);
+    background-color: rgb(var(--color-hl));
     // border-bottom-color: var(--color-primary1);
   }
 }

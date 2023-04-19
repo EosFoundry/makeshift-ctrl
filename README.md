@@ -16,7 +16,7 @@ Required tooling:
 
 ### NodeJS version management
 
-Using nvm is *highly* recommended to keep the chaos of node versioning somewhat contained.
+Using nvm is optional but *highly* recommended to keep the chaos of node versioning somewhat contained.
 
 Linuxs/MacOS: nvm - <https://github.com/nvm-sh/nvm>
 
@@ -56,7 +56,11 @@ Useful extensions:
 - vterm: <https://github.com/akermu/emacs-libvterm>
 - lsp-mode with volar client: <https://github.com/emacs-lsp/lsp-mode>
 
-### Starting Development
+## Development First Steps
+
+Once your environment is ready, you'll need to get the code through git.
+
+### Obtaining Code
 
 Clone repo:
 
@@ -71,9 +75,13 @@ cd makeshift-ctrl/
 npm install
 ```
 
-Now you're ready to run the dev server.
+### Branch
 
-## Building and Runninng
+Generally `dev` branch will contain the latest, likely-broken code that is being worked on. `main` is where stable commits are applied to.
+
+### Building and Runninng
+
+Once you have the code, you're ready to run the dev server.
 
 This section assumes the reader has set up a dev environment and has cloned the project
 
@@ -98,3 +106,37 @@ npm run build
 The build output can be found in `./release` once the build completes, the options can be tweaked and fiddled with in `./electron-builder.yml` - see <https://www.electron.build/> for more details (however the documentation is... spotty).
 
 Currently this project uses [electron-builder](https://www.electron.build/), a move to [electron forge](https://www.electronforge.io/) is planned in the near future.
+
+## Directory Structure - AKA wtf are all these folders
+
+Important directories are marked with an asterisk (\*)
+
+```tree
+makeshift-ctrl/ --- main project folder
+├── * electron/   --- electron/nodejs source
+│   ├── main/         --- main process code
+│   └── preload/      --- preload/API setup code
+|
+├── * src/        --- UI source code
+│   ├── assets/       --- resources that will be bundled by vite [2]
+│   ├── components/   --- vue components
+│   ├── composables/  --- vue functions
+|
+├── dist/       --- build process outputs
+│   ├── client/       --- compiled UI files
+│   ├── electron/     --- compiled electron/nodejs files
+│   └── release/      --- packaged application
+|
+├── docs/       --- notes + documentation
+│   └── styles/       --- CSS
+|
+├── build/      --- electron-builder artifacts
+├── examples/   --- example cues
+├── public/     --- loose files (directly routed in UI) [1]
+├── scripts/    --- misc utility scripts
+└── types/      --- emitted types from electron sources
+```
+
+[1] - for more details on the public directory, see <https://vitejs.dev/guide/assets.html#the-public-directory>
+
+[2] - for more details on how vite bundles assets, see <https://vitejs.dev/guide/assets.html>

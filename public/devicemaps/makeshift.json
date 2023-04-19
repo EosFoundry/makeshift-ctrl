@@ -1,0 +1,104 @@
+{
+  "sensors": [
+    {
+      "id": 0,
+      "types": [
+        "DIAL",
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 1,
+      "types": [
+        "DIAL",
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 2,
+      "types": [
+        "DIAL",
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 3,
+      "types": [
+        "DIAL",
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 4,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 5,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 6,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 7,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 8,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 9,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 10,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 11,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 12,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 13,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 14,
+      "types": [
+        "BUTTON"
+      ]
+    },
+    {
+      "id": 15,
+      "types": [
+        "BUTTON"
+      ]
+    }
+  ]
+}

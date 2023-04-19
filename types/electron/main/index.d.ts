@@ -1,15 +1,38 @@
-/// <reference types="node" />
 import { BrowserWindow } from 'electron';
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial';
-export declare let mainWindow: BrowserWindow | null;
-export type CueMap = Map<string, Cue>;
+import { saveCueFile, CueId, CueMap, Cue } from './cues';
 export type DeviceId = string;
 export type MakeShiftEvent = string;
-export type EventToCueMap = Map<MakeShiftEvent, CueId>;
+export type EventCueMap = Map<MakeShiftEvent, Cue>;
+export type LayerLabel = {
+    name: string;
+    color: string;
+    graphic?: string;
+    audio?: any;
+};
+export type Layout = {
+    layers: EventCueMap[];
+    layerLabels: LayerLabel[];
+};
+export type CompactedLayout = {
+    layers: Map<MakeShiftEvent, string>[];
+    layerLabels: LayerLabel[];
+};
+export declare function getMainWindow(): BrowserWindow;
+/**
+ * IPC Call API
+ *
+ * UI interactions with side effects - opening folders, running cues directly
+ */
 declare const ipcMainCallHandler: {
     openCueFolder: () => void;
     runCue: (cueId: any) => Promise<void>;
 };
+/**
+ * IPC Get API
+ *
+ * Gets state data in various formats
+ */
 declare const ipcMainGetHandler: {
     connectedDevices: () => MakeShiftPortFingerprint[];
     events: () => {
@@ -47,6 +70,11 @@ declare const ipcMainGetHandler: {
     cueById: (id: any) => Cue;
     cueByFolder: (folder: any) => CueMap;
 };
+/**
+ * IPC Set API
+ *
+ * modifies state
+ */
 declare const ipcMainSetHandler: {
     cueFile: typeof saveCueFile;
     cueForEvent: (data: {
@@ -55,33 +83,21 @@ declare const ipcMainSetHandler: {
         contents: Uint8Array;
     }) => Promise<string>;
 };
+export declare function attachWatchers(): Promise<void>;
+export declare function attachCueToEvent({ layerName, event, cueId }: {
+    layerName: string;
+    event: MakeShiftEvent;
+    cueId: CueId;
+}): Promise<void>;
+export declare function detachCueFromEvent({ layerName, event, cueId }: {
+    layerName: string;
+    event: MakeShiftEvent;
+    cueId: CueId;
+}): Promise<void>;
+/**
+ * Exports
+ */
 export type IpcMainCallHandler = typeof ipcMainCallHandler;
 export type IpcMainGetHandler = typeof ipcMainGetHandler;
 export type IpcMainSetHandler = typeof ipcMainSetHandler;
-declare function saveCueFile(data: {
-    cueId: string;
-    contents: Uint8Array;
-}): Promise<string>;
-type IModule = typeof Electron.CrossProcessExports;
-type CueId = string;
-export interface CueModule extends IModule {
-    requiredPlugins?: string[];
-    plugins?: any;
-    setup: Function;
-    run: () => void;
-    runTriggers: {
-        deviceId: string;
-        events: string[];
-    }[];
-    moduleId: string;
-}
-export interface Cue {
-    id: CueId;
-    file: string;
-    fullPath: string;
-    name: string;
-    folder: string;
-    contents?: Buffer;
-    modulePath?: string;
-}
 export {};

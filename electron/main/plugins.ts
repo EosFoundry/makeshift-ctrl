@@ -1,11 +1,10 @@
 // import * as chokidar from 'chokidar'
 import { Msg } from '@eos-makeshift/msg'
-import { dialog } from 'electron'
+import { dialog, utilityProcess } from 'electron'
 import { readdir, mkdir } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'original-fs'
 import { isAbsolute, join } from 'pathe'
-import { mainWindow } from './index'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { ctrlLogger } from './utils'
 
@@ -22,11 +21,11 @@ const log = msgen.getLevelLoggers()
 export async function initPlugins() {
   try {
     const dir = await readdir(process.env.PLUGINS)
-    log.info(dir)
+    log.debug(dir)
     dir.forEach(async (path) => {
       const plugPath = join(process.env.PLUGINS, path)
       const toast = await readdir(plugPath)
-      log.info(toast)
+      log.debug(toast)
       const manifest = join(plugPath, 'manifest.json')
       if (lstatSync(manifest).isFile()) {
         if (lstatSync(plugPath).isDirectory()) {
@@ -40,7 +39,7 @@ export async function initPlugins() {
       }
     })
   } catch (err) {
-    log.info(err)
+    log.error(err)
   }
 }
 
@@ -79,6 +78,6 @@ async function load(pluginFolder: string) {
   // log.info(isAbsolute(pluginPath))
   // log.info(plugPathUrl)
   // log.info(lstatSync(pluginPath).isFile())
-  plugins[name] = await import(plugPathUrl.href)
+  plugins[name] = await utilityProcess.fork(plugPathUrl.href)
   // log.info(plugins)
 }
