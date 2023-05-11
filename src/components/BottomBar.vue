@@ -36,7 +36,7 @@ onMounted(() => {
         <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.portId">
           <input type="radio" :id="dev.portId" :value="dev" v-model="currentDevice" />
           <code>
-         <b>ID: {{ dev.portId }} | PATH: {{ dev.devicePath }}</b>
+         <b>ID: {{ dev.portId.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
         </code>
         </label>
       </form>
@@ -65,7 +65,7 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-hl));
   display: flex;
   align-items: center;
-  height: fit-content;
+  height: 2.5rem;
   padding: 8px;
   padding-left: 0px;
 }

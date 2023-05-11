@@ -43,6 +43,7 @@ export async function initPlugins() {
   }
 }
 
+
 export async function installPlugin() {
   const openResult = await dialog.showOpenDialog({
     filters: [
@@ -80,4 +81,10 @@ async function load(pluginFolder: string) {
   // log.info(lstatSync(pluginPath).isFile())
   plugins[name] = await utilityProcess.fork(plugPathUrl.href)
   // log.info(plugins)
+}
+
+export class Plugin {
+  constructor(pluginId: string) {
+    log.info('Plugin class instantiated')
+  }
 }

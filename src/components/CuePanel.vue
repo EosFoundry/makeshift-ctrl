@@ -32,8 +32,7 @@ function sendLoadEvent(cue: Cue) {
 
 
 <template>
-  <div class="pane-border">
-    <!-- <div class="toolbar">
+  <!-- <div class="toolbar">
       <div class="toolbar-cluster left">
       </div>
       <text-button :icon-url="folderIcon" @click="openCueFolder">
@@ -42,20 +41,21 @@ function sendLoadEvent(cue: Cue) {
       <div class="toolbar-cluster right">
       </div>
     </div> -->
-    <div class="pane-rounded-inner cue-panel">
-      <div class="pane-title toolbar">
+  <div class="pane-border w-full h-full">
+    <div class="pane-rounded-inner cue-panel flex-row flex-nowrap w-full h-full">
+      <div class="pane-title toolbar shrink">
         <div class="toolbar-cluster">
           CUE FOLDER
         </div>
         <div class="toolbar-cluster">
-          <icon-button :icon-url="folderIcon" @click="openCueFolder"
-          color="var(--color-neutral)"
-          hover-color="var(--color-text)"
-           />
-          <ToolBarSpacer width="8px"/>
+          <icon-button :icon-url="folderIcon" @click="openCueFolder" color="var(--color-neutral)"
+            hover-color="var(--color-text)" />
+          <ToolBarSpacer width="8px" />
         </div>
       </div>
-      <FolderList top-level :folder="cueDirectory" :collapse-state="false" />
+      <div class="overflow-scroll m-0 pb-6 h-full">
+        <FolderList top-level :folder="cueDirectory" :collapse-state="false" />
+      </div>
       <!-- <ul class="file-list top-level">
         <FolderList v-for="(subFolder) in cueDirectory.subFolders" 
           :folder="subFolder" 
@@ -116,8 +116,6 @@ function sendLoadEvent(cue: Cue) {
   &.top-level {
     border-left: none;
     margin: 0;
-    margin-top: 8px;
-
   }
 }
 </style>

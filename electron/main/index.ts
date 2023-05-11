@@ -253,7 +253,7 @@ log.debug(nspct2(ctrlIpcApi.set))
 
 // Load non-conflicting resources
 const preloadBarrier = []
-preloadBarrier.push(initPlugins())
+// preloadBarrier.push(initPlugins())
 preloadBarrier.push(initCues())
 
 // Open splash

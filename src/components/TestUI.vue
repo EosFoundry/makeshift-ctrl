@@ -12,16 +12,28 @@ import { inject, ref, computed } from 'vue';
 
 
 
-const makeshiftMap = inject('device-maps') as any
+const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
+const MakeshiftMap = DeviceMap.value.makeshift
+console.log(MakeshiftMap)
 console.log(DeviceEvents)
+
+const devicePanel = ref(`
+  flex flex-row flex-wrap
+  inline-flex
+  p-3
+  rounded-lg 
+  shadow-md
+  border-solid border-4 
+  device-panel
+  `)
 
 const buttonSelector = ref(`
   w-12 h-12 
   mx-2 
   hover:mt-3 hover:mb-1
   rounded-lg 
-  hover:shadow-test
+  hover:shadow-hover
   border-solid border-4 
   device-layout-button 
   `)
@@ -31,7 +43,7 @@ const dialSelector = ref(`
   mx-2 
   hover:mt-3 hover:mb-1
   rounded-full
-  hover:shadow-test
+  hover:shadow-hover
   border-solid border-4 
   device-layout-button
   DIAL
@@ -42,7 +54,7 @@ const rowClass = ref(`flex flex-row flex-wrap`)
 
 const colClass = ref(`flex flex-col`)
 const selectedInputId = ref(0)
-const selectedInput = computed(() => makeshiftMap.sensors[selectedInputId.value])
+const selectedInput = computed(() => MakeshiftMap.sensors[selectedInputId.value])
 function toast(input: any) {
   selectedInputId.value = input.id
   console.log(input)
@@ -50,26 +62,29 @@ function toast(input: any) {
 </script>
 
 <template>
-  <div class="md:container md:mx-auto">
+  <div class="md:container md:mx-auto mb-4">
     <div :class=rowClass>
-      <div :class=colClass>
-        <div :class=rowClass>
-          <div v-for="num in [0, 1, 2, 3]"
-            :class="[(num === selectedInputId ? 'active-input shadow-sharp mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"
-            :key="num" @click="toast(makeshiftMap.sensors[num])">
-            {{ num }}
+      <span :class=devicePanel>
+        <div :class=colClass>
+          <div :class=rowClass>
+            <div v-for="num in [0, 1, 2, 3]"
+              :class="[(num === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"
+              :key="num" @click="toast(MakeshiftMap.sensors[num])">
+              {{ num }}
+            </div>
+          </div>
+          <div v-for="row in [4, 8, 12]" :class=rowClass :key="row">
+            <div v-for="col in [1, 2, 3, 4]"
+              :class="[(row + col === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
+              :key="col" @click="toast(MakeshiftMap.sensors[row + col])">
+              {{ row + col }}
+            </div>
           </div>
         </div>
-        <div v-for="row in [4, 8, 12]" :class=rowClass :key="row">
-          <div v-for="col in [1, 2, 3, 4]"
-            :class="[(row + col === selectedInputId ? 'active-input shadow-sharp mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
-            :key="col" @click="toast(makeshiftMap.sensors[row + col])">
-            {{ row + col }}
-          </div>
-        </div>
-      </div>
+      </span>
+
       <div :class="colClass + ` events-panel`">
-        <div v-for="sensor in makeshiftMap.sensors[selectedInputId]" :key="sensor">
+        <div v-for="sensor in MakeshiftMap.sensors[selectedInputId]" :key="sensor">
         </div>
         butt
         <div>
@@ -81,6 +96,11 @@ function toast(input: any) {
 </template>
 
 <style>
+.device-panel {
+  background-color: rgb(var(--color-bg));
+  border-color: rgb(var(--color-primary2));
+}
+
 .device-layout-button {
   background-color: rgb(var(--color-primary));
   border-color: rgb(var(--color-primary2));

@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "allowJs": true,
+    "checkJs": true,
     "jsx": "preserve",
     "esModuleInterop": true,
     "resolveJsonModule": true,

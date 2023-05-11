@@ -36,7 +36,7 @@ const cueRoot: Folder = {
     initialDevices: await window.MakeShiftCtrl.get.connectedDevices(),
   }
 
-  const makeshiftMapUrl = new URL('/devicemaps/makeshift.json', import.meta.url).href
+  const makeshiftMapUrl = new URL('../hardware-descriptors/makeshift.json', import.meta.url).href
 
   const makeshiftMapResp = await fetch(makeshiftMapUrl)
   state.deviceMaps.value.makeshift = await makeshiftMapResp.json()

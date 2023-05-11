@@ -21,7 +21,7 @@ import chevronUpUrl from '../assets/icon/bootstrap/chevron-up.svg?url'
 import chevronDownUrl from '../assets/icon/bootstrap/chevron-down.svg?url'
 import TextButton from './TextButton.vue'
 import { rndrCtrlAPI } from '../renderer'
-import { watchResize } from '../composables/resizer'
+// import { watchResize } from '../composables/resizer'
 
 // reactive elements
 const makeshift = inject('makeshift') as rndrCtrlAPI
@@ -33,11 +33,12 @@ const cliInputDisplay = ref('none')
 const xtermContainerElement = ref<HTMLElement>()
 const xtermWrapperElement = ref<HTMLElement>()
 const terminalCommand = ref('')
-const paneHeight = ref()
 
 const props = defineProps<{
   paneHeightPercent?: number
 }>()
+
+const paneHeight = ref(props.paneHeightPercent)
 
 const xtermConfig: ITerminalOptions = {
   convertEol: true,
@@ -61,9 +62,11 @@ const webGlAddon = new WebglAddon()
 
 let lastFit = Date.now()
 const fitDebounceTime = 90
+let fitTimer: any = -1
 
 
 function fitTerm() {
+  console.log('fitted')
   fitAddon.fit()
 }
 
@@ -110,48 +113,53 @@ onMounted(() => {
   terminal.clear();
   terminal.writeln('\rmakeshift-ctrl ==> Welcome ')
 
-  watchResize(xtermContainerElement.value as HTMLElement, fitTerm)
+  fitTerm();
+  // watchResize(xtermContainerElement.value as HTMLElement, fitTerm)
   makeshift.onEv.terminal.data(LogEventHandler)
+  window.addEventListener('resize', fitTerm)
 })
 
 // fit every last one of them
 watch(
-  () => paneHeight.value,
+  () => props.paneHeightPercent,
   (newHeight, oldHeight) => {
-    console.log(newHeight)
     fitTerm()
-  })
+  },
+  {
+    flush: 'post',
+  }
+)
 
 </script>
 
 <template>
-  <div class="xterm-border pane-border" ref="xtermWrapperElement">
-    <div class="pane-rounded-inner xterm-inner" :style="{ backgroundColor: makeShiftTheme.background }">
-      <div ref="xtermContainerElement" class="xterm-container" />
+  <div class="pane-border w-full h-full flex flex-col" ref="xtermWrapperElement">
+    <div class="pane-rounded-inner pl-4 mb-2 h-full" :style="{ backgroundColor: makeShiftTheme.background }">
+      <div ref="xtermContainerElement" class="xterm-container h-full" />
     </div>
     <div class="xterm-commandline" :style="{
-      display: cliInputDisplay,
-    }">
+        display: cliInputDisplay,
+      }">
       <input class="xterm-cli-input" :style="{
-        color: makeShiftTheme.foreground,
-        backgroundColor: makeShiftTheme.cursorBackground,
-        borderColor: 'var(--color-hl)',
-        caretColor: makeShiftTheme.cursor
-      }" v-model="terminalCommand" @keyup.enter="sendCommand" />
+          color: makeShiftTheme.foreground,
+          backgroundColor: makeShiftTheme.cursorBackground,
+          borderColor: 'var(--color-hl)',
+          caretColor: makeShiftTheme.cursor
+        }" v-model="terminalCommand" @keyup.enter="sendCommand" />
       <text-button @click="sendCommand">send</text-button>
     </div>
     <div class="hideCli" @click="hideCli" :style="{
-      width: '100%',
-      cursor: 'pointer',
-    }">
+        width: '100%',
+        cursor: 'pointer',
+      }">
       <div class="icon" :style="{
-        height: '15px',
-        width: '15px',
-        margin: 'auto',
-        marginBottom: '-4px',
-        backgroundColor: 'aliceblue',
-        maskImage: `url(${chevronUrl})`,
-      }" />
+          height: '15px',
+          width: '15px',
+          margin: 'auto',
+          marginBottom: '-4px',
+          backgroundColor: 'aliceblue',
+          maskImage: `url(${chevronUrl})`,
+        }" />
     </div>
   </div>
 </template>
@@ -161,7 +169,6 @@ watch(
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
 }
 
 
@@ -174,7 +181,7 @@ watch(
 
   margin-bottom: 4px;
   box-sizing: border-box;
-  height: fit-content;
+  height: 3rem;
   padding-top: 4px;
   padding-bottom: 2px;
   width: 100%;
@@ -191,7 +198,7 @@ watch(
   border-width: 2px;
   border-radius: 8px;
   width: 100%;
-  height: fit-content;
+  height: 2rem;
 }
 
 .xterm-inner {
@@ -210,7 +217,7 @@ watch(
   bottom: -10px;
   left: 0px;
   /* width: 100%; */
-  height: 100%;
+  /* height: 100%; */
   /* padding: 4px; */
   overflow: hidden;
 }

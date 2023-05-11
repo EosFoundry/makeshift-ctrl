@@ -14,28 +14,27 @@ import TestInterface from './components/TestUI.vue'
 
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 provide<Ref<string>>('current-session', editorContents)
-const topPanelHeight = ref(69)
-const bottomPanelHeight = computed(() => {
-	return 100 - topPanelHeight.value
-})
-
+const topPaneHeight = ref(69)
+const bottomPaneHeight = ref(31)
 function terminalResize(event: any) {
-	topPanelHeight.value = event[0].size
+	bottomPaneHeight.value = 100 - event[0].size
+	console.log(event[0])
 }
 
 // this is a very cursed hack to get xterm to resize correctly
 nextTick(() => {
 	window.resizeBy(-1, -1)
 	window.resizeBy(1, 1)
-	topPanelHeight.value = 70
+	topPaneHeight.value = 70
 })
 
 </script>
 
 <template>
-	<!-- <test-interface/> -->
-	<splitpanes id="main-container" horizontal>
-		<pane :size="topPanelHeight">
+	<!-- <test-interface /> -->
+	<!-- <div class="flex-col"> -->
+	<splitpanes id="main-container" class="inset-x-0 bottom-10 h-full" @resize="terminalResize" horizontal>
+		<pane :size="topPaneHeight" :pane-height-percent="topPaneHeight">
 			<splitpanes vertical>
 				<pane size="69">
 					<code-box />
@@ -52,11 +51,11 @@ nextTick(() => {
 				</pane>
 			</splitpanes>
 		</pane>
-		<pane @resize="terminalResize">
-			<terminal :pane-height-percent="bottomPanelHeight" />
+		<pane>
+			<terminal :pane-height-percent="bottomPaneHeight" />
 		</pane>
 	</splitpanes>
-	<bottom-bar />
+	<bottom-bar class="inset-x-0 bottom-0" />
 </template>
 
 <style lang="scss">
@@ -73,6 +72,7 @@ nextTick(() => {
 	display: flex;
 	flex-direction: column;
 	user-select: none;
+	overflow: hidden;
 
 	transition-duration: 0.2s;
 	height: 100%;
@@ -145,16 +145,15 @@ select {
 }
 
 
-.flex-col {
-	display: flex;
-	flex-direction: col;
-}
+// .flex-col {
+// 	display: flex;
+// 	flex-direction: col;
+// }
 
 #main-container {
 	box-sizing: border-box;
 	padding: 4px;
 	width: 100%;
-	height: 100%;
 }
 
 .pane-border {
@@ -166,9 +165,9 @@ select {
 	// padding-top: 5px;
 	// padding-bottom: 5px;
 	// margin: 4px;
-
-	width: 100%;
-	height: 100%;
+	overflow: hidden;
+	// width: 100%;
+	// height: 100%;
 }
 
 .pane-rounded-inner {
@@ -177,9 +176,9 @@ select {
 	border-color: rgb(var(--color-hl));
 	border-width: 2px;
 	border-radius: 8px;
-	width: 100%;
-	height: 100%;
-	margin: auto;
+	// width: 100%;
+	// height: 100%;
+	// margin: auto;
 	overflow: hidden;
 	// overflow: scroll;
 }

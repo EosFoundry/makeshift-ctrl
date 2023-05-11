@@ -23,7 +23,7 @@ import { MakeShiftDeviceEvents, MakeShiftPortFingerprint } from "@eos-makeshift/
 import Icon from './Icon.vue'
 import IconButton from './IconButton.vue'
 import toolbarSpacer from './ToolBarSpacer.vue'
-import { watchResize } from "../composables/resizer";
+// import { watchResize } from "../composables/resizer";
 import { Cue, CueMap } from "../../types/electron/main/cues";
 import TextButton from "./TextButton.vue";
 
@@ -48,6 +48,11 @@ ace.config.loadModule("ace/keybinding/vscode")
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
+
+const props = defineProps<{
+  paneHeightPercent?: number
+}>()
+const paneHeight = ref(props.paneHeightPercent)
 
 
 let defaultCueNum = 0;
@@ -194,8 +199,9 @@ onMounted(() => nextTick(async () => {
   })
 
   autoSaveInterval = setInterval(checkAutoSave, autoSaveWaitTime);
-  watchResize(codeboxEditorElement.value as HTMLElement, fitCodebox)
+  // watchResize(codeboxEditorElement.value as HTMLElement, fitCodebox)
   window.addEventListener('loadCue', (ev: any) => { loadCue(ev.detail) })
+  window.addEventListener('resize', fitCodebox)
 }))
 
 async function createCue() {
@@ -276,7 +282,7 @@ function checkAutoSave() {
 }
 
 function fitCodebox() {
-  editor.resize(true)
+  editor.resize()
 }
 
 watch(
@@ -291,6 +297,16 @@ watch(
       saveStateStyles.iconUrl = fileUnsavedIcon
     }
 
+  }
+)
+
+watch(
+  () => props.paneHeightPercent,
+  (newHeight, oldHeight) => {
+    fitCodebox()
+  },
+  {
+    flush: 'post',
   }
 )
 
@@ -314,7 +330,7 @@ watch(
   <div class="name-entry hidden clone" ref="cueNameClone">
     {{ cueName }}
   </div>
-  <div class="pane-border codebox-border">
+  <div class="pane-border codebox-border w-full h-full">
     <div class="toolbar">
       <div class="toolbar-cluster left">
         <toolbar-spacer width="2px" />
@@ -401,7 +417,7 @@ watch(
       </div>
     </div>
 
-    <div id="codebox-inner-border" class="pane-rounded-inner" :style="{
+    <div id="codebox-inner-border" class="pane-rounded-inner w-full h-full" :style="{
       borderColor: `rgb(${saveStateStyles.borderColor})`,
     }">
       <div id="codebox-editor" ref="codeboxEditorElement" />
