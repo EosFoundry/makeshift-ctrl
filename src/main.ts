@@ -4,6 +4,7 @@ import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/cues'
 import App from './App.vue'
+import { Size } from 'types/electron/main'
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 21);
 const dcDevice: MakeShiftPortFingerprint = {
@@ -22,7 +23,7 @@ const cueRoot: Folder = {
 // state before starting app
 (async () => {
   const state = {
-    makeShift: window.MakeShiftCtrl,
+    makeShiftApi: window.MakeShiftCtrl,
     deviceMaps: ref({}) as any,
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
@@ -33,7 +34,7 @@ const cueRoot: Folder = {
     EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
     selectedEvent: ref('dial-01-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
-    initialDevices: await window.MakeShiftCtrl.get.connectedDevices(),
+    clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
   }
 
   const makeshiftMapUrl = new URL('../hardware-descriptors/makeshift.json', import.meta.url).href
@@ -44,10 +45,11 @@ const cueRoot: Folder = {
   console.log(makeshiftMapResp)
   console.log(state.deviceMaps.value)
 
+  const initialDevices = await window.MakeShiftCtrl.get.connectedDevices()
   // Set up event hooks for device connections
-  state.connectedDevices.value = state.initialDevices
-  if (state.initialDevices.length > 0) {
-    state.currentDevice.value = state.initialDevices[0]
+  state.connectedDevices.value = initialDevices
+  if (initialDevices.length > 0) {
+    state.currentDevice.value = initialDevices[0]
   }
 
   window.MakeShiftCtrl.onEv.device.connected((garb: any, newfp: MakeShiftPortFingerprint) => {
@@ -98,12 +100,13 @@ const cueRoot: Folder = {
   return state
 })().then((state) => {
   const app = createApp(App)
+    .provide('makeshift', state.makeShiftApi)
+    .provide('client-size', state.clientSize)
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
     .provide('makeshift-events', state.Events)
     .provide('makeshift-events-flat', state.EventsList)
     .provide('selected-event', state.selectedEvent)
-    .provide('makeshift', state.makeShift)
     .provide('device-maps', state.deviceMaps)
     .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('current-device', state.currentDevice)

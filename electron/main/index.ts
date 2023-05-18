@@ -87,8 +87,8 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
 // initializing all independent globals
-let attachedDeviceIds: MakeShiftPortFingerprint[] = []
-let knownDevices: MakeShiftPortFingerprint[] = [];
+let attachedDeviceFingerprints: MakeShiftPortFingerprint[] = []
+let knownDeviceFingerprints: MakeShiftPortFingerprint[] = [];
 let mainWindow: BrowserWindow | null = null
 let splashWindow: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -117,6 +117,10 @@ export type Layout = {
 export type CompactedLayout = {
   layers: Map<MakeShiftEvent, string>[],
   layerLabels: LayerLabel[],
+}
+export type Size = {
+  width: number,
+  height: number,
 }
 
 export function getMainWindow(): BrowserWindow { return mainWindow }
@@ -309,7 +313,7 @@ app.on('window-all-closed', () => {
  * UI interactions with side effects - opening folders, running cues directly
  */
 const ipcMainCallHandler = {
-  openCueFolder: () => shell.showItemInFolder(process.env.CUES),
+  openCueFolder: async () => shell.showItemInFolder(process.env.CUES),
   runCue: async (cueId) => {
     log.debug(`Running cue ${cueId}`)
     try {
@@ -330,16 +334,16 @@ const ipcMainCallHandler = {
  * Gets state data in various formats
  */
 const ipcMainGetHandler = {
-  connectedDevices: () => getPortFingerPrintSnapShot(),
-  events: () => DeviceEvents,
-  eventsAsList: () => DeviceEventsFlat,
-  logRank: () => logRank,
-  allCues: () => cues,
-  cueById: (id) => {
+  connectedDevices: async () => getPortFingerPrintSnapShot(),
+  events: async () => DeviceEvents,
+  eventsAsList: async () => DeviceEventsFlat,
+  logRank: async () => logRank,
+  allCues: async () => cues,
+  cueById: async (id) => {
     log.debug(`Getting cue with id: ${id}`)
     return cues.get(id)
   },
-  cueByFolder: (folder) => {
+  cueByFolder: async (folder) => {
     const cuesInFolder: CueMap = new Map()
     cues.forEach((val, key) => {
       if (val.folder === folder) {
@@ -347,6 +351,10 @@ const ipcMainGetHandler = {
       }
     })
     return cuesInFolder
+  },
+  clientSize: async (): Promise<Size> => {
+    const sizeArray = mainWindow.getContentSize()
+    return { width: sizeArray[0], height: sizeArray[1] }
   },
 }
 
@@ -464,14 +472,14 @@ async function createMainWindow() {
     PortAuthority.removeListener(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
 
     // detach listeners from Ports
-    attachedDeviceIds.forEach((fp) => {
+    for (const fp of attachedDeviceFingerprints) {
       for (const lv in DeviceEvents.Terminal.Log) {
         Ports[fp.portId].removeListener(
           DeviceEvents.Terminal.Log[lv as MsgLevel],
           serialLogToMainWindow
         )
       }
-    })
+    }
   })
 
   // mainWindow.on('move', () => {
@@ -497,11 +505,11 @@ const mainWindowPortHandler = {
         serialLogToMainWindow
       )
     }
-    attachedDeviceIds.push[fp.portId]
+    attachedDeviceFingerprints.push[fp.portId]
   },
   closed: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.webContents.send(Api.onEv.device.disconnected, fp)
-    attachedDeviceIds = attachedDeviceIds.filter((attached) => {
+    attachedDeviceFingerprints = attachedDeviceFingerprints.filter((attached) => {
       return (attached.portId !== fp.portId)
     })
   }
@@ -520,11 +528,18 @@ async function serialLogToMainWindow(data: LogMessage) {
  */
 
 function runCue(eventData) {
-  log.debug(`running cue with eventData: ${nspct2(eventData)}`)
+  log.debug(`running cue attached to event: ${nspct2(eventData)}`)
   const targetCue = layout.layers[currentLayer].get(eventData.event)
-  log.debug(`got targetCue: ${nspct2(targetCue)}`)
   if (typeof targetCue !== 'undefined') {
-    loadedCueModules[targetCue.id].run(eventData)
+    log.debug(`found attached cue with id: ${targetCue.id}`)
+    log.debug(`cue fullPath: ${targetCue.fullPath}`)
+    try {
+      loadedCueModules[targetCue.id].run(eventData)
+    } catch (err) {
+      log.error(err)
+    }
+  } else {
+    log.debug(`no cue attached to event: ${eventData.event}`)
   }
 }
 
@@ -538,15 +553,37 @@ export async function attachWatchers() {
   cueWatcher.on('error', err => log.info(`err ${err}`))
 }
 
-export async function attachCueToEvent({ layerName, event, cueId }:
+export async function detachCueFromEvent({ layerName, event, cueId }:
   {
     layerName: string,
-    event: MakeShiftEvent;
+    event: MakeShiftEvent,
     cueId: CueId
   }
 ): Promise<void> {
   if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDevices[0].portId;
+    const deviceId = knownDeviceFingerprints[0].portId;
+
+    let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
+    if (targetLayer === -1) { targetLayer = 0 }
+    if (layout.layers[targetLayer].has(event)) {
+      log.debug(`Attempting to unload existing event: ${event}`)
+      // find and remove the existing event
+      const mappedCue = layout.layers[targetLayer].get(event)
+      log.debug(`existing cue: ${nspct2(mappedCue)}`)
+      layout.layers[targetLayer].delete(event)
+    }
+  }
+}
+
+export async function attachCueToEvent({ layerName, event, cueId }:
+  {
+    layerName: string,
+    event: MakeShiftEvent,
+    cueId: CueId
+  }
+): Promise<void> {
+  if (Object.keys(Ports).length > 0) {
+    const deviceId = knownDeviceFingerprints[0].portId;
 
     let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
     if (targetLayer === -1) { targetLayer = 0 }
@@ -582,16 +619,6 @@ export async function attachCueToEvent({ layerName, event, cueId }:
   } else {
     log.error('No MakeShift device found, cue not attached')
   }
-}
-
-export async function detachCueFromEvent({ layerName, event, cueId }:
-  {
-    layerName: string,
-    event: MakeShiftEvent;
-    cueId: CueId
-  }
-): Promise<void> {
-
 }
 
 const cueWatcherHandler = {
@@ -702,7 +729,7 @@ async function loadLayouts() {
 
 // Handler function, declared here
 async function addKnownDevice(fp: MakeShiftPortFingerprint) {
-  knownDevices.push(fp)
+  knownDeviceFingerprints.push(fp)
   DeviceEvents.BUTTON.forEach((evObj) => {
     Ports[fp.portId].on(evObj.PRESSED, runCue)
     Ports[fp.portId].on(evObj.RELEASED, runCue)
@@ -714,7 +741,7 @@ async function addKnownDevice(fp: MakeShiftPortFingerprint) {
 }
 
 async function removeKnownDevice(fp: MakeShiftPortFingerprint) {
-  knownDevices = knownDevices.filter(knownFingerprint => fp.portId !== knownFingerprint.portId)
+  knownDeviceFingerprints = knownDeviceFingerprints.filter(knownFingerprint => fp.portId !== knownFingerprint.portId)
 }
 
 /**

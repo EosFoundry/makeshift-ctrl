@@ -9,6 +9,7 @@ export declare const ctrlIpcApi: {
         eventsAsList: string;
         connectedDevices: string;
         logRank: string;
+        clientSize: string;
         allCues: string;
         cueById: string;
         cueByFolder: string;

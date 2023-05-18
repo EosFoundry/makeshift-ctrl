@@ -9,12 +9,10 @@ export default {
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed } from 'vue';
 
-
-
-
 const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
 const MakeshiftMap = DeviceMap.value.makeshift
+
 console.log(MakeshiftMap)
 console.log(DeviceEvents)
 
@@ -73,7 +71,7 @@ function toast(input: any) {
               {{ num }}
             </div>
           </div>
-          <div v-for="row in [4, 8, 12]" :class=rowClass :key="row">
+          <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
             <div v-for="col in [1, 2, 3, 4]"
               :class="[(row + col === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
               :key="col" @click="toast(MakeshiftMap.sensors[row + col])">

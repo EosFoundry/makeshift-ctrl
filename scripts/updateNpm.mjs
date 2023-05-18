@@ -1,3 +1,4 @@
+
 import { readFile, writeFile } from 'fs/promises'
 import fsEx from 'fs-extra'
 import chalk from 'chalk'
@@ -12,8 +13,8 @@ const CWD = process.cwd()
 const pkgAceVersion = packageJson.devDependencies['ace-builds']
 const targetAceVersion = minVersion(pkgAceVersion)
 
-export async function updateAce() {
-  console.log(`Updating public ace-builds to ${targetAceVersion.raw}`)
+export async function updateNpm() {
+  console.log(`Updating npm to ${targetAceVersion.raw}`)
 
   if (semver.valid(targetAceVersion) === null) {
     console.log('invalid ace-builds version detected in package.json, exiting')

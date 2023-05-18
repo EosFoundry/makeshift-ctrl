@@ -35,10 +35,9 @@ const xtermWrapperElement = ref<HTMLElement>()
 const terminalCommand = ref('')
 
 const props = defineProps<{
-  paneHeightPercent?: number
+  panelHeight?: number
 }>()
 
-const paneHeight = ref(props.paneHeightPercent)
 
 const xtermConfig: ITerminalOptions = {
   convertEol: true,
@@ -66,7 +65,6 @@ let fitTimer: any = -1
 
 
 function fitTerm() {
-  console.log('fitted')
   fitAddon.fit()
 }
 
@@ -99,10 +97,6 @@ function LogEventHandler(event: any, logMessage: LogMessage) {
 }
 
 
-onUnmounted(() => {
-  removeEventListener('resize', fitTerm)
-})
-
 onMounted(() => {
   terminal = new Terminal(xtermConfig)
   terminal.open(xtermContainerElement.value as HTMLElement);
@@ -119,59 +113,53 @@ onMounted(() => {
   window.addEventListener('resize', fitTerm)
 })
 
+onUnmounted(() => {
+  window.removeEventListener('resize', fitTerm)
+})
+
 // fit every last one of them
 watch(
-  () => props.paneHeightPercent,
-  (newHeight, oldHeight) => {
-    fitTerm()
-  },
-  {
-    flush: 'post',
-  }
+  () => props.panelHeight,
+  (newHeight, oldHeight) => fitTerm()
 )
 
 </script>
 
 <template>
   <div class="pane-border w-full h-full flex flex-col" ref="xtermWrapperElement">
-    <div class="pane-rounded-inner pl-4 mb-2 h-full" :style="{ backgroundColor: makeShiftTheme.background }">
+    <div class="pane-rounded-inner pl-4 h-full" :style="{
+      backgroundColor: makeShiftTheme.background
+    }">
       <div ref="xtermContainerElement" class="xterm-container h-full" />
     </div>
     <div class="xterm-commandline" :style="{
-        display: cliInputDisplay,
-      }">
+      display: cliInputDisplay,
+    }">
       <input class="xterm-cli-input" :style="{
-          color: makeShiftTheme.foreground,
-          backgroundColor: makeShiftTheme.cursorBackground,
-          borderColor: 'var(--color-hl)',
-          caretColor: makeShiftTheme.cursor
-        }" v-model="terminalCommand" @keyup.enter="sendCommand" />
+        color: makeShiftTheme.foreground,
+        backgroundColor: makeShiftTheme.cursorBackground,
+        borderColor: 'var(--color-hl)',
+        caretColor: makeShiftTheme.cursor
+      }" v-model="terminalCommand" @keyup.enter="sendCommand" />
       <text-button @click="sendCommand">send</text-button>
     </div>
     <div class="hideCli" @click="hideCli" :style="{
-        width: '100%',
-        cursor: 'pointer',
-      }">
+      width: '100%',
+      cursor: 'pointer',
+    }">
       <div class="icon" :style="{
-          height: '15px',
-          width: '15px',
-          margin: 'auto',
-          marginBottom: '-4px',
-          backgroundColor: 'aliceblue',
-          maskImage: `url(${chevronUrl})`,
-        }" />
+        height: '15px',
+        width: '15px',
+        margin: 'auto',
+        marginBottom: '-4px',
+        backgroundColor: 'aliceblue',
+        maskImage: `url(${chevronUrl})`,
+      }" />
     </div>
   </div>
 </template>
 
 <style>
-.xterm-border {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-
 .xterm-commandline {
   float: right;
 
@@ -179,18 +167,19 @@ watch(
   align-items: center;
   justify-content: center;
 
-  margin-bottom: 4px;
   box-sizing: border-box;
   height: 3rem;
-  padding-top: 4px;
-  padding-bottom: 2px;
+  margin-top: 8px;
+  margin-bottom: 6px;
   width: 100%;
 }
 
 .xterm-cli-input {
   box-sizing: border-box;
-  padding: 4px 10px;
+  padding: 6px 10px;
   margin: auto;
+  /* margin-top: 4px; */
+  margin-left: 2px;
   margin-right: 10px;
   font-size: 12pt;
   font-family: 'Iosevka Makeshift';
@@ -198,7 +187,7 @@ watch(
   border-width: 2px;
   border-radius: 8px;
   width: 100%;
-  height: 2rem;
+  height: fit-content;
 }
 
 .xterm-inner {

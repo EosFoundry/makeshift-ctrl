@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url'
 
 import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
 
-import { keyboard, Key } from '@nut-tree/nut-js'
+import * as Nut from '@nut-tree/nut-js'
 import { ctrlLogger } from './utils'
 import { dialog } from 'electron'
 import { plugins } from './plugins'
@@ -180,8 +180,7 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
     })
     loadedCueModules[id].plugins.ctrlTerm = loadedCueModules[id].plugins.msg.getLevelLoggers()
     loadedCueModules[id].plugins.ctrlTerm.log = loadedCueModules[id].plugins.ctrlTerm.info
-    loadedCueModules[id].plugins.keyboard = keyboard
-    loadedCueModules[id].plugins.Key = Key
+    loadedCueModules[id].plugins.Nut = Nut
     loadedCueModules[id].runTriggers = {}
 
     // Run module setup

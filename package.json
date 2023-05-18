@@ -8,7 +8,8 @@
     "dev": "tsc --emitDeclarationOnly -p ./electron && vite",
     "gen-api": "tsc --emitDeclarationOnly -p ./electron && vue-tsc --emitDeclarationOnly",
     "docgen": "typedoc",
-    "build": "vue-tsc -noEmit && vite build && electron-builder"
+    "build": "vue-tsc -noEmit && vite build && electron-builder",
+    "postinstall": "node ./scripts/postinstall.mjs"
   },
   "repository": {
     "type": "git",
@@ -40,13 +41,15 @@
     "postcss": "^8.4.23",
     "semver": "^7.5.0",
     "tailwindcss": "^3.3.2",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "vm2": "^3.9.17"
   },
   "devDependencies": {
     "@types/splitpanes": "^2.2.1",
     "@types/uuid": "^9.0.1",
     "@vitejs/plugin-vue": "^4.2.2",
     "ace-builds": "^1.20.0",
+    "blockly": "^9.3.3",
     "electron": "^24.3.0",
     "electron-builder": "^23.6.0",
     "highlight.js": "^11.8.0",

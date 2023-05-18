@@ -434,9 +434,6 @@ watch(
 -ms-box-sizing: border-box; */
   flex-direction: column;
   display: flex;
-
-  width: 100%;
-  height: 100%;
 }
 
 
@@ -452,7 +449,7 @@ watch(
   height: 3.5em;
   padding-top: 4px;
   padding-bottom: 2px;
-  width: 100%;
+  // width: %;
 }
 
 .save-icon {

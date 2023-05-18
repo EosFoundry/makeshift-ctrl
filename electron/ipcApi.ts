@@ -9,6 +9,7 @@ export const ctrlIpcApi = {
     eventsAsList: 'mkshft-get-events-list',
     connectedDevices: 'mkshft-get-connectedDevices',
     logRank: 'mkshft-get-logRank',
+    clientSize: 'window-get-size',
     allCues: 'cue-get-all',
     cueById: 'cue-get-byId',
     cueByFolder: 'cue-get-byFolder',

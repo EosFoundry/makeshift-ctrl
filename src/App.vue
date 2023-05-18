@@ -3,7 +3,7 @@ import './styles/colors.css'
 import './styles/fonts.css'
 import 'splitpanes/dist/splitpanes.css'
 
-import { ref, computed, onMounted, nextTick, provide, Ref } from 'vue'
+import { ref, computed, onMounted, nextTick, provide, Ref, inject, watch } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
@@ -11,51 +11,76 @@ import BottomBar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
-
-const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
-provide<Ref<string>>('current-session', editorContents)
-const topPaneHeight = ref(69)
-const bottomPaneHeight = ref(31)
-function terminalResize(event: any) {
-	bottomPaneHeight.value = 100 - event[0].size
-	console.log(event[0])
+import SplitPanelVert from './components/SplitPanelVert.vue'
+import { checkFontSize, updateFont } from './utilities/cssUnits'
+type Size = {
+	width: number
+	height: number
 }
+const FontSizeMonitorDiv = ref<HTMLElement>()
+const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
+const clientSize = inject('client-size') as Ref<Size>
+provide<Ref<string>>('current-session', editorContents)
+const topPanelHeightPercent = ref(69)
+const bottomPanelHeight = ref(-1)
+function panelResizeHandler(event: any) {
+	// console.log(event)
+	bottomPanelHeight.value = event.bottomPanelHeight
+	// console.log(bottomPanelHeight.value)
+}
+
+const bodyHeight = computed(() => {
+	return clientSize.value.height + 'px'
+}) as Ref<string>
+
+const fontChecker = new ResizeObserver((entries) => {
+	if (entries.length > 0) {
+		const fontDiv = entries[0].target as HTMLElement
+		const fontSize = window.getComputedStyle(fontDiv).fontSize
+		updateFont(fontSize)
+		console.log(fontSize)
+	}
+})
+
+onMounted(() => {
+	window.addEventListener('resize', () => {
+		clientSize.value = {
+			width: document.documentElement.clientWidth,
+			height: document.documentElement.clientHeight
+		}
+	})
+	if (typeof FontSizeMonitorDiv.value !== 'undefined') {
+		fontChecker.observe(FontSizeMonitorDiv.value)
+		checkFontSize(FontSizeMonitorDiv.value)
+	}
+})
 
 // this is a very cursed hack to get xterm to resize correctly
 nextTick(() => {
 	window.resizeBy(-1, -1)
 	window.resizeBy(1, 1)
-	topPaneHeight.value = 70
+	// topPaneHeight.value = 70
 })
 
 </script>
 
-<template>
-	<!-- <test-interface /> -->
-	<!-- <div class="flex-col"> -->
-	<splitpanes id="main-container" class="inset-x-0 bottom-10 h-full" @resize="terminalResize" horizontal>
-		<pane :size="topPaneHeight" :pane-height-percent="topPaneHeight">
-			<splitpanes vertical>
-				<pane size="69">
-					<code-box />
-				</pane>
-				<pane>
-					<splitpanes horizontal>
-						<pane>
-							<device-panel />
-						</pane>
-						<pane size="69">
-							<cue-panel />
-						</pane>
-					</splitpanes>
-				</pane>
-			</splitpanes>
-		</pane>
-		<pane>
-			<terminal :pane-height-percent="bottomPaneHeight" />
-		</pane>
-	</splitpanes>
-	<bottom-bar class="inset-x-0 bottom-0" />
+<template >
+	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
+		font-size-monitor-text
+	</div>
+	<test-interface />
+	<!-- <SplitPanelVert 
+	:height="clientSize.height" 
+	:topPanelHeightPercent="70"
+	:margin="8"
+	@resizing="panelResizeHandler">
+		<template #top>
+			<CodeBox />
+		</template>
+		<template #bottom>
+			<Terminal :panelHeight="bottomPanelHeight" />
+		</template>
+	</SplitPanelVert> -->
 </template>
 
 <style lang="scss">
@@ -65,7 +90,7 @@ nextTick(() => {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 
-	font-size: 12pt;
+	// font-size: 12pt;
 	text-align: center;
 	background-color: rgb(var(--color-bg));
 	color: rgb(var(--color-text));
@@ -74,11 +99,14 @@ nextTick(() => {
 	user-select: none;
 	overflow: hidden;
 
-	transition-duration: 0.2s;
+	// transition-duration: 0.2s;
 	height: 100%;
 }
 
-html,
+html {
+	height: 100%;
+}
+
 body {
 	margin: 0;
 	padding: 0;
@@ -90,7 +118,7 @@ code {
 }
 
 input {
-	font-size: 12pt;
+	// font-size: 14px;
 	color: rgb(var(--color-text));
 	background-color: rgb(var(--color-dark));
 	border-color: rgb(var(--color-hl));
@@ -106,7 +134,7 @@ button {
 	color: rgb(var(--color-bg));
 	display: flex;
 
-	font-size: 11pt;
+	font-size: 1rem;
 	// margin: auto;
 	vertical-align: baseline;
 
@@ -152,8 +180,8 @@ select {
 
 #main-container {
 	box-sizing: border-box;
-	padding: 4px;
-	width: 100%;
+	// padding: 4px;
+	// width: 100%;
 }
 
 .pane-border {
@@ -161,7 +189,7 @@ select {
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
-	padding: 3px;
+	// padding: 3px;
 	// padding-top: 5px;
 	// padding-bottom: 5px;
 	// margin: 4px;
@@ -225,7 +253,7 @@ select {
 	// height: 3.5em;
 	padding-top: 8px;
 	padding-bottom: 8px;
-	width: 100%;
+	width: auto;
 
 	&.thin {
 		height: 2.5em;

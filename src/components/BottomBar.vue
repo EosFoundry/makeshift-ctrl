@@ -65,7 +65,7 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-hl));
   display: flex;
   align-items: center;
-  height: 2.5rem;
+  // height: 2.5rem;
   padding: 8px;
   padding-left: 0px;
 }

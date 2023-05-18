@@ -7,6 +7,7 @@ import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'origin
 import { isAbsolute, join } from 'pathe'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { ctrlLogger } from './utils'
+import { NodeVM } from 'vm2'
 
 export const plugins = {}
 const msgen = new Msg({
