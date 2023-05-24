@@ -12,6 +12,10 @@ export function pxToRem(px: number) {
   return (px / cssParameters.rootFontSize)
 }
 
+export function remToPx(rem: number) {
+  return (rem * cssParameters.rootFontSize)
+}
+
 export function updateFont(newFontSize: string) {
   const matches = newFontSize.match(isFont)
   console.log(matches)

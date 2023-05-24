@@ -12,7 +12,7 @@ import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
-import { checkFontSize, updateFont } from './utilities/cssUnits'
+import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 type Size = {
 	width: number
 	height: number
@@ -70,7 +70,7 @@ nextTick(() => {
 	</div>
 	<test-interface />
 	<!-- <SplitPanelVert 
-	:height="clientSize.height" 
+	:height="clientSize.height - remToPx(2.5)" 
 	:topPanelHeightPercent="70"
 	:margin="8"
 	@resizing="panelResizeHandler">
@@ -81,6 +81,7 @@ nextTick(() => {
 			<Terminal :panelHeight="bottomPanelHeight" />
 		</template>
 	</SplitPanelVert> -->
+	<BottomBar />
 </template>
 
 <style lang="scss">
@@ -105,12 +106,14 @@ nextTick(() => {
 
 html {
 	height: 100%;
+	background-color: rgb(var(--color-bg));
 }
 
 body {
 	margin: 0;
 	padding: 0;
 	height: 100%;
+	background-color: rgb(var(--color-bg));
 }
 
 code {

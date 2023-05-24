@@ -28,9 +28,12 @@ onMounted(() => {
 
 <template>
   <div id="toolbar-wrapper">
+    <!-- conncted-devices text div -->
     <div class="status-text">
       Connected Device(s):
     </div>
+
+    <!-- Device list -->
     <div id="device-list">
       <form>
         <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.portId">
@@ -41,15 +44,21 @@ onMounted(() => {
         </label>
       </form>
     </div>
+
+    <!-- Log level text -->
     <div>
       Log Level:
     </div>
+
+    <!-- Log level selector -->
     <select name="log-level-selector" v-model="logLevel">
       <option v-for="lv in LogLevels">
         {{ lv }}
       </option>
     </select>
-    <div>
+
+    <!-- Current Targeted Event status -->
+    <div :class="['mr-3']">
     {{ selectedEvent }}
     </div>
   </div>
@@ -65,15 +74,17 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-hl));
   display: flex;
   align-items: center;
-  // height: 2.5rem;
-  padding: 8px;
-  padding-left: 0px;
+  height: 2.5rem;
+  // padding: 8px;
+  // padding-left: 0px;
+  // padding-right: 0px;
 }
 
 #device-list {
   flex-grow: 100;
   text-align: left;
 }
+
 
 .status-text {
   width: fit-content;
@@ -96,4 +107,5 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-bg));
   border-radius: 3px;
 }
+
 </style>
