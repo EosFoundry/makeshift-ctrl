@@ -68,8 +68,8 @@ nextTick(() => {
 	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
 		font-size-monitor-text
 	</div>
-	<test-interface />
-	<!-- <SplitPanelVert 
+	<!-- <test-interface /> -->
+	<SplitPanelVert 
 	:height="clientSize.height - remToPx(2.5)" 
 	:topPanelHeightPercent="70"
 	:margin="8"
@@ -80,7 +80,7 @@ nextTick(() => {
 		<template #bottom>
 			<Terminal :panelHeight="bottomPanelHeight" />
 		</template>
-	</SplitPanelVert> -->
+	</SplitPanelVert>
 	<BottomBar />
 </template>
 

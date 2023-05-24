@@ -51,6 +51,7 @@ declare const ipcMainGetHandler: {
             CHANGE: string;
         }[];
         DEVICE: {
+            CONNECTION_ERROR: string;
             DISCONNECTED: string;
             CONNECTED: string;
             STATE_UPDATE: string;

@@ -231,7 +231,7 @@ async function saveCue() {
 
 async function assignCueToEvent() {
   console.log(`uploading cue ${cue.value}`)
-  const deviceId = currentDevice.value.portId
+  const deviceId = currentDevice.value.deviceSerial
   const id = cueId.value
   const contents = textEncoder.encode(editor.getValue())
   const fullPath = await window.MakeShiftCtrl.set.cueForEvent({

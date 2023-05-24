@@ -61,7 +61,7 @@ const cueRoot: Folder = {
 
   window.MakeShiftCtrl.onEv.device.disconnected((garb: any, dcfp: MakeShiftPortFingerprint) => {
     state.connectedDevices.value = state.connectedDevices.value.filter((currfp) => {
-      return (currfp.portId !== dcfp.portId || currfp.devicePath !== dcfp.devicePath)
+      return (currfp.deviceSerial !== dcfp.deviceSerial || currfp.devicePath !== dcfp.devicePath)
     })
     if (state.connectedDevices.value.length === 0) {
       state.currentDevice.value = dcDevice

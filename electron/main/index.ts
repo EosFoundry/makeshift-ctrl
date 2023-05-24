@@ -474,7 +474,7 @@ async function createMainWindow() {
     // detach listeners from Ports
     for (const fp of attachedDeviceFingerprints) {
       for (const lv in DeviceEvents.Terminal.Log) {
-        Ports[fp.portId].removeListener(
+        Ports[fp.deviceSerial].removeListener(
           DeviceEvents.Terminal.Log[lv as MsgLevel],
           serialLogToMainWindow
         )
@@ -500,17 +500,17 @@ const mainWindowPortHandler = {
   opened: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.webContents.send(Api.onEv.device.connected, fp)
     for (const lv in DeviceEvents.Terminal.Log) {
-      Ports[fp.portId].on(
+      Ports[fp.deviceSerial].on(
         DeviceEvents.Terminal.Log[lv as MsgLevel],
         serialLogToMainWindow
       )
     }
-    attachedDeviceFingerprints.push[fp.portId]
+    attachedDeviceFingerprints.push[fp.deviceSerial]
   },
   closed: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.webContents.send(Api.onEv.device.disconnected, fp)
     attachedDeviceFingerprints = attachedDeviceFingerprints.filter((attached) => {
-      return (attached.portId !== fp.portId)
+      return (attached.deviceSerial !== fp.deviceSerial)
     })
   }
 }
@@ -561,7 +561,7 @@ export async function detachCueFromEvent({ layerName, event, cueId }:
   }
 ): Promise<void> {
   if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDeviceFingerprints[0].portId;
+    const deviceId = knownDeviceFingerprints[0].deviceSerial;
 
     let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
     if (targetLayer === -1) { targetLayer = 0 }
@@ -583,7 +583,7 @@ export async function attachCueToEvent({ layerName, event, cueId }:
   }
 ): Promise<void> {
   if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDeviceFingerprints[0].portId;
+    const deviceId = knownDeviceFingerprints[0].deviceSerial;
 
     let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
     if (targetLayer === -1) { targetLayer = 0 }
@@ -731,17 +731,17 @@ async function loadLayouts() {
 async function addKnownDevice(fp: MakeShiftPortFingerprint) {
   knownDeviceFingerprints.push(fp)
   DeviceEvents.BUTTON.forEach((evObj) => {
-    Ports[fp.portId].on(evObj.PRESSED, runCue)
-    Ports[fp.portId].on(evObj.RELEASED, runCue)
+    Ports[fp.deviceSerial].on(evObj.PRESSED, runCue)
+    Ports[fp.deviceSerial].on(evObj.RELEASED, runCue)
   })
   DeviceEvents.DIAL.forEach((evObj) => {
-    Ports[fp.portId].on(evObj.INCREMENT, runCue)
-    Ports[fp.portId].on(evObj.DECREMENT, runCue)
+    Ports[fp.deviceSerial].on(evObj.INCREMENT, runCue)
+    Ports[fp.deviceSerial].on(evObj.DECREMENT, runCue)
   })
 }
 
 async function removeKnownDevice(fp: MakeShiftPortFingerprint) {
-  knownDeviceFingerprints = knownDeviceFingerprints.filter(knownFingerprint => fp.portId !== knownFingerprint.portId)
+  knownDeviceFingerprints = knownDeviceFingerprints.filter(knownFingerprint => fp.deviceSerial !== knownFingerprint.deviceSerial)
 }
 
 /**

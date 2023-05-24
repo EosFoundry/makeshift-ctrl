@@ -20,7 +20,7 @@ function needful() {
 }
 
 onMounted(() => {
-  if (typeof currentDevice.value.portId === 'undefined' && connectedDevices.value.length > 0) {
+  if (typeof currentDevice.value.deviceSerial === 'undefined' && connectedDevices.value.length > 0) {
     currentDevice.value = connectedDevices.value[0]
   }
 })
@@ -36,10 +36,10 @@ onMounted(() => {
     <!-- Device list -->
     <div id="device-list">
       <form>
-        <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.portId">
-          <input type="radio" :id="dev.portId" :value="dev" v-model="currentDevice" />
+        <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.deviceSerial">
+          <input type="radio" :id="dev.deviceSerial" :value="dev" v-model="currentDevice" />
           <code>
-         <b>ID: {{ dev.portId.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
+         <b>ID: {{ dev.deviceSerial.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
         </code>
         </label>
       </form>
