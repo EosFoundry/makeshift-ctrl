@@ -64,7 +64,7 @@ nextTick(() => {
 
 </script>
 
-<template >
+<template>
 	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
 		font-size-monitor-text
 	</div>
