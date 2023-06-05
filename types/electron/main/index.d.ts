@@ -39,7 +39,14 @@ declare const ipcMainCallHandler: {
  */
 declare const ipcMainGetHandler: {
     connectedDevices: () => Promise<MakeShiftPortFingerprint[]>;
-    events: () => Promise<any>;
+    deviceEvents: () => Promise<any>;
+    serialEvents: () => Promise<{
+        Log: import("@eos-makeshift/msg").MsgLvStringMap;
+    }>;
+    hardwareDescriptors: () => Promise<{
+        MakeShift: any;
+        Sensors: any;
+    }>;
     eventsAsList: () => Promise<any[]>;
     logRank: () => Promise<{
         all: number;

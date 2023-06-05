@@ -1,6 +1,6 @@
 import { createApp, Ref, ref, watch } from 'vue'
 import { customAlphabet } from 'nanoid'
-import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
+import { MakeShiftPortFingerprint} from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/cues'
 import App from './App.vue'
@@ -25,12 +25,13 @@ const cueRoot: Folder = {
   const state = {
     makeShiftApi: window.MakeShiftCtrl,
     deviceMaps: ref({}) as any,
+    hardwareDescriptors: await window.MakeShiftCtrl.get.hardwareDescriptors(),
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
     cueDirectory: ref(cueRoot) as Ref<Folder>,
     logLevel: ref('info') as Ref<LogLevel>,
-    Events: await window.MakeShiftCtrl.get.events(),
+    Events: await window.MakeShiftCtrl.get.deviceEvents(),
     EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
     selectedEvent: ref('dial-01-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
@@ -44,7 +45,7 @@ const cueRoot: Folder = {
   console.log(makeshiftMapUrl)
   console.log(makeshiftMapResp)
   console.log(state.deviceMaps.value)
-
+  
   const initialDevices = await window.MakeShiftCtrl.get.connectedDevices()
   // Set up event hooks for device connections
   state.connectedDevices.value = initialDevices
@@ -104,6 +105,7 @@ const cueRoot: Folder = {
     .provide('client-size', state.clientSize)
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
+    .provide('hardware-descriptors', state.hardwareDescriptors)
     .provide('makeshift-events', state.Events)
     .provide('makeshift-events-flat', state.EventsList)
     .provide('selected-event', state.selectedEvent)

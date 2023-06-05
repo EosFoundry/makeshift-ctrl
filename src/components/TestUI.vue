@@ -11,6 +11,7 @@ import { inject, ref, computed } from 'vue';
 
 const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
+const HardwareDescriptors = inject('hardware-descriptors') as any
 const MakeshiftMap = DeviceMap.value.makeshift
 
 console.log('1')
@@ -19,6 +20,8 @@ console.log('2')
 console.log(MakeshiftMap)
 console.log('3')
 console.log(DeviceEvents)
+console.log('4')
+console.log(HardwareDescriptors)
 
 const devicePanel = ref(`
   flex flex-row flex-wrap
@@ -63,6 +66,15 @@ function selectInput(input: any) {
   console.log(input)
 }
 
+/**
+ * TODO:
+ * - Events panel should have a @click handler that calls this function below
+ * - This function needs to store the given event based on the selected input type
+ */
+function handleEventsPanelEvent(){
+
+}
+
 </script>
 
 <template>
@@ -83,12 +95,17 @@ function selectInput(input: any) {
               {{ sensorId }}
 
             </div>
-
           </div>
+
           <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
             <div v-for="col in [1, 2, 3, 4]"
+              
               :class="[(row + col === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
-              :key="col" @click="selectInput(MakeshiftMap.sensors[row + col])">
+              
+              :key="row + col"
+
+              @click="selectInput(MakeshiftMap.sensors[row + col])">
+
               {{ row + col }}
             </div>
           </div>
@@ -96,9 +113,13 @@ function selectInput(input: any) {
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div 
+        <div v-for="sensorType in selectedInput.types"
+          
           :class="[buttonSelector]"
-          v-for="sensorType in selectedInput.types">
+          
+          :key="sensorType"
+          
+          @click="">
 
           {{ sensorType }}
         </div>

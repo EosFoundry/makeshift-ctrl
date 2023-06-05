@@ -5,7 +5,9 @@ export const ctrlIpcApi = {
     runCue: 'mkshft-runCue'
   },
   get: {
-    events: 'mkshft-get-events',
+    deviceEvents: 'mkshft-get-device-events',
+    serialEvents: 'mkshft-get-serial-events',
+    hardwareDescriptors: 'mkshft-get-hardware-descriptors',
     eventsAsList: 'mkshft-get-events-list',
     connectedDevices: 'mkshft-get-connectedDevices',
     logRank: 'mkshft-get-logRank',

@@ -33,6 +33,7 @@ import {
   // emitter apis
   DeviceEvents,
   SerialEvents,
+  HardwareDescriptors,
   PortAuthorityEvents,
   // emitter objects
   Ports,
@@ -336,7 +337,9 @@ const ipcMainCallHandler = {
  */
 const ipcMainGetHandler = {
   connectedDevices: async () => getPortFingerPrintSnapShot(),
-  events: async () => DeviceEvents,
+  deviceEvents: async () => DeviceEvents,
+  serialEvents: async () => SerialEvents,
+  hardwareDescriptors: async () => HardwareDescriptors,
   eventsAsList: async () => DeviceEventsFlat,
   logRank: async () => logRank,
   allCues: async () => cues,
