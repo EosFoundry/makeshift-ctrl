@@ -24,10 +24,12 @@ onMounted(() => {
     currentDevice.value = connectedDevices.value[0]
   }
 })
+
 </script>
 
 <template>
   <div id="toolbar-wrapper">
+
     <!-- conncted-devices text div -->
     <div class="status-text">
       Connected Device(s):
@@ -51,6 +53,7 @@ onMounted(() => {
     </div>
 
     <!-- Log level selector -->
+    <!-- {{ logLevel }} -->
     <select name="log-level-selector" v-model="logLevel">
       <option v-for="lv in LogLevels">
         {{ lv }}

@@ -32,6 +32,7 @@ import * as Store from 'electron-store'
 import {
   // emitter apis
   DeviceEvents,
+  SerialEvents,
   PortAuthorityEvents,
   // emitter objects
   Ports,
@@ -46,7 +47,7 @@ import {
   MakeShiftPort,
   MakeShiftPortFingerprint,
   MakeShiftDeviceEvents,
-
+  MakeShiftSerialEvents,
 } from '@eos-makeshift/serial'
 
 import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
@@ -473,9 +474,9 @@ async function createMainWindow() {
 
     // detach listeners from Ports
     for (const fp of attachedDeviceFingerprints) {
-      for (const lv in DeviceEvents.Terminal.Log) {
+      for (const lv in SerialEvents.Log) {
         Ports[fp.deviceSerial].removeListener(
-          DeviceEvents.Terminal.Log[lv as MsgLevel],
+          SerialEvents.Log[lv as MsgLevel],
           serialLogToMainWindow
         )
       }
@@ -499,9 +500,9 @@ async function createMainWindow() {
 const mainWindowPortHandler = {
   opened: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.webContents.send(Api.onEv.device.connected, fp)
-    for (const lv in DeviceEvents.Terminal.Log) {
+    for (const lv in SerialEvents.Log) {
       Ports[fp.deviceSerial].on(
-        DeviceEvents.Terminal.Log[lv as MsgLevel],
+        SerialEvents.Log[lv as MsgLevel],
         serialLogToMainWindow
       )
     }

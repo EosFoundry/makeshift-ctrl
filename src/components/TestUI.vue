@@ -1,7 +1,7 @@
 
 <script lang="ts">
 export default {
-  name: 'TestInterface '
+  name: 'TestInterface'
 }
 </script>
 
@@ -13,7 +13,11 @@ const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
 const MakeshiftMap = DeviceMap.value.makeshift
 
+console.log('1')
+console.log(DeviceMap)
+console.log('2')
 console.log(MakeshiftMap)
+console.log('3')
 console.log(DeviceEvents)
 
 const devicePanel = ref(`
@@ -49,14 +53,16 @@ const dialSelector = ref(`
   `)
 
 const rowClass = ref(`flex flex-row flex-wrap`)
-
 const colClass = ref(`flex flex-col`)
+
 const selectedInputId = ref(0)
 const selectedInput = computed(() => MakeshiftMap.sensors[selectedInputId.value])
-function toast(input: any) {
+
+function selectInput(input: any) {
   selectedInputId.value = input.id
   console.log(input)
 }
+
 </script>
 
 <template>
@@ -65,16 +71,24 @@ function toast(input: any) {
       <span :class=devicePanel>
         <div :class=colClass>
           <div :class=rowClass>
-            <div v-for="num in [0, 1, 2, 3]"
-              :class="[(num === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"
-              :key="num" @click="toast(MakeshiftMap.sensors[num])">
-              {{ num }}
+
+            <div v-for="sensorId in [0, 1, 2, 3]"
+              
+              :class="[(sensorId === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"
+
+              :key="sensorId" 
+
+              @click="selectInput(MakeshiftMap.sensors[sensorId])">
+              
+              {{ sensorId }}
+
             </div>
+
           </div>
           <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
             <div v-for="col in [1, 2, 3, 4]"
               :class="[(row + col === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
-              :key="col" @click="toast(MakeshiftMap.sensors[row + col])">
+              :key="col" @click="selectInput(MakeshiftMap.sensors[row + col])">
               {{ row + col }}
             </div>
           </div>
@@ -82,11 +96,11 @@ function toast(input: any) {
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="sensor in MakeshiftMap.sensors[selectedInputId]" :key="sensor">
-        </div>
-        butt
-        <div>
-          {{ selectedInput }}
+        <div 
+          :class="[buttonSelector]"
+          v-for="sensorType in selectedInput.types">
+
+          {{ sensorType }}
         </div>
       </div>
     </div>
@@ -106,7 +120,7 @@ function toast(input: any) {
 }
 
 .events-panel {
-  background-color: green;
+  /* background-color: green; */
 }
 
 .active-input {

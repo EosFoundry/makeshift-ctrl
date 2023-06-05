@@ -13,10 +13,12 @@ import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
+
 type Size = {
 	width: number
 	height: number
 }
+
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
@@ -68,8 +70,8 @@ nextTick(() => {
 	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
 		font-size-monitor-text
 	</div>
-	<!-- <test-interface /> -->
-	<SplitPanelVert 
+	<test-interface />
+	<!-- <SplitPanelVert 
 	:height="clientSize.height - remToPx(2.5)" 
 	:topPanelHeightPercent="70"
 	:margin="8"
@@ -81,7 +83,7 @@ nextTick(() => {
 			<Terminal :panelHeight="bottomPanelHeight" />
 		</template>
 	</SplitPanelVert>
-	<BottomBar />
+	<BottomBar /> -->
 </template>
 
 <style lang="scss">

@@ -39,27 +39,7 @@ declare const ipcMainCallHandler: {
  */
 declare const ipcMainGetHandler: {
     connectedDevices: () => Promise<MakeShiftPortFingerprint[]>;
-    events: () => Promise<{
-        DIAL: {
-            INCREMENT: string;
-            DECREMENT: string;
-            CHANGE: string;
-        }[];
-        BUTTON: {
-            PRESSED: string;
-            RELEASED: string;
-            CHANGE: string;
-        }[];
-        DEVICE: {
-            CONNECTION_ERROR: string;
-            DISCONNECTED: string;
-            CONNECTED: string;
-            STATE_UPDATE: string;
-        };
-        Terminal: {
-            Log: import("@eos-makeshift/msg").MsgLvStringMap;
-        };
-    }>;
+    events: () => Promise<any>;
     eventsAsList: () => Promise<any[]>;
     logRank: () => Promise<{
         all: number;
