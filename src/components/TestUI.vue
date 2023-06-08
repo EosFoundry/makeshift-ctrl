@@ -59,7 +59,7 @@ const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
 
 const selectedInputId = ref(0)
-const selectedInput = computed(() => MakeshiftMap.sensors[selectedInputId.value])
+const selectedInput = computed(() =>  MakeshiftMap.sensors[selectedInputId.value])
 
 function selectInput(input: any) {
   selectedInputId.value = input.id
@@ -72,8 +72,18 @@ function selectInput(input: any) {
  * - This function needs to store the given event based on the selected input type
  * - cross reference the DeviceEvents object and the HardwareDescriptors object to get the correct event that the user is targeting
  */
-function handleEventsPanelEvent(){
-
+const selectedInputEvents = ref()
+function handleEventsPanelEvent(inputType: any){
+  for (const property in DeviceEvents){
+      if (inputType === property) {
+        for (let j=0; j<DeviceEvents[property].length; j++) {
+          if (selectedInputId.value === j) {
+            selectedInputEvents.value = DeviceEvents[property][j]
+            console.log(selectedInputEvents.value)
+          }
+        }
+      }
+    }  
 }
 
 </script>
@@ -115,13 +125,20 @@ function handleEventsPanelEvent(){
       <div :class="colClass + ` events-panel`">
         <div v-for="sensorType in selectedInput.types"
           
-          :class="[buttonSelector]"
+          :class="sensorType"
           
           :key="sensorType"
           
-          @click="">
+          @click="handleEventsPanelEvent(sensorType)">
 
-          {{ sensorType }}
+          <div v-for="sensorEvent in HardwareDescriptors.Sensors[sensorType].events"
+
+          :class="[buttonSelector]"
+
+          :key="sensorEvent">
+
+          {{ sensorEvent }}
+          </div>
         </div>
       </div>
     </div>
