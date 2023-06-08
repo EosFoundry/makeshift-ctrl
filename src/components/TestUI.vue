@@ -51,15 +51,31 @@ const dialSelector = ref(`
   hover:shadow-hover
   border-solid border-4 
   device-layout-button
-  DIAL
-  BUTTON 
   `)
+
+const selected = ref('active-input shadow-selected mt-2 mb-2')
+const unselected = ref('mt-1 mb-3 shadow-md')
 
 const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
 
 const selectedInputId = ref(0)
-const selectedInput = computed(() =>  MakeshiftMap.sensors[selectedInputId.value])
+const selectedInputEventMaps = computed(() => {
+  const eventMap = []
+  for (const type of MakeshiftMap.sensors[selectedInputId.value].types) {
+    console.log(type)
+    for (const event of HardwareDescriptors.Sensors[type].events) {
+      console.log(event)
+      eventMap.push({
+        type: type,
+        event: event
+      })
+    }
+  }
+
+  console.log(eventMap)
+  return eventMap
+})
 
 function selectInput(input: any) {
   selectedInputId.value = input.id
@@ -72,18 +88,16 @@ function selectInput(input: any) {
  * - This function needs to store the given event based on the selected input type
  * - cross reference the DeviceEvents object and the HardwareDescriptors object to get the correct event that the user is targeting
  */
-const selectedInputEvents = ref()
-function handleEventsPanelEvent(inputType: any){
-  for (const property in DeviceEvents){
-      if (inputType === property) {
-        for (let j=0; j<DeviceEvents[property].length; j++) {
-          if (selectedInputId.value === j) {
-            selectedInputEvents.value = DeviceEvents[property][j]
-            console.log(selectedInputEvents.value)
-          }
-        }
-      }
-    }  
+const selectedInputEvent = ref(
+  {
+    type: '',
+    event: ''
+  }
+)
+const selectedInputEventName = ref()
+function handleEventsPanelEvent(inputType: any, inputEvent: any) {
+  selectedInputEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
+  console.log(selectedInputEventName.value)
 }
 
 </script>
@@ -95,13 +109,9 @@ function handleEventsPanelEvent(inputType: any){
         <div :class=colClass>
           <div :class=rowClass>
             <div v-for="sensorId in [0, 1, 2, 3]"
-              
-              :class="[(sensorId === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"
-
-              :key="sensorId" 
-
+              :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]" :key="sensorId"
               @click="selectInput(MakeshiftMap.sensors[sensorId])">
-              
+
               {{ sensorId }}
 
             </div>
@@ -109,11 +119,7 @@ function handleEventsPanelEvent(inputType: any){
 
           <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
             <div v-for="col in [1, 2, 3, 4]"
-              
-              :class="[(row + col === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), buttonSelector]"
-              
-              :key="row + col"
-
+              :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]" :key="row + col"
               @click="selectInput(MakeshiftMap.sensors[row + col])">
 
               {{ row + col }}
@@ -123,22 +129,12 @@ function handleEventsPanelEvent(inputType: any){
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="sensorType in selectedInput.types"
-          
-          :class="sensorType"
-          
-          :key="sensorType"
-          
-          @click="handleEventsPanelEvent(sensorType)">
+        <div v-for="eventMap in selectedInputEventMaps" :class="[
+          (selectedInputEvent.type === eventMap.type
+            && selectedInputEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
+          @click="handleEventsPanelEvent(eventMap.type, eventMap.event)">
 
-          <div v-for="sensorEvent in HardwareDescriptors.Sensors[sensorType].events"
-
-          :class="[buttonSelector]"
-
-          :key="sensorEvent">
-
-          {{ sensorEvent }}
-          </div>
+          {{ eventMap }}
         </div>
       </div>
     </div>
