@@ -70,6 +70,7 @@ function selectInput(input: any) {
  * TODO:
  * - Events panel should have a @click handler that calls this function below
  * - This function needs to store the given event based on the selected input type
+ * - cross reference the DeviceEvents object and the HardwareDescriptors object to get the correct event that the user is targeting
  */
 function handleEventsPanelEvent(){
 
@@ -83,7 +84,6 @@ function handleEventsPanelEvent(){
       <span :class=devicePanel>
         <div :class=colClass>
           <div :class=rowClass>
-
             <div v-for="sensorId in [0, 1, 2, 3]"
               
               :class="[(sensorId === selectedInputId ? 'active-input shadow-selected mt-2 mb-2' : 'mt-1 mb-3 shadow-md'), dialSelector]"

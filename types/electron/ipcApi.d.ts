@@ -5,7 +5,9 @@ export declare const ctrlIpcApi: {
         runCue: string;
     };
     get: {
-        events: string;
+        deviceEvents: string;
+        serialEvents: string;
+        hardwareDescriptors: string;
         eventsAsList: string;
         connectedDevices: string;
         logRank: string;
