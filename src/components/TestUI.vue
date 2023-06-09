@@ -60,7 +60,7 @@ const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
 
 const selectedInputId = ref(0)
-const selectedInputEventMaps = computed(() => {
+const eventListFromSelectedInputId = computed(() => {
   const eventMap = []
   for (const type of MakeshiftMap.sensors[selectedInputId.value].types) {
     console.log(type)
@@ -82,22 +82,24 @@ function selectInput(input: any) {
   console.log(input)
 }
 
-/**
- * TODO:
- * - Events panel should have a @click handler that calls this function below
- * - This function needs to store the given event based on the selected input type
- * - cross reference the DeviceEvents object and the HardwareDescriptors object to get the correct event that the user is targeting
- */
-const selectedInputEvent = ref(
+const selectedDeviceEvent = ref(
   {
     type: '',
     event: ''
   }
 )
-const selectedInputEventName = ref()
-function handleEventsPanelEvent(inputType: any, inputEvent: any) {
-  selectedInputEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
-  console.log(selectedInputEventName.value)
+
+/**
+ * TODO:
+ * - use `inject()` to get the global variable `selectedEvent` into this component
+ *   - The `selectedEvent` variable is declared in `src/main.ts`
+ * - when handling the click event, update the global variable `selectedEvent`
+ */
+
+const selectedDeviceEventName = ref()
+function updateSelectedEventName(inputType: any, inputEvent: any) {
+  selectedDeviceEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
+  console.log(selectedDeviceEventName.value)
 }
 
 </script>
@@ -129,10 +131,10 @@ function handleEventsPanelEvent(inputType: any, inputEvent: any) {
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="eventMap in selectedInputEventMaps" :class="[
-          (selectedInputEvent.type === eventMap.type
-            && selectedInputEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
-          @click="handleEventsPanelEvent(eventMap.type, eventMap.event)">
+        <div v-for="eventMap in eventListFromSelectedInputId" :class="[
+          (selectedDeviceEvent.type === eventMap.type
+            && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
+          @click="updateSelectedEventName(eventMap.type, eventMap.event)">
 
           {{ eventMap }}
         </div>

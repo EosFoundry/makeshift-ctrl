@@ -337,8 +337,8 @@ const ipcMainCallHandler = {
  */
 const ipcMainGetHandler = {
   connectedDevices: async () => getPortFingerPrintSnapShot(),
-  deviceEvents: async () => DeviceEvents,
-  serialEvents: async () => SerialEvents,
+  deviceEvents: async (): Promise<MakeShiftDeviceEvents> => DeviceEvents,
+  serialEvents: async (): Promise<MakeShiftSerialEvents> => SerialEvents,
   hardwareDescriptors: async () => HardwareDescriptors,
   eventsAsList: async () => DeviceEventsFlat,
   logRank: async () => logRank,

@@ -33,7 +33,7 @@ const cueRoot: Folder = {
     logLevel: ref('info') as Ref<LogLevel>,
     Events: await window.MakeShiftCtrl.get.deviceEvents(),
     EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
-    selectedEvent: ref('dial-01-increment'),
+    selectedEvent: ref('sensor-0-dial-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
   }
