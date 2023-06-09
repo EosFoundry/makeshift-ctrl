@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import { MakeShiftPortFingerprint } from '@eos-makeshift/serial';
+import { MakeShiftPortFingerprint, MakeShiftDeviceEvents, MakeShiftSerialEvents } from '@eos-makeshift/serial';
 import { saveCueFile, CueId, CueMap, Cue } from './cues';
 export type DeviceId = string;
 export type MakeShiftEvent = string;
@@ -39,10 +39,8 @@ declare const ipcMainCallHandler: {
  */
 declare const ipcMainGetHandler: {
     connectedDevices: () => Promise<MakeShiftPortFingerprint[]>;
-    deviceEvents: () => Promise<any>;
-    serialEvents: () => Promise<{
-        Log: import("@eos-makeshift/msg").MsgLvStringMap;
-    }>;
+    deviceEvents: () => Promise<MakeShiftDeviceEvents>;
+    serialEvents: () => Promise<MakeShiftSerialEvents>;
     hardwareDescriptors: () => Promise<{
         MakeShift: any;
         Sensors: any;
