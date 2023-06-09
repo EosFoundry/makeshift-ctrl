@@ -60,21 +60,21 @@ const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
 
 const selectedInputId = ref(0)
-const selectedInputEventMaps = computed(() => {
-  const eventMap = []
+const selectedInputEventList = computed(() => {
+  const relatedEvents = []
   for (const type of MakeshiftMap.sensors[selectedInputId.value].types) {
     console.log(type)
     for (const event of HardwareDescriptors.Sensors[type].events) {
       console.log(event)
-      eventMap.push({
+      relatedEvents.push({
         type: type,
         event: event
       })
     }
   }
 
-  console.log(eventMap)
-  return eventMap
+  console.log(relatedEvents)
+  return relatedEvents
 })
 
 function selectInput(input: any) {
@@ -129,7 +129,7 @@ function handleEventsPanelEvent(inputType: any, inputEvent: any) {
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="eventMap in selectedInputEventMaps" :class="[
+        <div v-for="eventMap in selectedInputEventList" :class="[
           (selectedInputEvent.type === eventMap.type
             && selectedInputEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
           @click="handleEventsPanelEvent(eventMap.type, eventMap.event)">
