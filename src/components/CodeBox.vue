@@ -33,7 +33,7 @@ const acePath = import.meta.env.BASE_URL + 'ace-builds/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
-const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
+const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 // console.log(acePath)
 
 ace.config.set("basePath", acePath)
@@ -324,47 +324,96 @@ watch(
 </script>
 
 <template>
-  <div class="name-entry hidden clone" ref="folderNameClone">
+  <div
+   class="name-entry hidden clone"
+   ref="folderNameClone"
+  >
     {{ cueFolder }}
   </div>
-  <div class="name-entry hidden clone" ref="cueNameClone">
+  <div
+   class="name-entry hidden clone"
+   ref="cueNameClone"
+  >
     {{ cueName }}
   </div>
-  <div class="pane-border codebox-border w-full h-full">
+  <div :class="['codebox-border',
+    'w-full', 'h-full',
+    'box-border',
+    'display-flex',
+    'flex-col',
+    'overflow-hidden',
+  ]">
     <div class="toolbar">
       <div class="toolbar-cluster left">
         <toolbar-spacer width="2px" />
-        <text-button :icon-url="newCueIcon" @click="createCue">
+        <text-button
+         :icon-url="newCueIcon"
+         @click="createCue"
+        >
           new cue
         </text-button>
         <toolbar-spacer width="8px" />
-        <text-button :icon-url="saveIcon" @click="saveCue">
+        <text-button
+         :icon-url="saveIcon"
+         @click="saveCue"
+        >
           save
         </text-button>
       </div>
       <div class="toolbar-cluster right">
-        <text-button :icon-url="testCueIcon" @click="testCue">
+        <text-button
+         :icon-url="testCueIcon"
+         @click="testCue"
+        >
           test
         </text-button>
         <toolbar-spacer width="8px" />
-        <text-button :icon-url="assignCueIcon" @click="assignCueToEvent">
+        <text-button
+         :icon-url="assignCueIcon"
+         @click="assignCueToEvent"
+        >
           assign to event
         </text-button>
       </div>
     </div>
     <div class="toolbar thin">
       <div class="toolbar-cluster left">
-        <div v-if="editCuePath === false" class="toolbar-cluster" style="transition-duration: 0.2s;">
-          <toolbar-spacer width="4px" title="Edit save path" />
-          <icon-button :icon-url="editPathIcon" clickable size="18px" color="var(--color-neutral)"
-            hoverColor="var(--color-text)" @click="editCuePath = true" />
+        <div
+         v-if="editCuePath === false"
+         class="toolbar-cluster"
+         style="transition-duration: 0.2s;"
+        >
+          <toolbar-spacer
+           width="4px"
+           title="Edit save path"
+          />
+          <icon-button
+           :icon-url="editPathIcon"
+           clickable
+           size="18px"
+           color="var(--color-neutral)"
+           hoverColor="var(--color-text)"
+           @click="editCuePath = true"
+          />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
-          <div class="toolbar-cluster" v-if="cueFolder !== '.' && cueFolder !== ''">
-            <div v-for="folder in cueFolderList" class="toolbar-cluster">
-              <div v-if="folder" class="toolbar-cluster">
-                <icon :icon-url="breadcrumbIcon" size="14px" />
+          <div
+           class="toolbar-cluster"
+           v-if="cueFolder !== '.' && cueFolder !== ''"
+          >
+            <div
+             v-for="folder in cueFolderList"
+             class="toolbar-cluster"
+            >
+              <div
+               v-if="folder"
+               class="toolbar-cluster"
+              >
+                <icon
+                 :icon-url="breadcrumbIcon"
+                 size="14px"
+                />
                 <toolbar-spacer width="3px" />
                 <div style="align-self: center;">
                   {{ folder }}
@@ -373,42 +422,80 @@ watch(
               </div>
             </div>
           </div>
-          <icon :icon-url="breadcrumbIcon" size="14px" />
+          <icon
+           :icon-url="breadcrumbIcon"
+           size="14px"
+          />
           <toolbar-spacer width="3px" />
-          <div class="toolbar-cluster" :style="{
-            fontStyle: hasSaveFile ? 'normal' : 'italic',
-            alignSelf: 'center',
-          }">
+          <div
+           class="toolbar-cluster"
+           :style="{
+             fontStyle: hasSaveFile ? 'normal' : 'italic',
+             alignSelf: 'center',
+           }"
+          >
             {{ cueName }}.cue.js
           </div>
 
           <toolbar-spacer width="10px" />
-          <div v-if="hasSaveFile && cueSaved === false" class="save-icon" />
+          <div
+           v-if="hasSaveFile && cueSaved === false"
+           class="save-icon"
+          />
         </div>
-        <div v-else class="toolbar-cluster" style="transition-duration: 0.2s;">
+        <div
+         v-else
+         class="toolbar-cluster"
+         style="transition-duration: 0.2s;"
+        >
           <toolbar-spacer width="3px" />
-          <icon-button :icon-url="savePathIcon" clickable size="19px" color="var(--color-neutral)"
-            hoverColor="var(--color-text)" @click="editCuePath = false" />
+          <icon-button
+           :icon-url="savePathIcon"
+           clickable
+           size="19px"
+           color="var(--color-neutral)"
+           hoverColor="var(--color-text)"
+           @click="editCuePath = false"
+          />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
-          <icon :icon-url="breadcrumbIcon" size="14px" />
+          <icon
+           :icon-url="breadcrumbIcon"
+           size="14px"
+          />
           <toolbar-spacer width="4px" />
           <label for="folder-name">
             Folder:
           </label>
-          <input id="folder-name" class="name-entry" v-model="cueFolder" type="text"/>
-          <icon :icon-url="breadcrumbIcon" size="14px" :style="{
-            margin: `0px 4px`,
-          }" />
+          <input
+           id="folder-name"
+           class="name-entry"
+           v-model="cueFolder"
+           type="text"
+          />
+          <icon
+           :icon-url="breadcrumbIcon"
+           size="14px"
+           :style="{
+             margin: `0px 4px`,
+           }"
+          />
           <toolbar-spacer width="8px" />
           <label for="cue-name">
             Cue Name:
           </label>
           <toolbar-spacer width="4px" />
-          <input id="cue-name" class="name-entry" v-model="cueName" type="text" 
-           />
-          <div class="toolbar-cluster" style="align-self: center;">
+          <input
+           id="cue-name"
+           class="name-entry"
+           v-model="cueName"
+           type="text"
+          />
+          <div
+           class="toolbar-cluster"
+           style="align-self: center;"
+          >
             .cue.js
           </div>
         </div>
@@ -417,10 +504,24 @@ watch(
       </div>
     </div>
 
-    <div id="codebox-inner-border" class="pane-rounded-inner w-full h-full" :style="{
-      borderColor: `rgb(${saveStateStyles.borderColor})`,
-    }">
-      <div id="codebox-editor" ref="codeboxEditorElement" />
+    <div
+     id="codebox-inner-border"
+     :class="[
+       'box-border',
+       'border-solid',
+       'border-2',
+       'rounded-lg',
+       'overflow-hidden',
+       'w-full', 'h-full'
+     ]"
+     :style="{
+       borderColor: `rgb(${saveStateStyles.borderColor})`,
+     }"
+    >
+      <div
+       id="codebox-editor"
+       ref="codeboxEditorElement"
+      />
     </div>
   </div>
 </template>

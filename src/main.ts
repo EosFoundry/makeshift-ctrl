@@ -31,7 +31,8 @@ const cueRoot: Folder = {
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
     cueDirectory: ref(cueRoot) as Ref<Folder>,
     logLevel: ref('info') as Ref<LogLevel>,
-    Events: await window.MakeShiftCtrl.get.deviceEvents(),
+    DeviceEvents: await window.MakeShiftCtrl.get.deviceEvents(),
+    SerialEvents: await window.MakeShiftCtrl.get.serialEvents(),
     EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
     selectedEvent: ref('sensor-0-dial-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
@@ -106,7 +107,8 @@ const cueRoot: Folder = {
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
     .provide('hardware-descriptors', state.hardwareDescriptors)
-    .provide('makeshift-events', state.Events)
+    .provide('makeshift-device-events', state.DeviceEvents)
+    .provide('makeshift-serial-events', state.SerialEvents)
     .provide('makeshift-events-flat', state.EventsList)
     .provide('selected-event', state.selectedEvent)
     .provide('device-maps', state.deviceMaps)

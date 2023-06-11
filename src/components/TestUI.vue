@@ -10,7 +10,7 @@ import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed } from 'vue';
 
 const DeviceMap = inject('device-maps') as any
-const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
+const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
 const MakeshiftMap = DeviceMap.value.makeshift
 

@@ -2,7 +2,7 @@
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, onMounted, ref } from 'vue';
 
-const events = inject('makeshift-events') as MakeShiftDeviceEvents
+const events = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const eventsList = inject('makeshift-events-flat') as string[]
 const selectedEvent = inject('selected-event') as string
 const t = [
@@ -19,9 +19,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="pane-border">
-    <div class="pane-rounded-inner device-panel">
-      <select name="event-selector" v-model="selectedEvent">
+  <div :class="['box-border', 'flex', 'flex-col', 'overflow-hidden']">
+    <div :class="[
+      'box-border',
+      'border-solid',
+      'border-2',
+      'rounded-lg',
+      'border-hl',
+      'overflow-hidden',
+      'device-panel']">
+      <select
+       name="event-selector"
+       v-model="selectedEvent"
+      >
         <option v-for="event in eventsList">
           {{ event }}
         </option>
