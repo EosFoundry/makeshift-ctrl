@@ -12,6 +12,7 @@ import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
+import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 import BlocklyBox from './components/BlocklyBox.vue'
 
@@ -23,15 +24,29 @@ type Size = {
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
+
 provide<Ref<string>>('current-session', editorContents)
+
 const topPanelHeightPercent = ref(69)
 const topPanelHeight = ref(-1)
 const bottomPanelHeight = ref(-1)
-function panelResizeHandler(event: any) {
+
+function panelVertResizeHandler(event: any) {
 	console.log(event)
 	topPanelHeight.value = event.topPanelHeight
 	bottomPanelHeight.value = event.bottomPanelHeight
 	// console.log(bottomPanelHeight.value)
+}
+
+
+const leftPanelWidth = ref(-1)
+const leftPanelWidthPercent = ref(80)
+const rightPanelWidth = ref(-1)
+
+function panelHorzResizeHandler(event: any) {
+	console.log(event)
+	leftPanelWidth.value = event.leftPanelWidth
+	rightPanelWidth.value = event.rightPanelWidth
 }
 
 const bodyHeight = computed(() => {
@@ -70,15 +85,45 @@ nextTick(() => {
 </script>
 
 <template>
-	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
+	<div
+	 id='font-size-monitor-div'
+	 ref="FontSizeMonitorDiv"
+	 :class="['absolute', 'invisible']"
+	>
 		font-size-monitor-text
 	</div>
-	<SplitPanelVert :height="clientSize.height - remToPx(2.5)" :topPanelHeightPercent="70" :margin="8"
-		@resizing="panelResizeHandler">
+	<SplitPanelVert
+	 :height="clientSize.height - remToPx(2.5)"
+	 :topPanelHeightPercent="70"
+	 :margin="8"
+	 @resizing="panelVertResizeHandler"
+	>
 		<template #top>
-			<!-- <test-interface /> -->
-			<!-- <BlocklyBox :panelHeight="topPanelHeight" /> -->
-			<CodeBox :panelHeight="topPanelHeight" />
+			<SplitPanelHorz
+			 :height="topPanelHeight"
+			 :width="clientSize.width - 16"
+			 :leftPanelWidthPercent="60"
+			 :margin="0"
+			 @resizing="panelHorzResizeHandler"
+			>
+				<template #left>
+					<CodeBox :panelHeight="topPanelHeight" />
+				</template>
+				<template #right>
+					<SplitPanelVert
+						:height="topPanelHeight"
+						:topPanelHeightPercent="25"
+						:margin="0"
+					>
+					<template #top>
+						<DevicePanel />
+					</template>
+					<template #bottom>
+						<CuePanel />
+					</template>
+					</SplitPanelVert>
+				</template>
+			</SplitPanelHorz>
 		</template>
 		<template #bottom>
 			<Terminal :panelHeight="bottomPanelHeight" />
@@ -364,5 +409,4 @@ select {
 		border-color: rgb(var(--color-blue));
 	}
 }
-
 </style>

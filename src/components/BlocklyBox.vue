@@ -2,8 +2,7 @@
 import { inject, ref, computed, onMounted, watch } from 'vue';
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import Blockly from 'blockly';
-import DarkTheme from '@blockly/theme-dark';
-import { block } from 'blockly/core/tooltip';
+const DarkTheme = require('@blockly/theme-dark');
 
 const props = defineProps<{
   panelHeight?: number
@@ -87,22 +86,25 @@ watch(
 </script>
 
 <template>
-  <div id="blockly-wrapper" 
-  :class="['w-full', 'h-full', 'overflow-clip', 
-    'rounded-lg',
-    'border-solid',
-    'border-2',
-    'box-border',
-    'border-hl'
-]">
-    <div id="blockly-div" :class="['absolute', 'overflow-clip']">
+  <div
+   id="blockly-wrapper"
+   :class="['w-full', 'h-full', 'overflow-clip',
+     'rounded-lg',
+     'border-solid',
+     'border-2',
+     'box-border',
+     'border-hl'
+   ]"
+  >
+    <div
+     id="blockly-div"
+     :class="['absolute', 'overflow-clip']"
+    >
 
     </div>
   </div>
 </template>
 
-<style>
-#blockly-wrapper {
+<style>#blockly-wrapper {
   /* background-color: ; */
-}
-</style>
+}</style>

@@ -44,15 +44,23 @@ ace.config.loadModule("ace/keybinding/emacs")
 ace.config.loadModule("ace/keybinding/sublime")
 ace.config.loadModule("ace/keybinding/vim")
 ace.config.loadModule("ace/keybinding/vscode")
+const availableKeyboardHandlers = [
+  'ace/keyboard/emacs',
+  'ace/keyboard/sublime',
+  'ace/keyboard/vim',
+  'ace/keyboard/vscode',
+]
+const keyboardHandler = ref('ace/keyboard/vscode')
 
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
 
 const props = defineProps<{
-  paneHeightPercent?: number
+  panelHeight?: number
+  panelWidth?: number
 }>()
-const paneHeight = ref(props.paneHeightPercent)
+const paneHeight = ref(props.panelHeight)
 
 
 let defaultCueNum = 0;
@@ -171,7 +179,7 @@ onMounted(() => nextTick(async () => {
   editor.setFontSize(15);
   editor.setOption('useSoftTabs', true)
   editor.setOption('tabSize', 2)
-  editor.setKeyboardHandler('ace/keyboard/vim');
+  editor.setKeyboardHandler(keyboardHandler.value);
   (editor as any).session.on('changeMode', (e: any, session: any) => {
     if ("ace/mode/javascript" === session.getMode().$id) {
       if (typeof session.$worker !== 'undefined') {
@@ -282,8 +290,20 @@ function checkAutoSave() {
 }
 
 function fitCodebox() {
-  editor.resize()
+  if (typeof editor !== 'undefined') {
+    editor.resize()
+  }
 }
+
+watch(
+  () => keyboardHandler.value,
+  (keyboardHandler) => {
+    console.log(keyboardHandler)
+    if (typeof editor !== 'undefined') {
+      editor.setKeyboardHandler(keyboardHandler)
+    }
+  }
+)
 
 watch(
   () => cueSaved.value,
@@ -301,7 +321,7 @@ watch(
 )
 
 watch(
-  () => props.paneHeightPercent,
+  () => props.panelHeight,
   (newHeight, oldHeight) => {
     fitCodebox()
   },
@@ -310,6 +330,15 @@ watch(
   }
 )
 
+watch(
+  () => props.panelWidth,
+  (newWidth, oldWidth) => {
+    fitCodebox()
+  },
+  {
+    flush: 'post',
+  }
+)
 // watch(
 //   () => cueFullPath.value,
 //   (fullPath) => {
@@ -359,6 +388,20 @@ watch(
         >
           save
         </text-button>
+        <toolbar-spacer width="8px" />
+        keybind:
+        <select
+         name="keyboard-mode-selector"
+         v-model="keyboardHandler"
+        >
+          <option
+           v-for="handlerName in availableKeyboardHandlers"
+           :value="handlerName"
+          >
+            {{ handlerName.replace('ace/keyboard/', '') }}
+          </option>
+
+        </select>
       </div>
       <div class="toolbar-cluster right">
         <text-button

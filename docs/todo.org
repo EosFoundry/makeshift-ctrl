@@ -1,5 +1,11 @@
 #+title: Todo
 
+* TODO General
+
+** TODO Giving cues a global variable store
+
+** TODO URGENT Safely store user secrets
+
 * TODO Auto Updater
 Plan to follow https://www.electronjs.org/docs/latest/tutorial/updates
 
@@ -24,6 +30,16 @@ Create an editor based on [[https://developers.google.com/blockly/guides/get-sta
 [[Plugins]]
 
 ** TODO UX flow
+
+* TODO Notifications
+
+** TODO Notification system
+Add a notification system to the app so cues can access it
+[[https://www.electronjs.org/docs/latest/tutorial/notifications][Notifications]]
+
+** BLOCKED Custom Icon Changes Through Cues
+Blocked by [[
+
 
 * TODO Plugins
 Finalise the plugin developer workflow
