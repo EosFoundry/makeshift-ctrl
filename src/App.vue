@@ -112,6 +112,7 @@ nextTick(() => {
 				<template #right>
 					<SplitPanelVert
 						:height="topPanelHeight"
+						:width="rightPanelWidth"
 						:topPanelHeightPercent="25"
 						:margin="0"
 					>

@@ -63,7 +63,7 @@ const dividerWidth = ref(initialDividerWidth)
 const leftPanelWidth = ref(initlalLeftPanelWidth)
 const leftPanelWidthPercent = ref(initialLeftPanelWidthPercent)
 const rightPanelWidth = computed(() => {
-  const rpw = state.value.height
+  const rpw = state.value.width
     - leftPanelWidth.value
     - dividerWidth.value
     - (state.value.margin * 2)
@@ -136,9 +136,9 @@ function onMouseMoveResize(ev: MouseEvent) {
 }
 
 window.addEventListener('resize', (ev) => {
-  leftPanelWidth.value = (state.value.width - dividerWidth.value - state.value.margin) * (leftPanelWidthPercent.value / 100)  
+  // leftPanelWidth.value = (state.value.width - dividerWidth.value - state.value.margin) * (leftPanelWidthPercent.value / 100)  
   
-  console.log(`${leftPanelWidth.value} | ${pxToRem(leftPanelWidth.value)} | ${state.value.width} | ${pxToRem(state.value.width)}`)
+  console.log(`resizeListener: ${leftPanelWidth.value} | ${pxToRem(leftPanelWidth.value)} | ${state.value.width} | ${pxToRem(state.value.width)}`)
 
   emitPanelEvent('resizing')
 })
@@ -188,7 +188,7 @@ function emitPanelEvent(ev: PanelEvents) {
      @mousedown="startResize"
      @mouseup="endResize"
     >
-      <div :class="['bg-text', 'rounded-full', 'h-14', 'w-full', 'm-auto']" />
+      <div :class="['bg-text', 'rounded-full', 'h-14', 'w-full', 'm-0']" />
     </div>
     <div
      :style="{
