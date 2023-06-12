@@ -372,7 +372,7 @@ watch(
     'flex-col',
     'overflow-hidden',
   ]">
-    <div class="toolbar">
+    <div class="toolbar flex-wrap gap-y-4">
       <div class="toolbar-cluster left">
         <toolbar-spacer width="2px" />
         <text-button
@@ -584,6 +584,7 @@ watch(
 #codebox-toolbar {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
 
   justify-content: space-between;

@@ -102,7 +102,7 @@ nextTick(() => {
 			<SplitPanelHorz
 			 :height="topPanelHeight"
 			 :width="clientSize.width - 16"
-			 :leftPanelWidthPercent="60"
+			 :leftPanelWidthPercent="70"
 			 :margin="0"
 			 @resizing="panelHorzResizeHandler"
 			>
