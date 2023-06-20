@@ -14,7 +14,7 @@ import * as Nut from '@nut-tree/nut-js'
 import { ctrlLogger } from './utils'
 import { dialog } from 'electron'
 import { plugins } from './plugins'
-import { DeviceId } from '.'
+// import { DeviceId } from '.'
 
 export type IModule = typeof Electron.CrossProcessExports
 
@@ -39,7 +39,7 @@ export interface CueModule extends IModule {
   setup: Function,
   run: (eventData?: any) => void,
   runTriggers: {
-    [key: DeviceId]: {
+    [key: string]: {
       events: string[]
     }
   },

@@ -9,15 +9,12 @@ export default {
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed } from 'vue';
 
-const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
-const MakeshiftMap = DeviceMap.value.makeshift
+const MakeshiftMap = HardwareDescriptors.MakeShift
 
-console.log('1')
-console.log(DeviceMap)
-console.log('2')
-console.log(MakeshiftMap)
+console.log('0')
+console.log(HardwareDescriptors)
 console.log('3')
 console.log(DeviceEvents)
 console.log('4')
@@ -110,19 +107,29 @@ function updateSelectedEventName(inputType: any, inputEvent: any) {
       <span :class=devicePanel>
         <div :class=colClass>
           <div :class=rowClass>
-            <div v-for="sensorId in [0, 1, 2, 3]"
-              :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]" :key="sensorId"
-              @click="selectInput(MakeshiftMap.sensors[sensorId])">
+            <div
+             v-for="sensorId in [0, 1, 2, 3]"
+             :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]"
+             :key="sensorId"
+             @click="selectInput(MakeshiftMap.sensors[sensorId])"
+            >
 
               {{ sensorId }}
 
             </div>
           </div>
 
-          <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
-            <div v-for="col in [1, 2, 3, 4]"
-              :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]" :key="row + col"
-              @click="selectInput(MakeshiftMap.sensors[row + col])">
+          <div
+           v-for="row in [3, 7, 11]"
+           :class=rowClass
+           :key="row"
+          >
+            <div
+             v-for="col in [1, 2, 3, 4]"
+             :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]"
+             :key="row + col"
+             @click="selectInput(MakeshiftMap.sensors[row + col])"
+            >
 
               {{ row + col }}
             </div>
@@ -131,11 +138,14 @@ function updateSelectedEventName(inputType: any, inputEvent: any) {
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="eventMap in eventListFromSelectedInputId" :class="[
-          (selectedDeviceEvent.type === eventMap.type
-            && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
-          @click="updateSelectedEventName(eventMap.type, eventMap.event)">
-
+        <div
+         v-for="eventMap in eventListFromSelectedInputId"
+         :class="[
+           (selectedDeviceEvent.type === eventMap.type
+             && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]"
+         :key="eventMap.event"
+         @click="updateSelectedEventName(eventMap.type, eventMap.event)"
+        >
           {{ eventMap }}
         </div>
       </div>
@@ -163,5 +173,4 @@ function updateSelectedEventName(inputType: any, inputEvent: any) {
   background-color: rgb(var(--color-secondary));
   border-color: rgb(var(--color-primary));
   color: rgb(var(--color-hl));
-}
-</style>
+}</style>

@@ -130,14 +130,20 @@ function onMouseMoveResize(ev: MouseEvent) {
   const delta = ev.clientX - resizeLastPos.value
   resizeLastPos.value = ev.clientX
   console.log(`${ev.clientX} | ${pxToRem(ev.clientX)} | ${delta} | ${pxToRem(delta)}`)
-  leftPanelWidth.value += delta
-  leftPanelWidthPercent.value = (leftPanelWidth.value / (state.value.height - dividerWidth.value)) * 100
+  if (leftPanelWidth.value + delta >= 0
+    && rightPanelWidth.value - delta >= 0
+  ) {
+    leftPanelWidth.value += delta
+    leftPanelWidthPercent.value = (leftPanelWidth.value / (state.value.height - dividerWidth.value)) * 100
+  }
   emitPanelEvent('resizing')
 }
 
+window.addEventListener('mouseup', endResize)
+
 window.addEventListener('resize', (ev) => {
   // leftPanelWidth.value = (state.value.width - dividerWidth.value - state.value.margin) * (leftPanelWidthPercent.value / 100)  
-  
+
   console.log(`resizeListener: ${leftPanelWidth.value} | ${pxToRem(leftPanelWidth.value)} | ${state.value.width} | ${pxToRem(state.value.width)}`)
 
   emitPanelEvent('resizing')

@@ -92,6 +92,7 @@ nextTick(() => {
 	>
 		font-size-monitor-text
 	</div>
+	<TestInterface />
 	<SplitPanelVert
 	 :height="clientSize.height - remToPx(2.5)"
 	 :topPanelHeightPercent="70"
@@ -111,17 +112,17 @@ nextTick(() => {
 				</template>
 				<template #right>
 					<SplitPanelVert
-						:height="topPanelHeight"
-						:width="rightPanelWidth"
-						:topPanelHeightPercent="25"
-						:margin="0"
+					 :height="topPanelHeight"
+					 :width="rightPanelWidth"
+					 :topPanelHeightPercent="25"
+					 :margin="0"
 					>
-					<template #top>
-						<DevicePanel />
-					</template>
-					<template #bottom>
-						<CuePanel />
-					</template>
+						<template #top>
+							<DevicePanel />
+						</template>
+						<template #bottom>
+							<CuePanel />
+						</template>
 					</SplitPanelVert>
 				</template>
 			</SplitPanelHorz>

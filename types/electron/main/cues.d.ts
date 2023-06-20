@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import * as chokidar from 'chokidar';
-import { DeviceId } from '.';
 export type IModule = typeof Electron.CrossProcessExports;
 export interface Cue {
     id: CueId;
@@ -20,7 +19,7 @@ export interface CueModule extends IModule {
     setup: Function;
     run: (eventData?: any) => void;
     runTriggers: {
-        [key: DeviceId]: {
+        [key: string]: {
             events: string[];
         };
     };

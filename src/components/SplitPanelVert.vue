@@ -127,19 +127,23 @@ function endResize(ev: MouseEvent) {
 }
 
 function onMouseMoveResize(ev: MouseEvent) {
-  const delta = ev.clientY - resizeLastPos.value
+  let delta = ev.clientY - resizeLastPos.value
   resizeLastPos.value = ev.clientY
   console.log(`${ev.clientY} | ${pxToRem(ev.clientY)} | ${delta} | ${pxToRem(delta)}`)
-  topPanelHeight.value += delta
-  topPanelHeightPercent.value = (topPanelHeight.value / (state.value.height - dividerHeight.value)) * 100
+  if (topPanelHeight.value + delta >= 0
+    && bottomPaneHeight.value - delta >= 0
+  ) {
+    topPanelHeight.value += delta
+    topPanelHeightPercent.value = (topPanelHeight.value / (state.value.height - dividerHeight.value)) * 100
+  }
   emitPanelEvent('resizing')
 }
 
 window.addEventListener('mouseup', endResize)
 
 window.addEventListener('resize', (ev) => {
-  topPanelHeight.value = (state.value.height - dividerHeight.value - state.value.margin) * (topPanelHeightPercent.value / 100)  
-  
+  topPanelHeight.value = (state.value.height - dividerHeight.value - state.value.margin) * (topPanelHeightPercent.value / 100)
+
   console.log(`${topPanelHeight.value} | ${pxToRem(topPanelHeight.value)} | ${state.value.height} | ${pxToRem(state.value.height)}`)
 
   emitPanelEvent('resizing')
