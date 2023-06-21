@@ -8,11 +8,17 @@ export default {
 <script setup lang="ts">
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed } from 'vue';
+import Icon from './Icon.vue'
+import pressedIcon from '../assets/icon/bootstrap/box-arrow-down.svg?url'
+import releasedIcon from '../assets/icon/bootstrap/box-arrow-up.svg?url'
+import incrementIcon from '../assets/icon/bootstrap/arrow-clockwise.svg?url'
+import decrementIcon from '../assets/icon/bootstrap/arrow-counterclockwise.svg?url'
 
 const DeviceMap = inject('device-maps') as any
 const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
 const MakeshiftMap = DeviceMap.value.makeshift
+let SelectedEvent = inject('selected-event') as string
 
 console.log('1')
 console.log(DeviceMap)
@@ -22,6 +28,8 @@ console.log('3')
 console.log(DeviceEvents)
 console.log('4')
 console.log(HardwareDescriptors)
+console.log('5')
+console.log(SelectedEvent)
 
 const devicePanel = ref(`
   flex flex-row flex-wrap
@@ -59,6 +67,8 @@ const unselected = ref('mt-1 mb-3 shadow-md')
 const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
 
+const eventIcon = ref(`m-2`)
+
 const selectedInputId = ref(0)
 const eventListFromSelectedInputId = computed(() => {
   const eventMap = []
@@ -82,6 +92,7 @@ function selectInput(input: any) {
   console.log(input)
 }
 
+
 const selectedDeviceEvent = ref(
   {
     type: '',
@@ -100,7 +111,14 @@ const selectedDeviceEventName = ref()
 function updateSelectedEventName(inputType: any, inputEvent: any) {
   selectedDeviceEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
   console.log(selectedDeviceEventName.value)
+  SelectedEvent = selectedDeviceEventName.value
+  console.log(SelectedEvent)
 }
+
+/*function eventIcon(inputEvent: any) {
+  console.log(inputEvent + "Icon")
+  return inputEvent + "Icon"
+}*/
 
 </script>
 
@@ -135,8 +153,18 @@ function updateSelectedEventName(inputType: any, inputEvent: any) {
           (selectedDeviceEvent.type === eventMap.type
             && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
           @click="updateSelectedEventName(eventMap.type, eventMap.event)">
-
-          {{ eventMap }}
+          <div v-if="eventMap.event === 'increment'" :class="eventIcon">
+            <icon :icon-url="incrementIcon" size="25px" />
+          </div>
+          <div v-else-if="eventMap.event === 'decrement'" :class="eventIcon">
+            <icon :icon-url="decrementIcon" size="25px" />
+          </div>
+          <div v-else-if="eventMap.event === 'pressed'" :class="eventIcon">
+            <icon :icon-url="pressedIcon" size="25px" />
+          </div>
+          <div v-else-if="eventMap.event === 'released'" :class="eventIcon">
+            <icon :icon-url="releasedIcon" size="25px" />
+          </div>
         </div>
       </div>
     </div>
