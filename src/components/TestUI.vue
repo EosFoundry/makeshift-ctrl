@@ -21,11 +21,11 @@ const MakeshiftMap = HardwareDescriptors.MakeShift
 
 console.log('0')
 console.log(HardwareDescriptors)
-console.log('3')
+console.log('1')
 console.log(DeviceEvents)
-console.log('4')
+console.log('2')
 console.log(HardwareDescriptors)
-console.log('5')
+console.log('3')
 console.log(SelectedEvent)
 
 const devicePanel = ref(`
@@ -35,31 +35,35 @@ const devicePanel = ref(`
   rounded-lg 
   shadow-md
   border-solid border-4 
-  device-panel
-  `)
+  bg-bg
+  border-hl
+`)
 
-const buttonSelector = ref(`
+const inputSelector = ref(`
   w-12 h-12 
   mx-2 
   hover:mt-3 hover:mb-1
-  rounded-lg 
   hover:shadow-hover
   border-solid border-4 
-  device-layout-button 
-  `)
+`)
 
-const dialSelector = ref(` 
-  w-12 h-12
-  mx-2 
-  hover:mt-3 hover:mb-1
-  rounded-full
-  hover:shadow-hover
-  border-solid border-4 
-  device-layout-button
-  `)
+const selected = ref(`
+  color-hl
+  bg-secondary1
+  border-secondary
+  shadow-selected
+  mt-2
+  mb-2
+`)
 
-const selected = ref('active-input shadow-selected mt-2 mb-2')
-const unselected = ref('mt-1 mb-3 shadow-md')
+const unselected = ref(`
+  color-hl
+  bg-primary
+  border-primary2
+  mt-1
+  mb-3
+  shadow-md
+`)
 
 const rowClass = ref(`flex flex-row flex-wrap`)
 const colClass = ref(`flex flex-col`)
@@ -111,7 +115,7 @@ function updateSelectedEventName(inputType: any, inputEvent: any) {
   console.log(SelectedEvent)
 }
 
-const eventIcons:any={
+const eventIcons: any = {
   increment: incrementIcon,
   decrement: decrementIcon,
   pressed: pressedIcon,
@@ -128,7 +132,11 @@ const eventIcons:any={
           <div :class=rowClass>
             <div
              v-for="sensorId in [0, 1, 2, 3]"
-             :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]"
+             :class="[
+               inputSelector,
+               'rounded-full',
+               (sensorId === selectedInputId ? selected : unselected)
+             ]"
              :key="sensorId"
              @click="selectInput(MakeshiftMap.sensors[sensorId])"
             >
@@ -145,7 +153,11 @@ const eventIcons:any={
           >
             <div
              v-for="col in [1, 2, 3, 4]"
-             :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]"
+             :class="[
+               inputSelector,
+               'rounded-lg',
+               (row + col === selectedInputId ? selected : unselected)
+             ]"
              :key="row + col"
              @click="selectInput(MakeshiftMap.sensors[row + col])"
             >
@@ -157,14 +169,23 @@ const eventIcons:any={
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="eventMap in eventListFromSelectedInputId" 
-        :class="[
-          (selectedDeviceEvent.type === eventMap.type && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" 
-            :key="eventMap.event"
-          @click="updateSelectedEventName(eventMap.type, eventMap.event)">
-          
+        <div
+         v-for="eventMap in eventListFromSelectedInputId"
+         :class="[
+           inputSelector,
+           'rounded-lg',
+           (selectedDeviceEvent.type === eventMap.type && selectedDeviceEvent.event === eventMap.event ? selected : unselected),
+         ]"
+         :key="eventMap.event"
+         @click="updateSelectedEventName(eventMap.type, eventMap.event)"
+        >
+
           <div class="m-2">
-            <icon :icon-url=eventIcons[eventMap.event] size="25px" color="var(--color-hl)"/>
+            <icon
+             :icon-url=eventIcons[eventMap.event]
+             size="25px"
+             color="var(--color-hl)"
+            />
           </div>
 
         </div>
@@ -173,24 +194,4 @@ const eventIcons:any={
   </div>
 </template>
 
-<style>
-.device-panel {
-  background-color: rgb(var(--color-bg));
-  border-color: rgb(var(--color-primary2));
-}
-
-.device-layout-button {
-  background-color: rgb(var(--color-primary));
-  border-color: rgb(var(--color-primary2));
-  color: rgb(var(--color-hl));
-}
-
-.events-panel {
-  /* background-color: green; */
-}
-
-.active-input {
-  background-color: rgb(var(--color-secondary));
-  border-color: rgb(var(--color-primary));
-  color: rgb(var(--color-hl));
-}</style>
+<style></style>

@@ -24,6 +24,7 @@ type Size = {
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
+const colorTheme = inject('color-theme') as Ref<string>
 
 provide<Ref<string>>('current-session', editorContents)
 
@@ -84,54 +85,64 @@ nextTick(() => {
 
 </script>
 
-<template>
-	<div
-	 id='font-size-monitor-div'
-	 ref="FontSizeMonitorDiv"
-	 :class="['absolute', 'invisible']"
-	>
-		font-size-monitor-text
+<template >
+	<div :class="[colorTheme, 'bg-bg', 'color-text']">
+		<div
+		 id='font-size-monitor-div'
+		 ref="FontSizeMonitorDiv"
+		 :class="['absolute', 'invisible']"
+		>
+			font-size-monitor-text
+		</div>
+		<select
+		 name="color-theme-selector"
+		 v-model="colorTheme"
+		>
+			<option value="light-theme">Light</option>
+			<option value="dark-theme">Dark</option>
+
+		</select>
+		<TestInterface />
+		<SplitPanelVert
+		 :height="clientSize.height - remToPx(2.5)"
+		 :topPanelHeightPercent="70"
+		 :margin="8"
+		 @resizing="panelVertResizeHandler"
+		>
+			<template #top>
+				<SplitPanelHorz
+				 :height="topPanelHeight"
+				 :width="clientSize.width - 16"
+				 :leftPanelWidthPercent="70"
+				 :margin="0"
+				 @resizing="panelHorzResizeHandler"
+				>
+					<template #left>
+						<CodeBox :panelHeight="topPanelHeight" />
+					</template>
+					<template #right>
+						<SplitPanelVert
+						 :height="topPanelHeight"
+						 :width="rightPanelWidth"
+						 :topPanelHeightPercent="25"
+						 :margin="0"
+						>
+							<template #top>
+								<DevicePanel />
+							</template>
+							<template #bottom>
+								<CuePanel />
+							</template>
+						</SplitPanelVert>
+					</template>
+				</SplitPanelHorz>
+			</template>
+			<template #bottom>
+				<Terminal :panelHeight="bottomPanelHeight" />
+			</template>
+		</SplitPanelVert>
+		<BottomBar />
 	</div>
-	<TestInterface />
-	<SplitPanelVert
-	 :height="clientSize.height - remToPx(2.5)"
-	 :topPanelHeightPercent="70"
-	 :margin="8"
-	 @resizing="panelVertResizeHandler"
-	>
-		<template #top>
-			<SplitPanelHorz
-			 :height="topPanelHeight"
-			 :width="clientSize.width - 16"
-			 :leftPanelWidthPercent="70"
-			 :margin="0"
-			 @resizing="panelHorzResizeHandler"
-			>
-				<template #left>
-					<CodeBox :panelHeight="topPanelHeight" />
-				</template>
-				<template #right>
-					<SplitPanelVert
-					 :height="topPanelHeight"
-					 :width="rightPanelWidth"
-					 :topPanelHeightPercent="25"
-					 :margin="0"
-					>
-						<template #top>
-							<DevicePanel />
-						</template>
-						<template #bottom>
-							<CuePanel />
-						</template>
-					</SplitPanelVert>
-				</template>
-			</SplitPanelHorz>
-		</template>
-		<template #bottom>
-			<Terminal :panelHeight="bottomPanelHeight" />
-		</template>
-	</SplitPanelVert>
-	<BottomBar />
 </template>
 
 <style lang="scss">
@@ -140,11 +151,12 @@ nextTick(() => {
 
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	font-weight: 400;
 
 	// font-size: 12pt;
 	text-align: center;
-	background-color: rgb(var(--color-bg));
-	color: rgb(var(--color-text));
+	// background-color: rgb(var(--color-bg));
+	// color: rgb(var(--color-text));
 	display: flex;
 	flex-direction: column;
 	user-select: none;
@@ -152,6 +164,7 @@ nextTick(() => {
 
 	// transition-duration: 0.2s;
 	height: 100%;
+
 }
 
 html {
@@ -287,6 +300,68 @@ select {
 /**
  * Colors
  */
+
+.color {
+	&-bg {
+		color: rgb(var(--color-bg));
+	}
+
+	&-dark {
+		color: rgb(var(--color-dark));
+	}
+
+	&-neutral {
+		color: rgb(var(--color-neutral));
+	}
+
+	&-text {
+		color: rgb(var(--color-text));
+	}
+
+	&-hl {
+		color: rgb(var(--color-hl));
+	}
+
+	&-hl1 {
+		color: rgb(var(--color-hl1));
+	}
+
+	&-primary {
+		color: rgb(var(--color-primary));
+	}
+
+	&-primary1 {
+		color: rgb(var(--color-primary1));
+	}
+
+	&-primary2 {
+		color: rgb(var(--color-primary2));
+	}
+
+	&-secondary {
+		color: rgb(var(--color-secondary));
+	}
+
+	&-secondary1 {
+		color: rgb(var(--color-secondary1));
+	}
+
+	&-secondary2 {
+		color: rgb(var(--color-secondary2));
+	}
+
+	&-red {
+		color: rgb(var(--color-red));
+	}
+
+	&-green {
+		color: rgb(var(--color-green));
+	}
+
+	&-blue {
+		color: rgb(var(--color-blue));
+	}
+}
 
 .bg {
 	&-bg {

@@ -78,7 +78,7 @@ function sendLoadEvent(cue: Cue) {
   padding-left: 1em;
   font-size: 10pt;
   background-color: rgb(var(--color-bg));
-  color: rgb(var(--color-hl1));
+  // color: rgb(var(--color-hl1));
 }
 
 .list-entry {

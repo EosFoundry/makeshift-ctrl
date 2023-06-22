@@ -23,14 +23,16 @@ const cueRoot: Folder = {
 // state before starting app
 (async () => {
   const MakeShiftApi = window.MakeShiftCtrl
-  const Constants = {
 
+  const Constants = {
     HardwareDescriptors: await window.MakeShiftCtrl.get.hardwareDescriptors(),
     DeviceEvents: await window.MakeShiftCtrl.get.deviceEvents(),
     SerialEvents: await window.MakeShiftCtrl.get.serialEvents(),
     EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
   }
+
   const state = {
+    colorTheme: ref(`light-theme`) as Ref<string>,
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
@@ -107,14 +109,15 @@ const cueRoot: Folder = {
     .provide('makeshift-device-events', Constants.DeviceEvents)
     .provide('makeshift-serial-events', Constants.SerialEvents)
     .provide('makeshift-events-flat', Constants.EventsList)
+    .provide('color-theme', state.colorTheme)
+    .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('client-size', state.clientSize)
+    .provide('cues', state.cues)
+    .provide('cue-directory', state.cueDirectory)
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
     .provide('selected-event', state.selectedEvent)
-    .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('current-device', state.currentDevice)
-    .provide('cues', state.cues)
-    .provide('cue-directory', state.cueDirectory)
     .provide('nanoid', nanoid)
     .mount('#app')
     .$nextTick(() => {
