@@ -157,13 +157,16 @@ const eventIcons:any={
       </span>
 
       <div :class="colClass + ` events-panel`">
-        <div v-for="eventMap in eventListFromSelectedInputId" :class="[
-          (selectedDeviceEvent.type === eventMap.type
-            && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" :key="eventMap.event"
+        <div v-for="eventMap in eventListFromSelectedInputId" 
+        :class="[
+          (selectedDeviceEvent.type === eventMap.type && selectedDeviceEvent.event === eventMap.event ? selected : unselected), buttonSelector]" 
+            :key="eventMap.event"
           @click="updateSelectedEventName(eventMap.type, eventMap.event)">
+          
           <div class="m-2">
             <icon :icon-url=eventIcons[eventMap.event] size="25px" color="var(--color-hl)"/>
           </div>
+
         </div>
       </div>
     </div>
