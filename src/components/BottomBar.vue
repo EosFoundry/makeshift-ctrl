@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { inject, onMounted, Ref } from 'vue';
-import { MakeShiftDeviceEvents, MakeShiftPortFingerprint } from '@eos-makeshift/serial'
+import { MakeShiftDeviceEvents, MakeShiftPortFingerprint, MakeShiftSerialEvents } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg';
 import { rndrCtrlAPI } from '../renderer';
 
-const Events = inject('makeshift-events') as MakeShiftDeviceEvents
+const Events = inject('makeshift-serial-events') as MakeShiftSerialEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
 const makeshift = inject('makeshift') as rndrCtrlAPI
 const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftPortFingerprint[]>
@@ -13,7 +13,7 @@ const selectedEvent = inject('selected-event') as Ref<string>
 
 // console.log(logLevel.value);
 
-const LogLevels = Object.keys(Events.Terminal.Log)
+const LogLevels = Object.keys(Events.Log)
 
 function needful() {
   makeshift.test()

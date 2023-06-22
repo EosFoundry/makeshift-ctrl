@@ -418,7 +418,7 @@ async function createMainWindow() {
   let windowPos = {
     x: 50,
     y: 50,
-    width: 700,
+    width: 1000,
     height: 800,
   } as any
 

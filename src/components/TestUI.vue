@@ -14,16 +14,13 @@ import releasedIcon from '../assets/icon/bootstrap/layer-forward.svg?url'
 import incrementIcon from '../assets/icon/bootstrap/arrow-clockwise.svg?url'
 import decrementIcon from '../assets/icon/bootstrap/arrow-counterclockwise.svg?url'
 
-const DeviceMap = inject('device-maps') as any
-const DeviceEvents = inject('makeshift-events') as MakeShiftDeviceEvents
+const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
-const MakeshiftMap = DeviceMap.value.makeshift
 let SelectedEvent = inject('selected-event') as string
+const MakeshiftMap = HardwareDescriptors.MakeShift
 
-console.log('1')
-console.log(DeviceMap)
-console.log('2')
-console.log(MakeshiftMap)
+console.log('0')
+console.log(HardwareDescriptors)
 console.log('3')
 console.log(DeviceEvents)
 console.log('4')
@@ -129,19 +126,29 @@ const eventIcons:any={
       <span :class=devicePanel>
         <div :class=colClass>
           <div :class=rowClass>
-            <div v-for="sensorId in [0, 1, 2, 3]"
-              :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]" :key="sensorId"
-              @click="selectInput(MakeshiftMap.sensors[sensorId])">
+            <div
+             v-for="sensorId in [0, 1, 2, 3]"
+             :class="[(sensorId === selectedInputId ? selected : unselected), dialSelector]"
+             :key="sensorId"
+             @click="selectInput(MakeshiftMap.sensors[sensorId])"
+            >
 
               {{ sensorId }}
 
             </div>
           </div>
 
-          <div v-for="row in [3, 7, 11]" :class=rowClass :key="row">
-            <div v-for="col in [1, 2, 3, 4]"
-              :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]" :key="row + col"
-              @click="selectInput(MakeshiftMap.sensors[row + col])">
+          <div
+           v-for="row in [3, 7, 11]"
+           :class=rowClass
+           :key="row"
+          >
+            <div
+             v-for="col in [1, 2, 3, 4]"
+             :class="[(row + col === selectedInputId ? selected : unselected), buttonSelector]"
+             :key="row + col"
+             @click="selectInput(MakeshiftMap.sensors[row + col])"
+            >
 
               {{ row + col }}
             </div>
@@ -183,5 +190,4 @@ const eventIcons:any={
   background-color: rgb(var(--color-secondary));
   border-color: rgb(var(--color-primary));
   color: rgb(var(--color-hl));
-}
-</style>
+}</style>

@@ -12,7 +12,9 @@ import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TestInterface from './components/TestUI.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
+import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
+import BlocklyBox from './components/BlocklyBox.vue'
 
 type Size = {
 	width: number
@@ -22,13 +24,29 @@ type Size = {
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
+
 provide<Ref<string>>('current-session', editorContents)
+
 const topPanelHeightPercent = ref(69)
+const topPanelHeight = ref(-1)
 const bottomPanelHeight = ref(-1)
-function panelResizeHandler(event: any) {
-	// console.log(event)
+
+function panelVertResizeHandler(event: any) {
+	console.log(event)
+	topPanelHeight.value = event.topPanelHeight
 	bottomPanelHeight.value = event.bottomPanelHeight
 	// console.log(bottomPanelHeight.value)
+}
+
+
+const leftPanelWidth = ref(-1)
+const leftPanelWidthPercent = ref(80)
+const rightPanelWidth = ref(-1)
+
+function panelHorzResizeHandler(event: any) {
+	console.log(event)
+	leftPanelWidth.value = event.leftPanelWidth
+	rightPanelWidth.value = event.rightPanelWidth
 }
 
 const bodyHeight = computed(() => {
@@ -67,23 +85,53 @@ nextTick(() => {
 </script>
 
 <template>
-	<div id='font-size-monitor-div' ref="FontSizeMonitorDiv" :class="['absolute', 'invisible']">
+	<div
+	 id='font-size-monitor-div'
+	 ref="FontSizeMonitorDiv"
+	 :class="['absolute', 'invisible']"
+	>
 		font-size-monitor-text
 	</div>
-	<test-interface />
-	<!-- <SplitPanelVert 
-	:height="clientSize.height - remToPx(2.5)" 
-	:topPanelHeightPercent="70"
-	:margin="8"
-	@resizing="panelResizeHandler">
+	<TestInterface />
+	<SplitPanelVert
+	 :height="clientSize.height - remToPx(2.5)"
+	 :topPanelHeightPercent="70"
+	 :margin="8"
+	 @resizing="panelVertResizeHandler"
+	>
 		<template #top>
-			<CodeBox />
+			<SplitPanelHorz
+			 :height="topPanelHeight"
+			 :width="clientSize.width - 16"
+			 :leftPanelWidthPercent="70"
+			 :margin="0"
+			 @resizing="panelHorzResizeHandler"
+			>
+				<template #left>
+					<CodeBox :panelHeight="topPanelHeight" />
+				</template>
+				<template #right>
+					<SplitPanelVert
+					 :height="topPanelHeight"
+					 :width="rightPanelWidth"
+					 :topPanelHeightPercent="25"
+					 :margin="0"
+					>
+						<template #top>
+							<DevicePanel />
+						</template>
+						<template #bottom>
+							<CuePanel />
+						</template>
+					</SplitPanelVert>
+				</template>
+			</SplitPanelHorz>
 		</template>
 		<template #bottom>
 			<Terminal :panelHeight="bottomPanelHeight" />
 		</template>
 	</SplitPanelVert>
-	<BottomBar /> -->
+	<BottomBar />
 </template>
 
 <style lang="scss">
@@ -203,42 +251,6 @@ select {
 	// height: 100%;
 }
 
-.pane-rounded-inner {
-	box-sizing: border-box;
-	border: solid;
-	border-color: rgb(var(--color-hl));
-	border-width: 2px;
-	border-radius: 8px;
-	// width: 100%;
-	// height: 100%;
-	// margin: auto;
-	overflow: hidden;
-	// overflow: scroll;
-}
-
-
-.splitpanes {
-	background-color: rgb(var(--color-bg));
-
-	// &__pane {}
-
-	&--vertical>&__splitter {
-		background-color: rgb(var(--color-neutral));
-		min-width: 4px;
-		border-radius: 2px;
-		height: 70px;
-		margin: auto;
-	}
-
-	&--horizontal>&__splitter {
-		background-color: rgb(var(--color-neutral));
-		min-height: 4px;
-		border-radius: 2px;
-		margin: auto;
-		width: 70px;
-	}
-}
-
 .hidden {
 	position: absolute;
 	left: -200px;
@@ -270,5 +282,133 @@ select {
 	align-items: center;
 	justify-content: center;
 	width: auto;
+}
+
+/**
+ * Colors
+ */
+
+.bg {
+	&-bg {
+		background-color: rgb(var(--color-bg));
+	}
+
+	&-dark {
+		background-color: rgb(var(--color-dark));
+	}
+
+	&-neutral {
+		background-color: rgb(var(--color-neutral));
+	}
+
+	&-text {
+		background-color: rgb(var(--color-text));
+	}
+
+	&-hl {
+		background-color: rgb(var(--color-hl));
+	}
+
+	&-hl1 {
+		background-color: rgb(var(--color-hl1));
+	}
+
+	&-primary {
+		background-color: rgb(var(--color-primary));
+	}
+
+	&-primary1 {
+		background-color: rgb(var(--color-primary1));
+	}
+
+	&-primary2 {
+		background-color: rgb(var(--color-primary2));
+	}
+
+	&-secondary {
+		background-color: rgb(var(--color-secondary));
+	}
+
+	&-secondary1 {
+		background-color: rgb(var(--color-secondary1));
+	}
+
+	&-secondary2 {
+		background-color: rgb(var(--color-secondary2));
+	}
+
+	&-red {
+		background-color: rgb(var(--color-red));
+	}
+
+	&-green {
+		background-color: rgb(var(--color-green));
+	}
+
+	&-blue {
+		background-color: rgb(var(--color-blue));
+	}
+}
+
+.border {
+	&-bg {
+		border-color: rgb(var(--color-bg));
+	}
+
+	&-dark {
+		border-color: rgb(var(--color-dark));
+	}
+
+	&-neutral {
+		border-color: rgb(var(--color-neutral));
+	}
+
+	&-text {
+		border-color: rgb(var(--color-text));
+	}
+
+	&-hl {
+		border-color: rgb(var(--color-hl));
+	}
+
+	&-hl1 {
+		border-color: rgb(var(--color-hl1));
+	}
+
+	&-primary {
+		border-color: rgb(var(--color-primary));
+	}
+
+	&-primary1 {
+		border-color: rgb(var(--color-primary1));
+	}
+
+	&-primary2 {
+		border-color: rgb(var(--color-primary2));
+	}
+
+	&-secondary {
+		border-color: rgb(var(--color-secondary));
+	}
+
+	&-secondary1 {
+		border-color: rgb(var(--color-secondary1));
+	}
+
+	&-secondary2 {
+		border-color: rgb(var(--color-secondary2));
+	}
+
+	&-red {
+		border-color: rgb(var(--color-red));
+	}
+
+	&-green {
+		border-color: rgb(var(--color-green));
+	}
+
+	&-blue {
+		border-color: rgb(var(--color-blue));
+	}
 }
 </style>

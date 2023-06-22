@@ -1,6 +1,6 @@
 import { createApp, Ref, ref, watch } from 'vue'
 import { customAlphabet } from 'nanoid'
-import { MakeShiftPortFingerprint} from '@eos-makeshift/serial'
+import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
 import { Cue, CueMap } from '../types/electron/main/cues'
 import App from './App.vue'
@@ -22,30 +22,27 @@ const cueRoot: Folder = {
 // Wrap initial state loading in IIFE to ensure async calls return with
 // state before starting app
 (async () => {
+  const MakeShiftApi = window.MakeShiftCtrl
+  const Constants = {
+
+    HardwareDescriptors: await window.MakeShiftCtrl.get.hardwareDescriptors(),
+    DeviceEvents: await window.MakeShiftCtrl.get.deviceEvents(),
+    SerialEvents: await window.MakeShiftCtrl.get.serialEvents(),
+    EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
+  }
   const state = {
-    makeShiftApi: window.MakeShiftCtrl,
-    deviceMaps: ref({}) as any,
-    hardwareDescriptors: await window.MakeShiftCtrl.get.hardwareDescriptors(),
     connectedDevices: ref([]) as Ref<MakeShiftPortFingerprint[]>,
     currentDevice: ref(dcDevice) as Ref<MakeShiftPortFingerprint>,
     cues: ref(await window.MakeShiftCtrl.get.allCues()) as Ref<CueMap>,
     cueDirectory: ref(cueRoot) as Ref<Folder>,
     logLevel: ref('info') as Ref<LogLevel>,
-    Events: await window.MakeShiftCtrl.get.deviceEvents(),
-    EventsList: await window.MakeShiftCtrl.get.eventsAsList(),
     selectedEvent: ref('sensor-0-dial-increment'),
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
   }
 
-  const makeshiftMapUrl = new URL('../hardware-descriptors/makeshift.json', import.meta.url).href
+  console.log(Constants.HardwareDescriptors)
 
-  const makeshiftMapResp = await fetch(makeshiftMapUrl)
-  state.deviceMaps.value.makeshift = await makeshiftMapResp.json()
-  console.log(makeshiftMapUrl)
-  console.log(makeshiftMapResp)
-  console.log(state.deviceMaps.value)
-  
   const initialDevices = await window.MakeShiftCtrl.get.connectedDevices()
   // Set up event hooks for device connections
   state.connectedDevices.value = initialDevices
@@ -98,18 +95,22 @@ const cueRoot: Folder = {
 
   // console.log(state.cues.value)
   // console.log(await state.makeShift.test())
-  return state
-})().then((state) => {
+  return {
+    state,
+    Constants,
+    MakeShiftApi
+  }
+})().then(({ MakeShiftApi, Constants, state }) => {
   const app = createApp(App)
-    .provide('makeshift', state.makeShiftApi)
+    .provide('makeshift', MakeShiftApi)
+    .provide('hardware-descriptors', Constants.HardwareDescriptors)
+    .provide('makeshift-device-events', Constants.DeviceEvents)
+    .provide('makeshift-serial-events', Constants.SerialEvents)
+    .provide('makeshift-events-flat', Constants.EventsList)
     .provide('client-size', state.clientSize)
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
-    .provide('hardware-descriptors', state.hardwareDescriptors)
-    .provide('makeshift-events', state.Events)
-    .provide('makeshift-events-flat', state.EventsList)
     .provide('selected-event', state.selectedEvent)
-    .provide('device-maps', state.deviceMaps)
     .provide('makeshift-connected-devices', state.connectedDevices)
     .provide('current-device', state.currentDevice)
     .provide('cues', state.cues)

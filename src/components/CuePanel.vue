@@ -32,50 +32,45 @@ function sendLoadEvent(cue: Cue) {
 
 
 <template>
-  <!-- <div class="toolbar">
-      <div class="toolbar-cluster left">
-      </div>
-      <text-button :icon-url="folderIcon" @click="openCueFolder">
-        open cue folder
-      </text-button>
-      <div class="toolbar-cluster right">
-      </div>
-    </div> -->
   <div class="pane-border w-full h-full">
-    <div class="pane-rounded-inner cue-panel flex-row flex-nowrap w-full h-full">
+    <div :class="[
+      'box-border',
+      'border-solid',
+      'border-2',
+      'rounded-lg',
+      'border-hl',
+      'overflow-hidden',
+      'bg-dark',
+      'flex-row',
+      'flex-nowrap',
+      'w-full',
+      'h-full']">
       <div class="pane-title toolbar shrink">
         <div class="toolbar-cluster">
           CUE FOLDER
         </div>
         <div class="toolbar-cluster">
-          <icon-button :icon-url="folderIcon" @click="openCueFolder" color="var(--color-neutral)"
-            hover-color="var(--color-text)" />
+          <icon-button
+           :icon-url="folderIcon"
+           @click="openCueFolder"
+           color="var(--color-neutral)"
+           hover-color="var(--color-text)"
+          />
           <ToolBarSpacer width="8px" />
         </div>
       </div>
       <div class="overflow-scroll m-0 pb-6 h-full">
-        <FolderList top-level :folder="cueDirectory" :collapse-state="false" />
-      </div>
-      <!-- <ul class="file-list top-level">
-        <FolderList v-for="(subFolder) in cueDirectory.subFolders" 
-          :folder="subFolder" 
-          :collapse-state="true" 
+        <FolderList
+         top-level
+         :folder="cueDirectory"
+         :collapse-state="false"
         />
-        <li class="list-entry" @click="sendLoadEvent(file)" v-for="(file) in cueDirectory.cueFiles">
-          <div class="entry-name">
-            {{ file.file }}
-          </div>
-        </li>
-      </ul> -->
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss">
-.cue-panel {
-  background-color: rgb(var(--color-dark));
-}
-
 .pane-title {
   text-align: left;
   padding-top: 4px;
