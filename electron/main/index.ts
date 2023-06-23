@@ -68,6 +68,7 @@ import {
   // types
   CueId, CueMap, CueModule, Cue, cueExists,
 } from './cues'
+import { loadCss } from './themes'
 // import internal from 'node:stream'
 
 
@@ -295,8 +296,10 @@ app.whenReady()
 
 
 
-ipcMain.handle(Api.test, () => {
+ipcMain.handle(Api.test, async () => {
   log.debug(`testerino`)
+  const css = await loadCss('./electron/main/test.css')
+  // log.debug(css)
 })
 
 
@@ -634,7 +637,7 @@ const cueWatcherHandler = {
       cues.set(newCue.id, newCue)
       newCue.contents = await readFile(newCue.fullPath)
       cues.set(newCue.id, newCue)
-      log.debug(nspct2(newCue))
+      // log.debug(nspct2(newCue))
     } catch (e) {
       log.warn(`Checking cue: ${path} \n    ${e}`)
     }

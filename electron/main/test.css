@@ -1,0 +1,17 @@
+.colorblind-light-theme {
+    --color-bg: 238 50 221;
+    --color-dark: 243 243 230;
+    --color-neutral: 152 147 141;
+    --color-text: 66 63 61;
+    --color-hl: 224 212 204;
+    --color-hl1: 36 34 40;
+    --color-primary: 255 177 153;
+    --color-primary1: 255 154 122;
+    --color-primary2: 199 78 41;
+    --color-secondary: 214 178 235;
+    --color-secondary1: 163 112 183;
+    --color-secondary2: 128 75 149;
+    --color-red: 187 42 73;
+    --color-green: 88 138 0;
+    --color-blue: 0 122 196;
+}
