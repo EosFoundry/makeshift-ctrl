@@ -58,14 +58,6 @@ const availableThemes = {
   light: 'ace/theme/xcode',
   dark: 'ace/theme/twilight',
 }
-const editorTheme = computed(() => {
-  let theme = 'dark'
-  if (currentTheme.value.match('light') !== null) {
-    return availableThemes.light
-  } else {
-    return availableThemes.dark
-  }
-})
 
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
@@ -188,7 +180,8 @@ onMounted(() => nextTick(async () => {
       saveCue()
     }
   });
-  editor.setTheme('ace/theme/twilight')
+  const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
+  editor.setTheme(initialTheme)
   editor.setOption('fontFamily', 'Iosevka MakeShift')
   // editor.setOption('fontSpacing', 'Iosevka MakeShift')
   editor.setFontSize(15);
