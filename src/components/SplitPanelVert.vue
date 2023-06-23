@@ -192,7 +192,7 @@ function emitPanelEvent(ev: PanelEvents) {
      }"
      @mousedown="startResize"
     >
-      <div class="splitpanel-vert-divider-handle rounded-full h-full w-14 m-auto" />
+      <div class="bg-hl rounded-full h-full w-14 m-auto" />
     </div>
 
     <div
@@ -216,9 +216,5 @@ function emitPanelEvent(ev: PanelEvents) {
 <style lang="scss">
 .splitpanel-vert-divider {
   cursor: ns-resize;
-
-  &-handle {
-    background: rgb(var(--color-text));
-  }
 }
 </style>

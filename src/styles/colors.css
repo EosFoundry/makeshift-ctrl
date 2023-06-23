@@ -4,6 +4,7 @@
     --color-dark: 23 23 28;
     --color-neutral: 152 147 141;
     --color-text: 238 231 221;
+    --color-text-primary-contrast: 36 34 40;
     --color-hl: 66 63 61;
     --color-hl1: 224 212 204;
     --color-primary: 214 178 235;
@@ -21,11 +22,12 @@
     --color-bg: 238 231 221;
     --color-dark: 243 243 230;
     --color-neutral: 152 147 141;
-    /* --color-text: 66 63 61; */
-    --color-text: 23 23 28;
+    --color-text: 1 1 8;
+    /* --color-text: 238 231 221; */
+    --color-text-primary-contrast: 238 231 221;
     --color-hl: 224 212 204;
     --color-hl1: 36 34 40;
-    --color-primary: 239 118 71;
+    --color-primary: 199 78 41;
     --color-primary1: 255 154 122;
     --color-primary2: 255 177 153;
     --color-secondary: 214 178 235;

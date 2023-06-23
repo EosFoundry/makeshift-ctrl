@@ -149,9 +149,9 @@ nextTick(() => {
 #app {
 	font-family: Encode Sans, Helvetica, Arial, sans-serif;
 
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	font-weight: 400;
+	// -webkit-font-smoothing: antialiased;
+	// -moz-osx-font-smoothing: grayscale;
+	font-weight: 500;
 
 	// font-size: 12pt;
 	text-align: center;
@@ -162,7 +162,7 @@ nextTick(() => {
 	user-select: none;
 	overflow: hidden;
 
-	// transition-duration: 0.2s;
+	transition-duration: 0.2s;
 	height: 100%;
 
 }
@@ -197,7 +197,7 @@ button {
 	cursor: pointer;
 	box-sizing: border-box;
 	background-color: rgb(var(--color-primary));
-	color: rgb(var(--color-bg));
+	color: rgb(var(--color-text-primary-contrast));
 	display: flex;
 
 	font-size: 1rem;

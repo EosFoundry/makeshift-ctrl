@@ -52,6 +52,21 @@ const availableKeyboardHandlers = [
 ]
 const keyboardHandler = ref('ace/keyboard/vscode')
 
+
+const currentTheme = inject('color-theme') as Ref<string>
+const availableThemes = {
+  light: 'ace/theme/xcode',
+  dark: 'ace/theme/twilight',
+}
+const editorTheme = computed(() => {
+  let theme = 'dark'
+  if (currentTheme.value.match('light') !== null) {
+    return availableThemes.light
+  } else {
+    return availableThemes.dark
+  }
+})
+
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
 const codeboxEditorElement = ref<HTMLElement>()
@@ -294,6 +309,17 @@ function fitCodebox() {
     editor.resize()
   }
 }
+
+watch(
+  () => currentTheme.value,
+  (newTheme) => {
+    if (newTheme.match('light') !== null) {
+      editor.setTheme(availableThemes.light)
+    } else {
+      editor.setTheme(availableThemes.dark)
+    }
+  }
+)
 
 watch(
   () => keyboardHandler.value,
