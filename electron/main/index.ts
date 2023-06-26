@@ -68,7 +68,7 @@ import {
   // types
   CueId, CueMap, CueModule, Cue, cueExists,
 } from './cues'
-import { loadCss } from './themes'
+import { DefaultTheme, Theme, loadTheme } from './themes'
 // import internal from 'node:stream'
 
 
@@ -298,7 +298,7 @@ app.whenReady()
 
 ipcMain.handle(Api.test, async () => {
   log.debug(`testerino`)
-  const css = await loadCss('./electron/main/test.css')
+  const css = await loadTheme('./electron/main/test.css')
   // log.debug(css)
 })
 
@@ -363,6 +363,17 @@ const ipcMainGetHandler = {
     const sizeArray = mainWindow.getContentSize()
     return { width: sizeArray[0], height: sizeArray[1] }
   },
+  defaultTheme: async (): Promise<Theme> => DefaultTheme,
+  themeFromPath: async (path: string): Promise<Theme> => {
+    const loadResult = await loadTheme(path)
+    if (loadResult.error) {
+      log.error(`Theme load error: ${loadResult.error}`)
+      return DefaultTheme
+    } else {
+      return loadResult.theme
+
+    }
+  }
 }
 
 /**

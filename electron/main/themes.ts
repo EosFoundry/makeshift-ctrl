@@ -3,6 +3,31 @@ import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift
 import { ctrlLogger } from './utils'
 import { readFileSync } from 'node:fs'
 
+export const DefaultTheme = {
+  cssClass: 'default-theme',
+  isLight: false,
+  cssRaw: `.default-theme{
+{
+    --color-bg: 36 34 40;
+    --color-dark: 23 23 28;
+    --color-neutral: 152 147 141;
+    --color-text: 238 231 221;
+    --color-text-primary-contrast: 36 34 40;
+    --color-hl: 66 63 61;
+    --color-hl1: 224 212 204;
+    --color-primary: 214 178 235;
+    --color-primary1: 163 112 183;
+    --color-primary2: 128 75 149;
+    --color-secondary: 199 78 41;
+    --color-secondary1: 255 154 122;
+    --color-secondary2: 255 177 153;
+    --color-red: 190 91 112;
+    --color-green: 167 192 123;
+    --color-blue: 170 206 222;
+}`
+}
+
+
 const stylelintConfig = {
   rules: {
     'color-no-invalid-hex': true,
@@ -32,24 +57,28 @@ const msgen = new Msg({ host: 'ThemeLoader', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
+export type Theme = {
+  cssClass: string
+  isLight: boolean
+  cssRaw: string
+}
+
 /**
  * 
  * 
  * @param path relative path to css file
  * @returns {css: string, linterResult: stylelint.LinterResult, error: boolean, errorObj: any}
  */
-export async function loadCss(path: string) {
+export async function loadTheme(path: string) {
   let ret = {
-    themeCssClass: '',
-    isLight: false,
-    css: '',
+    theme: {} as Theme,
     linterResult: {} as stylelint.LinterResult,
     error: false,
     errorObj: null,
   }
   try {
     log.info(`Loading CSS file from ${path}`)
-    ret.css = readFileSync(path, 'utf8')
+    ret.theme.cssRaw = readFileSync(path, 'utf8')
     const options = {
       config: stylelintConfig,
       files: path,
@@ -61,8 +90,8 @@ export async function loadCss(path: string) {
       ret.errorObj = ret.linterResult.results[0]
     } else {
       log.info(`CSS file loaded successfully, building metadata...`)
-      ret.themeCssClass = await getThemeName(ret.css)
-      ret.isLight = await checkThemeBrightness(ret.css)
+      ret.theme.cssClass = await getThemeName(ret.theme.cssRaw)
+      ret.theme.isLight = await checkThemeBrightness(ret.theme.cssRaw)
     }
   } catch (err) {
     log.error(`Error loading CSS file: ${err}`)

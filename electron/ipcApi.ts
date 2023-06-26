@@ -15,6 +15,8 @@ export const ctrlIpcApi = {
     allCues: 'cue-get-all',
     cueById: 'cue-get-byId',
     cueByFolder: 'cue-get-byFolder',
+    defaultTheme: 'theme-get-default',
+    themeFromPath: 'theme-get-fromPath',
   },
   set: {
     cueFile: 'mkshft-set-cueFile',
