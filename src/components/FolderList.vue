@@ -32,9 +32,9 @@ function toggleHide() {
     state.value.collapsed = true
   }
 }
-function sendLoadEvent(cue: Cue) {
-  console.log(cue)
-  window.dispatchEvent(new CustomEvent('loadCue', { detail: cue.id }))
+function sendLoadEvent(file: Cue) {
+  console.log(file)
+  window.dispatchEvent(new CustomEvent('fileSelected', { detail: file.id }))
 }
 
 watch(() => state.value.collapsed, (collapsed) => {
@@ -51,26 +51,45 @@ watch(() => state.value.collapsed, (collapsed) => {
 
 <template>
   <!-- {{ state }} -->
-  <li class="list-entry" @click="toggleHide" :style="{
-    display: topLevel ? 'none' : 'inline flex'
-  }">
-    <icon :icon-url="state.icon" size="12px" :style="{ cursor: 'pointer' }" />
-    <div v-if="(topLevel !== true)" class="entry-name">
+  <li
+    class="list-entry"
+    @click="toggleHide"
+    :style="{
+      display: topLevel ? 'none' : 'inline flex'
+    }"
+  >
+    <icon
+      :icon-url="state.icon"
+      size="12px"
+      :style="{ cursor: 'pointer' }"
+    />
+    <div
+      v-if="(topLevel !== true)"
+      class="entry-name"
+    >
       {{ folder.name }}
     </div>
   </li>
-  <ul :class="state.classes" :style="{
-    display: state.display
-  }">
-    <FolderList v-for="(subFolder) in props.folder.subFolders" :folder="subFolder" :collapse-state="true" />
-    <li class="list-entry" @click="sendLoadEvent(file)" v-for="(file) in props.folder.cueFiles">
-      <div class="entry-name">
-        {{ file.file }}
-      </div>
-    </li>
-  </ul>
-</template>
+  <ul
+    :class="state.classes"
+    :style="{
+      display: state.display
+  }"
+>
+  <FolderList
+    v-for="(subFolder) in props.folder.subFolders"
+    :folder="subFolder"
+    :collapse-state="true"
+  />
+  <li
+    class="list-entry"
+    @click="sendLoadEvent(file)"
+    v-for="(file) in props.folder.files"
+  >
+    <div class="entry-name">
+      {{ file.file }}
+    </div>
+  </li>
+</ul></template>
 
-<style lang="scss">
-
-</style>
+<style lang="scss"></style>

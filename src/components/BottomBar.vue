@@ -16,7 +16,7 @@ const selectedEvent = inject('selected-event') as Ref<string>
 const LogLevels = Object.keys(Events.Log)
 
 function needful() {
-  makeshift.test()
+  // makeshift.test()
 }
 
 onMounted(() => {

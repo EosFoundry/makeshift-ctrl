@@ -1,0 +1,31 @@
+{
+  "name": "Keyboard",
+  "id": "nutjs-keyboard",
+  "blocks": [
+    {
+      "type": "fn_nutjs_keyboard_type",
+      "customInit": false,
+      "version": "0.0.1"
+    },
+    {
+      "type": "output_nutjs_keyboard_key",
+      "customInit": false,
+      "version": "0.0.1"
+    }
+  ],
+  "toolboxCategory": {
+    "kind": "category",
+    "name": "Keyboard",
+    "toolboxitemid": "nutjs-keyboard",
+    "contents": [
+      {
+        "kind": "block",
+        "type": "fn_nutjs_keyboard_type"
+      },
+      {
+        "kind": "block",
+        "type": "output_nutjs_keyboard_key"
+      }
+    ]
+  }
+}

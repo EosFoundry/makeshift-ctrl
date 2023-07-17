@@ -4,25 +4,38 @@ import {
   IpcMainGetHandler,
   IpcMainSetHandler
 } from 'types/electron/main/index'
+import { CtrlIpcApi } from "electron/ipcApi"
 import { Cue } from 'types/electron/main/cues'
+import { MakeShiftBlockJSON } from "electron/main/blockly"
+
+type CueEvHandler = (callback: (e: any, cue: Cue) => void) => void
+type DeviceEvHandler = (callback: (e: any, fp: MakeShiftPortFingerprint) => void) => void
+type TerminalEvHandler = (callback: (e: any, fp: LogMessage) => void) => void
+
 
 export interface rndrCtrlAPI {
-  test: () => void,
+  test: (val: any) => void,
   call: IpcMainCallHandler,
   get: IpcMainGetHandler,
   set: IpcMainSetHandler,
   onEv: {
+    blockly: {
+      toolboxUpdate: (callback: (e: any, toolbox: any) => void) => void,
+      blocksUpdate: (callback: (e: any, blocklist: MakeShiftBlockJSON[]) => void) => void,
+      workspaceUpdate: (callback: (e: any, workspace: any) => void) => void,
+      workspaceListUpdate:(callback: (e: any, workspaceList: string[]) => void) => void,
+    },
     cue: {
-      added: (callback: (e: any, cue: Cue) => void) => void,
-      changed: (callback: (e: any, cue: Cue) => void) => void,
-      removed: (callback: (e: any, cue: Cue) => void) => void,
-    }
+      added: CueEvHandler,
+      changed: CueEvHandler,
+      removed: CueEvHandler,
+    },
     device: {
-      connected: (callback: (e: any, fp: MakeShiftPortFingerprint) => void) => void,
-      disconnected: (callback: (e: any, fp: MakeShiftPortFingerprint) => void) => void,
+      connected: DeviceEvHandler,
+      disconnected: DeviceEvHandler,
     },
     terminal: {
-      data: (callback: (e: any, fp: LogMessage) => void) => void,
+      data: TerminalEvHandler
     },
   }
 }

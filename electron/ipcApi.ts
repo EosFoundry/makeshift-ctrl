@@ -2,7 +2,10 @@ export const ctrlIpcApi = {
   test: 'mkshft-test',
   call: {
     openCueFolder: 'shell-openCueFolder',
-    runCue: 'mkshft-runCue'
+    runCue: 'mkshft-runCue',
+    fetchBlocklyToolbox: 'blockly-fetch-toolbox',
+    fetchBlocklyBlocks: 'blockly-fetch-blocks',
+    fetchBlocklyDefaultWorkspace: 'blockly-fetch-defaultWorkspace',
   },
   get: {
     deviceEvents: 'mkshft-get-device-events',
@@ -13,6 +16,11 @@ export const ctrlIpcApi = {
     logRank: 'mkshft-get-logRank',
     clientSize: 'window-get-size',
     allCues: 'cue-get-all',
+    allBlocklySerialWorkspaceNames: 'blockly-get-all-serialWorkspace-names',
+    blocklyToolbox: 'blockly-get-toolbox',
+    blocklySerialWorkspace: 'blockly-get-serialWorkspace',
+    blockGenerator: 'blockly-get-blockGenerator',
+    cuesAttachedToEvent: 'cue-get-attachedToEvent',
     cueById: 'cue-get-byId',
     cueByFolder: 'cue-get-byFolder',
     defaultTheme: 'theme-get-default',
@@ -21,8 +29,15 @@ export const ctrlIpcApi = {
   set: {
     cueFile: 'mkshft-set-cueFile',
     cueForEvent: 'mkshft-set-cueForEvent',
+    serialWorkspaceAsCue: 'mkshft-set-serialWorkspaceAsCue',
   },
   onEv: {
+    blockly: {
+      toolboxUpdate: 'blockly-toolbox-sync',
+      blocksUpdate: 'blockly-blocks-sync',
+      workspaceUpdate: 'blockly-workspace-sync',
+      workspaceListUpdate: 'blockly-workspaceList-sync',
+    },
     cue: {
       added: 'cue-added',
       changed: 'cue-changed',
@@ -33,7 +48,7 @@ export const ctrlIpcApi = {
       disconnected: 'mkshft-ev-device-disconnected',
     },
     terminal: {
-      data: 'mkshft-ev-termi-data'
+      data: 'mkshft-ev-term-data'
     },
   },
 }

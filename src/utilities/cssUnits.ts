@@ -13,12 +13,15 @@ export function pxToRem(px: number) {
 }
 
 export function remToPx(rem: number) {
+  // console.log(`rem: ${rem}`)
+  // console.log(`rootFontSize: ${cssParameters.rootFontSize}`)
+  // console.log(`rem * rootFontSize: ${rem * cssParameters.rootFontSize}`)
   return (rem * cssParameters.rootFontSize)
 }
 
 export function updateFont(newFontSize: string) {
   const matches = newFontSize.match(isFont)
-  console.log(matches)
+  // console.log(matches)
   if (matches !== null) {
     const type = matches[2]
     switch (type) {
@@ -34,8 +37,8 @@ export function updateFont(newFontSize: string) {
 export function checkFontSize(el: HTMLElement) {
   const fontSize = getComputedStyle(el).fontSize
   const matches = fontSize.match(isFont)
-  console.log(`fontSize: ${fontSize}`)
-  console.log(matches)
+  // console.log(`fontSize: ${fontSize}`)
+  // console.log(matches)
   if (matches !== null) {
     const type = matches[2]
     switch (type) {

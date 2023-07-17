@@ -6,7 +6,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, markRaw, watch, nextTick, reactive, onMounted, inject, Ref, computed } from "vue";
+import { ref, markRaw, watch, nextTick, reactive, onMounted, inject, Ref, computed, onUnmounted } from "vue";
 import ace, { edit, type Ace } from 'ace-builds'
 import 'ace-builds' // this needs to be called for ace.define to exist
 
@@ -26,8 +26,8 @@ import toolbarSpacer from './ToolBarSpacer.vue'
 // import { watchResize } from "../composables/resizer";
 import { Cue, CueMap } from "../../types/electron/main/cues";
 import TextButton from "./TextButton.vue";
+import { nanoid } from '../utilities/nanoidTool'
 
-const nanoid = inject('nanoid') as () => string
 const editorContents = inject('current-session') as Ref<string>
 const acePath = import.meta.env.BASE_URL + 'ace-builds/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
@@ -157,7 +157,7 @@ window.MakeShiftCtrl.onEv.cue.removed((e, q) => {
   }
 })
 
-let autoSaveInterval = null
+let autoSaveInterval: string | number | NodeJS.Timer | null | undefined = null
 onMounted(() => nextTick(async () => {
   const existingCue = await window.MakeShiftCtrl.get.cueById(cueId.value)
   if (typeof existingCue !== 'undefined'
@@ -216,9 +216,22 @@ onMounted(() => nextTick(async () => {
 
   autoSaveInterval = setInterval(checkAutoSave, autoSaveWaitTime);
   // watchResize(codeboxEditorElement.value as HTMLElement, fitCodebox)
-  window.addEventListener('loadCue', (ev: any) => { loadCue(ev.detail) })
+  window.addEventListener('file-selected', handleFileSelected)
   window.addEventListener('resize', fitCodebox)
 }))
+
+function handleFileSelected(ev: any) {
+  loadCue(ev.detail)
+}
+
+
+onUnmounted(() => {
+  if (autoSaveInterval !== null) {
+    clearInterval(autoSaveInterval)
+  }
+  window.removeEventListener('file-selected', handleFileSelected)
+  window.removeEventListener('resize', fitCodebox)
+})
 
 async function createCue() {
   if (hasSaveFile.value) {
@@ -255,6 +268,10 @@ async function assignCueToEvent() {
     cueId: cueId.value,
     contents: contents,
   })
+  if (typeof fullPath === 'undefined') {
+    console.log(`Cue not assigned`)
+    return
+  }
   console.log(`Cue assigned`)
   handlePostSave(fullPath)
 }
@@ -276,7 +293,7 @@ async function testCue() {
   window.MakeShiftCtrl.call.runCue(cueId.value)
 }
 
-async function loadCue(cueId: string) {
+async function loadCue(cueId: Cue) {
   saveCue()
   const newCue = await window.MakeShiftCtrl.get.cueById(cueId)
   console.log(`Loading ${cueId}`)
@@ -373,14 +390,14 @@ watch(
 
 <template>
   <div
-   class="name-entry hidden clone"
-   ref="folderNameClone"
+    class="name-entry hidden clone"
+    ref="folderNameClone"
   >
     {{ cueFolder }}
   </div>
   <div
-   class="name-entry hidden clone"
-   ref="cueNameClone"
+    class="name-entry hidden clone"
+    ref="cueNameClone"
   >
     {{ cueName }}
   </div>
@@ -395,27 +412,27 @@ watch(
       <div class="toolbar-cluster left">
         <toolbar-spacer width="2px" />
         <text-button
-         :icon-url="newCueIcon"
-         @click="createCue"
+          :icon-url="newCueIcon"
+          @click="createCue"
         >
           new cue
         </text-button>
         <toolbar-spacer width="8px" />
         <text-button
-         :icon-url="saveIcon"
-         @click="saveCue"
+          :icon-url="saveIcon"
+          @click="saveCue"
         >
           save
         </text-button>
         <toolbar-spacer width="8px" />
         keybind:
         <select
-         name="keyboard-mode-selector"
-         v-model="keyboardHandler"
+          name="keyboard-mode-selector"
+          v-model="keyboardHandler"
         >
           <option
-           v-for="handlerName in availableKeyboardHandlers"
-           :value="handlerName"
+            v-for="handlerName in availableKeyboardHandlers"
+            :value="handlerName"
           >
             {{ handlerName.replace('ace/keyboard/', '') }}
           </option>
@@ -424,15 +441,15 @@ watch(
       </div>
       <div class="toolbar-cluster right">
         <text-button
-         :icon-url="testCueIcon"
-         @click="testCue"
+          :icon-url="testCueIcon"
+          @click="testCue"
         >
           test
         </text-button>
         <toolbar-spacer width="8px" />
         <text-button
-         :icon-url="assignCueIcon"
-         @click="assignCueToEvent"
+          :icon-url="assignCueIcon"
+          @click="assignCueToEvent"
         >
           assign to event
         </text-button>
@@ -441,40 +458,40 @@ watch(
     <div class="toolbar thin">
       <div class="toolbar-cluster left">
         <div
-         v-if="editCuePath === false"
-         class="toolbar-cluster"
-         style="transition-duration: 0.2s;"
+          v-if="editCuePath === false"
+          class="toolbar-cluster"
+          style="transition-duration: 0.2s;"
         >
           <toolbar-spacer
-           width="4px"
-           title="Edit save path"
+            width="4px"
+            title="Edit save path"
           />
           <icon-button
-           :icon-url="editPathIcon"
-           clickable
-           size="18px"
-           color="var(--color-neutral)"
-           hoverColor="var(--color-text)"
-           @click="editCuePath = true"
+            :icon-url="editPathIcon"
+            clickable
+            size="18px"
+            color="var(--color-neutral)"
+            hoverColor="var(--color-text)"
+            @click="editCuePath = true"
           />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
           <div
-           class="toolbar-cluster"
-           v-if="cueFolder !== '.' && cueFolder !== ''"
+            class="toolbar-cluster"
+            v-if="cueFolder !== '.' && cueFolder !== ''"
           >
             <div
-             v-for="folder in cueFolderList"
-             class="toolbar-cluster"
+              v-for="folder in cueFolderList"
+              class="toolbar-cluster"
             >
               <div
-               v-if="folder"
-               class="toolbar-cluster"
+                v-if="folder"
+                class="toolbar-cluster"
               >
                 <icon
-                 :icon-url="breadcrumbIcon"
-                 size="14px"
+                  :icon-url="breadcrumbIcon"
+                  size="14px"
                 />
                 <toolbar-spacer width="3px" />
                 <div style="align-self: center;">
@@ -485,63 +502,63 @@ watch(
             </div>
           </div>
           <icon
-           :icon-url="breadcrumbIcon"
-           size="14px"
+            :icon-url="breadcrumbIcon"
+            size="14px"
           />
           <toolbar-spacer width="3px" />
           <div
-           class="toolbar-cluster"
-           :style="{
-             fontStyle: hasSaveFile ? 'normal' : 'italic',
-             alignSelf: 'center',
-           }"
+            class="toolbar-cluster"
+            :style="{
+              fontStyle: hasSaveFile ? 'normal' : 'italic',
+              alignSelf: 'center',
+            }"
           >
             {{ cueName }}.cue.js
           </div>
 
           <toolbar-spacer width="10px" />
           <div
-           v-if="hasSaveFile && cueSaved === false"
-           class="save-icon"
+            v-if="hasSaveFile && cueSaved === false"
+            class="save-icon"
           />
         </div>
         <div
-         v-else
-         class="toolbar-cluster"
-         style="transition-duration: 0.2s;"
+          v-else
+          class="toolbar-cluster"
+          style="transition-duration: 0.2s;"
         >
           <toolbar-spacer width="3px" />
           <icon-button
-           :icon-url="savePathIcon"
-           clickable
-           size="19px"
-           color="var(--color-neutral)"
-           hoverColor="var(--color-text)"
-           @click="editCuePath = false"
+            :icon-url="savePathIcon"
+            clickable
+            size="19px"
+            color="var(--color-neutral)"
+            hoverColor="var(--color-text)"
+            @click="editCuePath = false"
           />
           <toolbar-spacer width="8px" />
           cues
           <toolbar-spacer width="4px" />
           <icon
-           :icon-url="breadcrumbIcon"
-           size="14px"
+            :icon-url="breadcrumbIcon"
+            size="14px"
           />
           <toolbar-spacer width="4px" />
           <label for="folder-name">
             Folder:
           </label>
           <input
-           id="folder-name"
-           class="name-entry"
-           v-model="cueFolder"
-           type="text"
+            id="folder-name"
+            class="name-entry"
+            v-model="cueFolder"
+            type="text"
           />
           <icon
-           :icon-url="breadcrumbIcon"
-           size="14px"
-           :style="{
-             margin: `0px 4px`,
-           }"
+            :icon-url="breadcrumbIcon"
+            size="14px"
+            :style="{
+              margin: `0px 4px`,
+            }"
           />
           <toolbar-spacer width="8px" />
           <label for="cue-name">
@@ -549,14 +566,14 @@ watch(
           </label>
           <toolbar-spacer width="4px" />
           <input
-           id="cue-name"
-           class="name-entry"
-           v-model="cueName"
-           type="text"
+            id="cue-name"
+            class="name-entry"
+            v-model="cueName"
+            type="text"
           />
           <div
-           class="toolbar-cluster"
-           style="align-self: center;"
+            class="toolbar-cluster"
+            style="align-self: center;"
           >
             .cue.js
           </div>
@@ -567,22 +584,22 @@ watch(
     </div>
 
     <div
-     id="codebox-inner-border"
-     :class="[
-       'box-border',
-       'border-solid',
-       'border-2',
-       'rounded-lg',
-       'overflow-hidden',
-       'w-full', 'h-full'
-     ]"
-     :style="{
-       borderColor: `rgb(${saveStateStyles.borderColor})`,
-     }"
+      id="codebox-inner-border"
+      :class="[
+        'box-border',
+        'border-solid',
+        'border-2',
+        'rounded-lg',
+        'overflow-hidden',
+        'w-full', 'h-full'
+      ]"
+      :style="{
+        borderColor: `rgb(${saveStateStyles.borderColor})`,
+      }"
     >
       <div
-       id="codebox-editor"
-       ref="codeboxEditorElement"
+        id="codebox-editor"
+        ref="codeboxEditorElement"
       />
     </div>
   </div>

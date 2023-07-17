@@ -8,6 +8,8 @@ const ipcRndr = election.ipcRenderer
 let dryMakeShiftApi: any = {}
 Object.assign(dryMakeShiftApi, JSON.parse(process.env.MakeShiftSerializedApi))
 
+console.log(dryMakeShiftApi)
+
 function hydrate(section, handler: Function): any {
   if (typeof section === 'string') {
     const s = section
@@ -21,11 +23,11 @@ function hydrate(section, handler: Function): any {
 }
 
 const hydratedMakeShiftApi = {
-  test: () => ipcRndr.invoke(MakeShiftApi.test),
-  call: hydrate(dryMakeShiftApi.call, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
-  get: hydrate(dryMakeShiftApi.get, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
-  set: hydrate(dryMakeShiftApi.set, (evStr) => { return (val) => ipcRndr.invoke(evStr, val) }),
-  onEv: hydrate(dryMakeShiftApi.onEv, (evStr) => { return (cb: any) => ipcRndr.on(evStr, cb) }),
+  test: (ev) => ipcRndr.invoke(MakeShiftApi.test, ev),
+  call: hydrate(dryMakeShiftApi.call, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
+  get: hydrate(dryMakeShiftApi.get, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
+  set: hydrate(dryMakeShiftApi.set, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
+  onEv: hydrate(dryMakeShiftApi.onEv, (evName) => { return (cb: any) => ipcRndr.on(evName, cb) }),
 }
 // console.log(hydratedMakeShiftApi)
 

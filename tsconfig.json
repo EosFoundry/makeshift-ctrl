@@ -22,11 +22,9 @@
     ]
   },
   "include": [
-    "./src",
+    "./src"
   ],
   "references": [
-    {
-      "path": "./electron/tsconfig.json"
-    }
+    { "path": "./electron/tsconfig.json" }
   ]
 }

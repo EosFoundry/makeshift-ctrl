@@ -1,36 +1,46 @@
 
 <script lang="ts">
 export default {
-  name: 'TestInterface'
+  name: "TestInterface",
+  components: { WorkspacePanel }
 }
 </script>
 
 <script setup lang="ts">
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
-import { inject, ref, computed } from 'vue';
+import { inject, ref, computed, watch, provide, ComputedRef, Ref, onMounted } from 'vue';
 import Icon from './Icon.vue'
+import { Maybe } from 'purify-ts/Maybe'
+import WorkspacePanel from './WorkspacePanel.vue';
 import pressedIcon from '../assets/icon/bootstrap/layer-backward.svg?url'
 import releasedIcon from '../assets/icon/bootstrap/layer-forward.svg?url'
 import incrementIcon from '../assets/icon/bootstrap/arrow-clockwise.svg?url'
 import decrementIcon from '../assets/icon/bootstrap/arrow-counterclockwise.svg?url'
+import { SensorEventDetails } from 'src/main';
+import { getEventDetails } from '../utilities/str';
 
 const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
-let SelectedEvent = inject('selected-event') as string
+const SelectedEvent = inject('selected-event') as Ref<string>
+const initialEventDetails = getEventDetails(SelectedEvent.value)
+const SelectedEventDetails = ref(initialEventDetails) as Ref<SensorEventDetails>
+
+
 const MakeshiftMap = HardwareDescriptors.MakeShift
 
-console.log('0')
-console.log(HardwareDescriptors)
-console.log('1')
-console.log(DeviceEvents)
-console.log('2')
-console.log(HardwareDescriptors)
-console.log('3')
-console.log(SelectedEvent)
+// console.log('0')
+// console.log(HardwareDescriptors)
+// console.log('1')
+// console.log(DeviceEvents)
+// console.log('2')
+// console.log(HardwareDescriptors)
+// console.log('3')
+// console.log(SelectedEvent)
 
 const devicePanel = ref(`
   flex flex-row flex-wrap
   inline-flex
+  ml-3
   p-3
   rounded-lg 
   shadow-md
@@ -65,11 +75,12 @@ const unselected = ref(`
   shadow-md
 `)
 
-const rowClass = ref(`flex flex-row flex-wrap`)
+const rowClass = ref(`flex flex-row`)
 const colClass = ref(`flex flex-col`)
 
 
 const selectedInputId = ref(0)
+provide('selected-input-id', selectedInputId)
 const eventListFromSelectedInputId = computed(() => {
   const eventMap = []
   for (const type of MakeshiftMap.sensors[selectedInputId.value].types) {
@@ -77,13 +88,13 @@ const eventListFromSelectedInputId = computed(() => {
     for (const event of HardwareDescriptors.Sensors[type].events) {
       console.log(event)
       eventMap.push({
-        type: type,
-        event: event
+        sensorType: type,
+        eventType: event
       })
     }
   }
 
-  console.log(eventMap)
+  // console.log(eventMap)
   return eventMap
 })
 
@@ -92,13 +103,13 @@ function selectInput(input: any) {
   console.log(input)
 }
 
-
-const selectedDeviceEvent = ref(
-  {
-    type: '',
-    event: ''
-  }
-)
+onMounted(() => {
+  console.log('mounted')
+  console.log(SelectedEvent.value)
+  console.log(SelectedEventDetails.value.eventType)
+  console.log(selectedInputId.value)
+  console.log(eventListFromSelectedInputId.value)
+})
 
 /**
  * TODO:
@@ -109,11 +120,33 @@ const selectedDeviceEvent = ref(
 
 const selectedDeviceEventName = ref()
 function updateSelectedEventName(inputType: any, inputEvent: any) {
+  console.log('updateSelectedEventName')
   selectedDeviceEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
-  console.log(selectedDeviceEventName.value)
-  SelectedEvent = selectedDeviceEventName.value
+  console.log(inputType)
+  console.log(inputEvent)
+  console.log(SelectedEventDetails.value)
+  SelectedEvent.value = selectedDeviceEventName.value
   console.log(SelectedEvent)
 }
+const attachedCues = ref('none')
+watch(selectedDeviceEventName, () => {
+  console.log('selectedDeviceEventName changed')
+  console.log(selectedDeviceEventName.value)
+  window.MakeShiftCtrl.get.cuesAttachedToEvent(selectedDeviceEventName.value)
+    .then((maybeCueId) => {
+      if (typeof maybeCueId === 'undefined') {
+        attachedCues.value = 'none'
+      } else {
+        attachedCues.value = maybeCueId
+      }
+    })
+})
+
+watch(
+  () => SelectedEvent.value,
+  (newVal, oldVal) => {
+    SelectedEventDetails.value = getEventDetails(newVal)
+  })
 
 const eventIcons: any = {
   increment: incrementIcon,
@@ -125,20 +158,25 @@ const eventIcons: any = {
 </script>
 
 <template>
-  <div class="md:container md:mx-auto mb-4">
-    <div :class=rowClass>
-      <span :class=devicePanel>
+  <div
+    :class="['w-full']"
+    :style="{
+      height: '288px',
+    }"
+  >
+    <div :class="[rowClass, 'h-full', 'w-full', 'items-stretch', 'my-3', 'mb-4']">
+      <div :class=devicePanel>
         <div :class=colClass>
           <div :class=rowClass>
             <div
-             v-for="sensorId in [0, 1, 2, 3]"
-             :class="[
-               inputSelector,
-               'rounded-full',
-               (sensorId === selectedInputId ? selected : unselected)
-             ]"
-             :key="sensorId"
-             @click="selectInput(MakeshiftMap.sensors[sensorId])"
+              v-for="sensorId in [0, 1, 2, 3]"
+              :class="[
+                inputSelector,
+                'rounded-full',
+                (sensorId === selectedInputId ? selected : unselected)
+              ]"
+              :key="sensorId"
+              @click="selectInput(MakeshiftMap.sensors[sensorId])"
             >
 
               {{ sensorId }}
@@ -147,48 +185,71 @@ const eventIcons: any = {
           </div>
 
           <div
-           v-for="row in [3, 7, 11]"
-           :class=rowClass
-           :key="row"
+            v-for="row in [3, 7, 11]"
+            :class=rowClass
+            :key="row"
           >
             <div
-             v-for="col in [1, 2, 3, 4]"
-             :class="[
-               inputSelector,
-               'rounded-lg',
-               (row + col === selectedInputId ? selected : unselected)
-             ]"
-             :key="row + col"
-             @click="selectInput(MakeshiftMap.sensors[row + col])"
+              v-for="col in [1, 2, 3, 4]"
+              :class="[
+                inputSelector,
+                'rounded-lg',
+                (row + col === selectedInputId ? selected : unselected)
+              ]"
+              :key="row + col"
+              @click="selectInput(MakeshiftMap.sensors[row + col])"
             >
 
               {{ row + col }}
             </div>
           </div>
         </div>
-      </span>
+      </div>
 
-      <div :class="colClass + ` events-panel`">
-        <div
-         v-for="eventMap in eventListFromSelectedInputId"
-         :class="[
-           inputSelector,
-           'rounded-lg',
-           (selectedDeviceEvent.type === eventMap.type && selectedDeviceEvent.event === eventMap.event ? selected : unselected),
-         ]"
-         :key="eventMap.event"
-         @click="updateSelectedEventName(eventMap.type, eventMap.event)"
-        >
+      <div :class="[rowClass, 'w-full']">
+        <div :class="[colClass]">
+          <div
+            v-for="eventMap in eventListFromSelectedInputId"
+            :class="[
+              inputSelector,
+              'rounded-lg',
+              (SelectedEventDetails.sensorId === selectedInputId &&
+                SelectedEventDetails.sensorType === eventMap.sensorType &&
+                SelectedEventDetails.eventType.toLowerCase() === eventMap.eventType ?
+                selected : unselected),
+            ]"
+            :key="eventMap.eventType"
+            @click="updateSelectedEventName(eventMap.sensorType, eventMap.eventType)"
+          >
 
-          <div class="m-2">
-            <icon
-             :icon-url=eventIcons[eventMap.event]
-             size="25px"
-             color="var(--color-hl)"
-            />
+            <div :class="` m-2`">
+              <icon
+                :icon-url=eventIcons[eventMap.eventType]
+                size="25px"
+                color="var(--color-hl)"
+              />
+            </div>
+
           </div>
+        </div>
+        <div :class="[colClass, `justify-items-start m-0 text-left`]">
+          <p>
+            Selected event: {{ selectedDeviceEventName }}
+          </p>
+          <p>
+            Cues attached to event: {{ attachedCues }}
+          </p>
+        </div>
+        <div>
 
         </div>
+
+        <workspace-panel
+          :class="['mr-3']"
+          :style="{
+            // width: '250px',
+          }"
+        />
       </div>
     </div>
   </div>

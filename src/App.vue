@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import './styles/colors.css'
 import './styles/fonts.css'
-import 'splitpanes/dist/splitpanes.css'
 
 import { ref, computed, onMounted, nextTick, provide, Ref, inject, watch } from 'vue'
-import { Splitpanes, Pane } from 'splitpanes'
 import CodeBox from './components/CodeBox.vue'
 import Terminal from './components/Terminal.vue'
 import BottomBar from './components/BottomBar.vue'
@@ -16,6 +14,12 @@ import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 import BlocklyBox from './components/BlocklyBox.vue'
 import TesterButton from './components/TesterButton.vue'
+import Popup from './components/Popup.vue'
+import { useBooleanState } from './composables/booleanState'
+import { show } from 'blockly/core/contextmenu'
+import { usePopup } from './composables/popup'
+import { showPositionedByBlock } from 'blockly/core/dropdowndiv'
+import { rndrCtrlAPI } from './renderer'
 
 type Size = {
 	width: number
@@ -27,6 +31,7 @@ link.rel = 'stylesheet'
 link.href = 'src/styles/test.css'
 // document.head.appendChild(link)
 
+const api = inject('makeshift') as rndrCtrlAPI
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
@@ -35,6 +40,13 @@ const colorTheme = inject('color-theme') as Ref<string>
 colorTheme.value = 'colorblind-light-theme'
 
 provide<Ref<string>>('current-session', editorContents)
+
+const blocklyBoxSize = computed(() => {
+	return {
+		width: clientSize.value.width - 16,
+		height: clientSize.value.height - remToPx(2.5) - 288 - 16 - 24
+	}
+})
 
 const topPanelHeightPercent = ref(69)
 const topPanelHeight = ref(-1)
@@ -67,7 +79,7 @@ const fontChecker = new ResizeObserver((entries) => {
 		const fontDiv = entries[0].target as HTMLElement
 		const fontSize = window.getComputedStyle(fontDiv).fontSize
 		updateFont(fontSize)
-		console.log(fontSize)
+		// console.log(fontSize)
 	}
 })
 
@@ -91,10 +103,21 @@ nextTick(() => {
 	// topPaneHeight.value = 70
 })
 
+const { state: popupShown, toggle: togglePopup } = useBooleanState()
+const { showPrompt, } = usePopup()
+
+
+function toast() {
+	console.log(api)
+	api.get.blocklyToolbox().then((toolbox) => {
+		console.log(toolbox)
+		console.log(typeof toolbox)
+	})
+}
 </script>
 
 <template>
-	<div :class="[colorTheme, 'bg-bg', 'color-text']">
+	<div :class="[colorTheme, 'bg-bg', 'color-text', 'h-full']">
 		<div
 			id='font-size-monitor-div'
 			ref="FontSizeMonitorDiv"
@@ -102,18 +125,20 @@ nextTick(() => {
 		>
 			font-size-monitor-text
 		</div>
-		<select
+		<Popup/>
+		<!-- <select
 			name="color-theme-selector"
 			v-model="colorTheme"
 		>
 			<option value="light-theme">Light</option>
 			<option value="dark-theme">Dark</option>
 		</select>
+		<button @click="toast">toast</button>
 		<div :class="['width-full']">
 			<TesterButton />
-		</div>
+		</div> -->
 		<TestInterface />
-		<BlocklyBox />
+		<BlocklyBox :panel-height="blocklyBoxSize.height" />
 		<!-- <SplitPanelVert
 		 :height="clientSize.height - remToPx(2.5)"
 		 :topPanelHeightPercent="70"
@@ -198,7 +223,10 @@ input {
 	// font-size: 14px;
 	color: rgb(var(--color-text));
 	background-color: rgb(var(--color-dark));
-	border-color: rgb(var(--color-hl));
+	border-color: rgb(var(--color-neutral));
+	border-radius: 0.375rem;
+	border-style: solid;
+	border-width: 2px;
 	caret-color: rgb(var(--color-neutral));
 	transition-duration: 0.2s;
 	width: fit-content;
@@ -233,6 +261,54 @@ button {
 		border-color: rgb(var(--color-primary));
 		color: rgb(var(--color-text));
 	}
+
+	&.btn-subtle {
+		background-color: rgb(var(--color-bg));
+		border-color: rgb(var(--color-bg));
+		color: rgb(var(--color-text));
+
+		&:hover {
+			background-color: rgb(var(--color-bg2));
+			border-color: rgb(var(--color-neutral));
+			color: rgb(var(--color-text));
+		}
+	}
+
+	&.btn-red {
+		background-color: rgb(var(--color-red));
+		border-color: rgb(var(--color-red));
+		color: rgb(var(--color-text-primary-contrast));
+
+		&:hover {
+			background-color: rgb(var(--color-red2));
+			border-color: rgb(var(--color-red));
+			color: rgb(var(--color-text));
+		}
+	}
+
+	&.btn-green {
+		background-color: rgb(var(--color-green));
+		border-color: rgb(var(--color-green));
+		color: rgb(var(--color-text-primary-contrast));
+
+		&:hover {
+			background-color: rgb(var(--color-green2));
+			border-color: rgb(var(--color-green));
+			color: rgb(var(--color-text));
+		}
+	}
+
+	&.btn-blue {
+		background-color: rgb(var(--color-blue));
+		border-color: rgb(var(--color-blue));
+		color: rgb(var(--color-text-primary-contrast));
+
+		&:hover {
+			background-color: rgb(var(--color-blue2));
+			border-color: rgb(var(--color-blue));
+			color: rgb(var(--color-text));
+		}
+	}
 }
 
 select {
@@ -246,7 +322,7 @@ select {
 }
 
 :focus {
-	outline: 1px solid rgb(var(--color-primary));
+	outline: 2px solid rgb(var(--color-primary));
 }
 
 
@@ -496,4 +572,5 @@ select {
 	&-blue {
 		border-color: rgb(var(--color-blue));
 	}
-}</style>
+}
+</style>

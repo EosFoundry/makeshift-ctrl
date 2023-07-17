@@ -3,6 +3,9 @@ export declare const ctrlIpcApi: {
     call: {
         openCueFolder: string;
         runCue: string;
+        fetchBlocklyToolbox: string;
+        fetchBlocklyBlocks: string;
+        fetchBlocklyDefaultWorkspace: string;
     };
     get: {
         deviceEvents: string;
@@ -13,14 +16,28 @@ export declare const ctrlIpcApi: {
         logRank: string;
         clientSize: string;
         allCues: string;
+        allBlocklySerialWorkspaceNames: string;
+        blocklyToolbox: string;
+        blocklySerialWorkspace: string;
+        blockGenerator: string;
+        cuesAttachedToEvent: string;
         cueById: string;
         cueByFolder: string;
+        defaultTheme: string;
+        themeFromPath: string;
     };
     set: {
         cueFile: string;
         cueForEvent: string;
+        serialWorkspaceAsCue: string;
     };
     onEv: {
+        blockly: {
+            toolboxUpdate: string;
+            blocksUpdate: string;
+            workspaceUpdate: string;
+            workspaceListUpdate: string;
+        };
         cue: {
             added: string;
             changed: string;

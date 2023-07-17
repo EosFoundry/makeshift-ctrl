@@ -1,0 +1,21 @@
+{
+  "name": "MakeShift",
+  "id": "makeshift-ctrl",
+  "blocks": [
+    {
+      "type": "default_cue",
+      "customInit": true
+    }
+  ],
+  "toolboxCategory": {
+    "kind": "category",
+    "name": "MakeShift",
+    "toolboxitemid": "makeshift-ctrl",
+    "contents": [
+      {
+        "kind": "block",
+        "type": "default_cue"
+      }
+    ]
+  }
+}

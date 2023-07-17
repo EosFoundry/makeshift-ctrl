@@ -1,0 +1,15 @@
+{
+  "kind": "category",
+  "name": "Functions",
+  "contents": [
+    {
+      "kind": "label",
+      "text": "Stored variables will be saved and reloaded when makeshift-ctrl restarts."
+    },
+    {
+      "kind": "button",
+      "text": "Create stored variable...",
+      "callbackKey": "createStoredVariable"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "inputsInline": {
+      "type": "boolean"
+    },
+    "previousStatement": {
+      "enum": [
+        null,
+        "Action"
+      ]
+    },
+    "nextStatement": {
+      "enum": [
+        null,
+        "Action"
+      ]
+    },
+    "colour": {
+      "type": "number"
+    },
+    "tooltip": {
+      "type": "string"
+    },
+    "helpUrl": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "inputsInline",
+    "tooltip",
+    "helpUrl"
+  ],
+  "additionalProperties": {
+    "anyOf": [
+      {
+        "$ref": "#/definitions/MakeShiftBlockFieldJSON"
+      },
+      {
+        "type": "string"
+      },
+      {
+        "type": "number"
+      },
+      {
+        "type": "boolean"
+      },
+      {
+        "type": "null"
+      }
+    ]
+  },
+  "definitions": {
+    "MakeShiftBlockFieldJSON": {
+      "$ref": "#/MakeShiftBlockFieldJSONSchema"
+    }
+  }
+}

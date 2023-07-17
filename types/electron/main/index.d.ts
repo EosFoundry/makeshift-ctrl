@@ -1,6 +1,9 @@
 import { BrowserWindow } from 'electron';
+import { Block } from 'blockly';
 import { MakeShiftPortFingerprint, MakeShiftDeviceEvents, MakeShiftSerialEvents } from '@eos-makeshift/serial';
-import { saveCueFile, CueId, CueMap, Cue } from './cues';
+import { Maybe } from 'purify-ts/Maybe';
+import { saveCueFile, Cue, CueId, CueMap } from './cues';
+import { Theme } from './themes';
 export type DeviceId = string;
 export type MakeShiftEvent = string;
 export type EventCueMap = Map<MakeShiftEvent, Cue>;
@@ -14,15 +17,11 @@ export type Layout = {
     layers: EventCueMap[];
     layerLabels: LayerLabel[];
 };
-export type CompactedLayout = {
-    layers: Map<MakeShiftEvent, string>[];
-    layerLabels: LayerLabel[];
-};
 export type Size = {
     width: number;
     height: number;
 };
-export declare function getMainWindow(): BrowserWindow;
+export declare function getMainWindow(): Maybe<BrowserWindow>;
 /**
  * IPC Call API
  *
@@ -31,6 +30,9 @@ export declare function getMainWindow(): BrowserWindow;
 declare const ipcMainCallHandler: {
     openCueFolder: () => Promise<void>;
     runCue: (cueId: any) => Promise<void>;
+    fetchBlocklyToolbox: () => Promise<void>;
+    fetchBlocklyBlocks: () => Promise<void>;
+    fetchBlocklyDefaultWorkspace: () => Promise<void>;
 };
 /**
  * IPC Get API
@@ -57,9 +59,17 @@ declare const ipcMainGetHandler: {
         none: number;
     }>;
     allCues: () => Promise<CueMap>;
+    cuesAttachedToEvent: (event: string) => Promise<CueId>;
     cueById: (id: any) => Promise<Cue>;
     cueByFolder: (folder: any) => Promise<CueMap>;
     clientSize: () => Promise<Size>;
+    blocklyToolbox: () => Promise<any>;
+    allBlocklySerialWorkspaceNames: () => Promise<string[]>;
+    blocklySerialWorkspace: (workspaceKey: any) => Promise<any>;
+    blockGenerator: (block: Block) => Promise<any>;
+    storedObjectKeys: () => Promise<string[]>;
+    defaultTheme: () => Promise<Theme>;
+    themeFromPath: (path: string) => Promise<Theme>;
 };
 /**
  * IPC Set API
@@ -67,14 +77,19 @@ declare const ipcMainGetHandler: {
  * modifies state
  */
 declare const ipcMainSetHandler: {
+    serialWorkspaceAsCue: (serialWorkspace: any) => Promise<Cue>;
     cueFile: typeof saveCueFile;
+    blocklyWorkspaceForEvent: (data: {
+        workspaceName: string;
+        event: string;
+    }) => Promise<void>;
     cueForEvent: (data: {
         cueId: string;
         event: string;
-        contents: Uint8Array;
+        contents?: Uint8Array;
     }) => Promise<string>;
 };
-export declare function attachWatchers(): Promise<void>;
+export declare function attachCueWatchers(): Promise<void>;
 export declare function detachCueFromEvent({ layerName, event, cueId }: {
     layerName: string;
     event: MakeShiftEvent;

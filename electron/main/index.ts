@@ -27,6 +27,7 @@ import { pathToFileURL } from 'node:url'
 // electron related imports
 import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
 import * as Store from 'electron-store'
+import { Block } from 'blockly'
 
 // makeshift serial imports
 import {
@@ -51,25 +52,40 @@ import {
   MakeShiftSerialEvents,
 } from '@eos-makeshift/serial'
 
+// Utilities
 import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
-import { plugins, initPlugins, installPlugin } from './plugins'
-import { ctrlIpcApi, storeKeys } from '../ipcApi'
-import { ctrlLogger } from './utils'
 import { json } from 'stream/consumers'
 import {
   v4 as uuidv4,
   v5 as uuidv5,
 } from 'uuid'
+import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
+
+// makeshift ctrl imports
+import { plugins, initPlugins, installPlugin } from './plugins'
+import { ctrlIpcApi, storeKeys } from '../ipcApi'
+import { ctrlLogger } from './utils'
+import {
+  initBlockly,
+  syncGroupsWithToolbox,
+  generateCodeFromWorkspace,
+  sendBlocks,
+  sendDefaultWorkspace,
+  saveSerialWorkspace,
+  workspaceStore,
+  workspaceList
+} from './blockly'
 import {
   // data structures
   cues, cueWatcher,
   // functions
-  initCues, loadedCueModules, importCueModule, saveCueFile, cueFromRelativePath,
+  initCues, loadedCueModules, importCueModule, saveCueFile, generateCueFromRelativePath, cueExists,
   // types
-  CueId, CueMap, CueModule, Cue, cueExists,
+  Cue, CueId, CueMap, CueModule,
 } from './cues'
 import { DefaultTheme, Theme, loadTheme } from './themes'
-// import internal from 'node:stream'
+import { block } from 'blockly/core/tooltip'
+import { maybe } from 'purify-ts'
 
 
 let nanoid
@@ -92,8 +108,8 @@ if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 // initializing all independent globals
 let attachedDeviceFingerprints: MakeShiftPortFingerprint[] = []
 let knownDeviceFingerprints: MakeShiftPortFingerprint[] = [];
-let mainWindow: BrowserWindow | null = null
-let splashWindow: BrowserWindow | null = null
+let mainWindow: Maybe<BrowserWindow> = Nothing
+let splashWindow: Maybe<BrowserWindow> = Nothing
 let tray: Tray | null = null
 let menu: Menu | null = null
 
@@ -117,16 +133,16 @@ export type Layout = {
   layers: EventCueMap[],
   layerLabels: LayerLabel[],
 }
-export type CompactedLayout = {
-  layers: Map<MakeShiftEvent, string>[],
-  layerLabels: LayerLabel[],
-}
+// export type CompactedLayout = {
+//   layers: Map<MakeShiftEvent, string>[],
+//   layerLabels: LayerLabel[],
+// }
 export type Size = {
   width: number,
   height: number,
 }
 
-export function getMainWindow(): BrowserWindow { return mainWindow }
+export function getMainWindow() { return mainWindow }
 
 const layout: Layout = {
   layers: [new Map()],
@@ -141,7 +157,7 @@ const cueMapLayers: EventCueMap[] = [
 let currentLayer = 0
 
 // Create Loggers
-const msgen = new Msg({ host: 'Ctrl', logLevel: 'all' })
+const msgen = new Msg({ host: 'Ctrl', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
@@ -169,6 +185,7 @@ if (app.isPackaged) {
 process.env.APPDATA = join(app.getPath('appData'), 'makeshift-ctrl')
 process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
+process.env.BLOCKLY_CUES = join(process.env.APPDATA, 'blocks')
 process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
 if (process.platform === 'darwin') {
   process.env.TEMP = join('/private', process.env.TEMP)
@@ -177,6 +194,7 @@ if (process.platform === 'darwin') {
 ensureDir(process.env.APPDATA)
 ensureDir(process.env.PLUGINS)
 ensureDir(process.env.CUES)
+ensureDir(process.env.BLOCKLY_CUES)
 ensureDir(process.env.TEMP)
 
 // always cleanup temp from last startup
@@ -236,31 +254,40 @@ setLogLevel('none')
 setPortAuthorityLogLevel('none')
 
 // connects the IPC API handers in three fell swoops
-for (const caller in ctrlIpcApi.call) {
-  ipcMain.handle(ctrlIpcApi.call[caller], (ev, data) => {
-    return ipcMainCallHandler[caller](data)
-  })
-}
 
-for (const getter in ctrlIpcApi.get) {
-  ipcMain.handle(ctrlIpcApi.get[getter], (ev, data) => {
-    return ipcMainGetHandler[getter](data)
-  })
+function attachHandlers(api: any, handler: any) {
+  for (const event in api) {
+    ipcMain.handle(api[event], (ev, data) => {
+      return handler[event](data)
+    })
+  }
 }
+// for (const caller in ctrlIpcApi.call) {
+//   ipcMain.handle(ctrlIpcApi.call[caller], (ev, data) => {
+//     return ipcMainCallHandler[caller](data)
+//   })
+// }
 
-for (const setter in ctrlIpcApi.set) {
-  ipcMain.handle(ctrlIpcApi.set[setter], (ev, data) => {
-    return ipcMainSetHandler[setter](data)
-  })
-}
+// for (const getter in ctrlIpcApi.get) {
+//   ipcMain.handle(ctrlIpcApi.get[getter], (ev, data) => {
+//     return ipcMainGetHandler[getter](data)
+//   })
+// }
 
-log.debug(nspct2(ctrlIpcApi.call))
-log.debug(nspct2(ctrlIpcApi.get))
-log.debug(nspct2(ctrlIpcApi.set))
+// for (const setter in ctrlIpcApi.set) {
+//   ipcMain.handle(ctrlIpcApi.set[setter], (ev, data) => {
+//     return ipcMainSetHandler[setter](data)
+//   })
+// }
+
+log.debug(`ctrlIpcApi.call: ${nspect(ctrlIpcApi.call, 1)}`)
+log.debug(`ctrlIpcApi.get: ${nspect(ctrlIpcApi.get, 1)}`)
+log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 
 // Load non-conflicting resources
 const preloadBarrier = []
 // preloadBarrier.push(initPlugins())
+preloadBarrier.push(initBlockly())
 preloadBarrier.push(initCues())
 
 // Open splash
@@ -276,7 +303,7 @@ app.whenReady()
       log.debug(`${key}: ${nspect(val, 1)}`)
     })
     // loadingBarrier.push(loadLayouts())
-    loadingBarrier.push(attachWatchers())
+    loadingBarrier.push(attachCueWatchers())
 
     PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
     PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
@@ -288,18 +315,28 @@ app.whenReady()
     // Start application when loading finishes
     await Promise.all(loadingBarrier)
     log.debug('Loading finished')
-    splashWindow.hide()
-    splashWindow.close()
+    splashWindow.map(sw => {
+      sw.hide()
+      sw.close()
+    })
     createMainWindow()
-
   })
 
 
 
-ipcMain.handle(Api.test, async () => {
+ipcMain.handle(Api.test, async (ev, workspace) => {
   log.debug(`testerino`)
-  const css = await loadTheme('./electron/main/test.css')
-  // log.debug(css)
+  // const cueName = workspace.blocks.blocks[0].fields['CUE_NAME']
+  // log.debug(`cueName: ${cueName}`)
+  // const jsCode = await generateCodeFromWorkspace(workspace)
+  // const cue = generateCueFromRelativePath(cueName + '.cue.js')
+  // log.debug(`jsCode: ${jsCode}`)
+  // log.debug(`cue: ${nspct2(cue)}`)
+  // saveSerialWorkspace(cue, workspace)
+  // saveCueFile({
+  //   cueId: cue.id,
+  //   contents: jsCode,
+  // })
 })
 
 
@@ -330,6 +367,15 @@ const ipcMainCallHandler = {
     } catch (e) {
       log.error(`Cue ${cueId} could not be run\n\tIssue: ${e}`)
     }
+  },
+  fetchBlocklyToolbox: async () => {
+    syncGroupsWithToolbox()
+  },
+  fetchBlocklyBlocks: async () => {
+    sendBlocks()
+  },
+  fetchBlocklyDefaultWorkspace: async () => {
+    sendDefaultWorkspace()
   }
 }
 
@@ -346,10 +392,19 @@ const ipcMainGetHandler = {
   eventsAsList: async () => DeviceEventsFlat,
   logRank: async () => logRank,
   allCues: async () => cues,
-  cueById: async (id) => {
-    log.debug(`Getting cue with id: ${id}`)
-    return cues.get(id)
+  cuesAttachedToEvent: async (event: string): Promise<CueId> => {
+    log.debug(`cuesAttachedToEvent: ${event}`)
+    log.debug(`layout: ${nspct2(Array.from(layout.layers[currentLayer].keys()))}`)
+    log.debug(`cue: ${nspct2(layout.layers[currentLayer].get(event))}`)
+    const maybeCue = layout.layers[currentLayer].get(event)
+
+    if (maybeCue !== undefined) {
+      return maybeCue.name
+    }
+    return undefined
+    // return 'butthole'
   },
+  cueById: async (id) => cues.get(id),
   cueByFolder: async (folder) => {
     const cuesInFolder: CueMap = new Map()
     cues.forEach((val, key) => {
@@ -360,8 +415,27 @@ const ipcMainGetHandler = {
     return cuesInFolder
   },
   clientSize: async (): Promise<Size> => {
-    const sizeArray = mainWindow.getContentSize()
+    const sizeArray = mainWindow
+      .map(mw => mw.getContentSize())
+      .orDefault([0, 0])
     return { width: sizeArray[0], height: sizeArray[1] }
+  },
+  blocklyToolbox: async (): Promise<any> => {
+    return 'toaster'
+  },
+  allBlocklySerialWorkspaceNames: async (): Promise<string[]> => {
+    return Object.keys(workspaceList)
+  },
+  blocklySerialWorkspace: async (workspaceKey): Promise<any> => {
+    log.debug(`blocklySerialWorkspace: ${workspaceKey}`)
+    log.debug(`workspaceList: ${nspct2(workspaceList[workspaceKey])}`)
+    return workspaceList[workspaceKey]
+  },
+  blockGenerator: async (block: Block): Promise<any> => {
+    return 'toaster'
+  },
+  storedObjectKeys: async () => {
+    return ['test', 'test2']
   },
   defaultTheme: async (): Promise<Theme> => DefaultTheme,
   themeFromPath: async (path: string): Promise<Theme> => {
@@ -373,7 +447,7 @@ const ipcMainGetHandler = {
       return loadResult.theme
 
     }
-  }
+  },
 }
 
 /**
@@ -382,34 +456,84 @@ const ipcMainGetHandler = {
  * modifies state
  */
 const ipcMainSetHandler = {
+  serialWorkspaceAsCue: async (serialWorkspace) => {
+    // Code generation works as a pseudo type checker
+    return (await generateCodeFromWorkspace(serialWorkspace)).mapOrDefault(jsCode => {
+      const cueName = serialWorkspace.blocks.blocks[0].fields['CUE_NAME']
+      log.debug(`cueName: ${cueName}`)
+      const cue = generateCueFromRelativePath(cueName + '.cue.js')
+      log.debug(`cue: ${nspct2(cue)}`)
+      saveSerialWorkspace(cue, serialWorkspace)
+      log.debug(`jsCode: ${jsCode}`)
+      saveCueFile({
+        cueId: cue.id,
+        contents: jsCode,
+      })
+      return cue
+    }, undefined)
+  },
   cueFile: saveCueFile,
+  blocklyWorkspaceForEvent: async (data: {
+    workspaceName: string,
+    event: string,
+  }) => {
+    const { workspaceName, event } = data;
+    (await generateCodeFromWorkspace(workspaceList[workspaceName])).mapOrDefault(jsCode => {
+      const cueName = workspaceList[workspaceName].blocks.blocks[0].fields['CUE_NAME']
+      log.debug(`cueName: ${cueName}`)
+      const cue = generateCueFromRelativePath(cueName + '.cue.js')
+      log.debug(`cue: ${nspct2(cue)}`)
+      saveSerialWorkspace(cue, workspaceList[workspaceName])
+      log.debug(`jsCode: ${jsCode}`)
+      saveCueFile({
+        cueId: cue.id,
+        contents: jsCode,
+      })
+      attachCueToEvent({
+        layerName: 'base',
+        cueId: cue.id,
+        event: event,
+      })
+      return cue
+    }, undefined)
+  },
   cueForEvent: async (data: {
     cueId: string,
     event: string,
-    contents: Uint8Array,
+    contents?: Uint8Array,
   }) => {
-    const fullPath = await saveCueFile({
-      cueId: data.cueId,
-      contents: data.contents,
-    })
-    await attachCueToEvent({
-      layerName: 'base',
-      cueId: data.cueId,
-      event: data.event,
-    })
+    if (data.contents !== undefined) {
+      const fullPath = await saveCueFile({
+        cueId: data.cueId,
+        contents: data.contents,
+      })
+      return fullPath
+    } else if (cues.get(data.cueId) !== undefined) {
+      await attachCueToEvent({
+        layerName: 'base',
+        cueId: data.cueId,
+        event: data.event,
+      })
 
-    return fullPath
+      return cues.get(data.cueId).fullPath
+    }
+
+    return undefined
   },
 }
+
+attachHandlers(ctrlIpcApi.call, ipcMainCallHandler)
+attachHandlers(ctrlIpcApi.get, ipcMainGetHandler)
+attachHandlers(ctrlIpcApi.set, ipcMainSetHandler)
 
 /**
  * Window Creation functions
  */
 
 async function createSplashWindow() {
-  log.info('App ready')
+  log.info('App ready, creating splash window...')
 
-  splashWindow = new BrowserWindow({
+  const splash = new BrowserWindow({
     show: false,
     frame: false,
     width: 350,
@@ -418,13 +542,15 @@ async function createSplashWindow() {
     icon: join(process.env.ASSETS, 'icon/makeshiftctrl_bright.png'),
   })
 
+  splashWindow = Just(splash)
+
   if (app.isPackaged) {
-    splashWindow.loadURL(loaderEntry)
+    splash.loadURL(loaderEntry)
   } else {
-    splashWindow.loadURL(devUrl + '/loader.html')
+    splash.loadURL(devUrl + '/loader.html')
     // Open devTool if the app is not packaged
   }
-  splashWindow.show()
+  splash.show()
   // splashWindow.webContents.openDevTools()
 }
 
@@ -440,7 +566,7 @@ async function createMainWindow() {
     windowPos = store.get(storeKeys.MainWindowState)
   }
 
-  mainWindow = new BrowserWindow({
+  const mw = new BrowserWindow({
     show: false,
     title: 'makeshift-ctrl',
     minWidth: 300,
@@ -457,23 +583,26 @@ async function createMainWindow() {
       contextIsolation: true,
     },
   })
+
+  mainWindow = Just(mw)
+
   // This loads the index and chains into src/main.ts
   if (app.isPackaged) {
-    mainWindow.loadFile(htmlEntry)
+    mw.loadFile(htmlEntry)
   } else {
-    mainWindow.loadURL(devUrl)
+    mw.loadURL(devUrl)
     // Open devTool if the app is not packaged
-    mainWindow.webContents.openDevTools()
+    mw.webContents.openDevTools()
   }
 
   // attach PA listeners
   PortAuthority.on(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
   PortAuthority.on(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
 
-  mainWindow.on('ready-to-show', mainWindow.show)
-  mainWindow.on('close', () => {
-    const size = mainWindow.getSize()
-    const pos = mainWindow.getPosition()
+  mw.on('ready-to-show', mw.show)
+  mw.on('close', () => {
+    const size = mw.getSize()
+    const pos = mw.getPosition()
     const newPosition = {
       x: pos[0],
       y: pos[1],
@@ -486,16 +615,12 @@ async function createMainWindow() {
     log.debug(nspct2(newPosition))
 
     // detach listeners from PortAuth
-    PortAuthority.removeListener(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
-    PortAuthority.removeListener(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
+    PortAuthority.removeAllListeners()
 
     // detach listeners from Ports
     for (const fp of attachedDeviceFingerprints) {
       for (const lv in SerialEvents.Log) {
-        Ports[fp.deviceSerial].removeListener(
-          SerialEvents.Log[lv as MsgLevel],
-          serialLogToMainWindow
-        )
+        Ports[fp.deviceSerial].removeAllListeners()
       }
     }
   })
@@ -506,40 +631,59 @@ async function createMainWindow() {
   // })
 
   // Make all links open with the browser, not with the application
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+  mw.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+
 }
 
 // these more or less handle logging, 
 // user written code is attached directly in the main process
 const mainWindowPortHandler = {
   opened: async function (fp: MakeShiftPortFingerprint) {
-    mainWindow.webContents.send(Api.onEv.device.connected, fp)
-    for (const lv in SerialEvents.Log) {
-      Ports[fp.deviceSerial].on(
-        SerialEvents.Log[lv as MsgLevel],
-        serialLogToMainWindow
-      )
-    }
-    attachedDeviceFingerprints.push[fp.deviceSerial]
+    mainWindow.ifJust(mw => {
+      mw.webContents.send(Api.onEv.device.connected, fp)
+      for (const lv in SerialEvents.Log) {
+        Ports[fp.deviceSerial].on(
+          SerialEvents.Log[lv as MsgLevel],
+          serialLogToMainWindow
+        )
+      }
+      attachedDeviceFingerprints.push[fp.deviceSerial]
+    })
+
   },
   closed: async function (fp: MakeShiftPortFingerprint) {
-    mainWindow.webContents.send(Api.onEv.device.disconnected, fp)
-    attachedDeviceFingerprints = attachedDeviceFingerprints.filter((attached) => {
-      return (attached.deviceSerial !== fp.deviceSerial)
+    mainWindow.ifJust(mw => {
+      mw.webContents.send(Api.onEv.device.disconnected, fp)
+      attachedDeviceFingerprints = attachedDeviceFingerprints.filter((attached) => {
+        return (attached.deviceSerial !== fp.deviceSerial)
+      })
     })
   }
 }
 
 async function serialLogToMainWindow(data: LogMessage) {
-  mainWindow.webContents.send(Api.onEv.terminal.data, data)
+  mainWindow.ifJust(mw => {
+    try {
+      mw.webContents.send(Api.onEv.terminal.data, data)
+    } catch (e) {
+      log.error(`Could not send serial log to mainWindow\n\tIssue: ${e}`)
+    }
+  })
 }
 
 // app.on('second-instance', () => {
 //   createWindow()
 // })
+// 
+/**
+ * Blockly section
+ */
+
+
+
 
 /**
  * Cue section
@@ -561,14 +705,14 @@ function runCue(eventData) {
   }
 }
 
-export async function attachWatchers() {
+export async function attachCueWatchers() {
   cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
   cueWatcher.on('add', path => cueWatcherHandler.add(path))
   cueWatcher.on('change', path => cueWatcherHandler.add(path))
   cueWatcher.on('unlink', path => cueWatcherHandler.unlink(path))
-  cueWatcher.on('addDir', path => log.info(`Dir ${path} has been added`))
-  cueWatcher.on('unlinkDir', path => log.info(`Dir ${path} has been unlinked`))
-  cueWatcher.on('error', err => log.info(`err ${err}`))
+  cueWatcher.on('addDir', path => log.debug(`Added directory to watch list: ${path}`))
+  cueWatcher.on('unlinkDir', path => log.debug(`Removing directory from watch list: ${path}`))
+  cueWatcher.on('error', err => log.debug(`err ${err}`))
 }
 
 export async function detachCueFromEvent({ layerName, event, cueId }:
@@ -642,29 +786,29 @@ export async function attachCueToEvent({ layerName, event, cueId }:
 const cueWatcherHandler = {
   add: async function (path) {
     let newCue
-    log.debug(`New cue from: ${path}`)
     try {
-      newCue = cueFromRelativePath(path)
+      newCue = generateCueFromRelativePath(path)
       cues.set(newCue.id, newCue)
       newCue.contents = await readFile(newCue.fullPath)
       cues.set(newCue.id, newCue)
       // log.debug(nspct2(newCue))
+      log.debug(`Created new cue from ${path}`)
     } catch (e) {
-      log.warn(`Checking cue: ${path} \n    ${e}`)
+      log.debug(`Checked ${path}\n\t${e}`)
     }
-    if (mainWindow !== null) {
-      mainWindow.webContents.send(Api.onEv.cue.added, newCue)
-    }
+    mainWindow.ifJust(mw => {
+      mw.webContents.send(Api.onEv.cue.added, newCue)
+    })
   },
   unlink: function (path) {
     try {
-      const maybeCue = cueFromRelativePath(path)
-      if (mainWindow !== null) {
-        mainWindow.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
-      }
+      const maybeCue = generateCueFromRelativePath(path)
+      mainWindow.ifJust(mw => {
+        mw.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
+      })
       cues.delete(maybeCue.id)
     } catch (e) {
-      log.error(`Unabled to load cue from ${path} => ${e}`)
+      log.debug(`Unabled to load cue from ${path} => ${e}`)
       return
     }
   },
@@ -714,10 +858,10 @@ async function loadLayouts() {
     layers: []
   }
   savedLayout.layers.forEach(async (layerArray) => {
-    log.debug(`layerArray: ${nspct2(layerArray)}`)
+    // log.debug(`layerArray: ${nspct2(layerArray)}`)
     const existsArray = []
     for (const pair of layerArray) {
-      log.debug(`array pair: ${nspct2(pair)}`)
+      log.debug(`Found event mapping: ${nspct2(pair)}`)
       const cueId = pair[1]
       if (cueExists(pair[1])) {
         try {
@@ -726,23 +870,23 @@ async function loadLayouts() {
           importCueModule(cues.get(cueId))
           pair[1] = cues.get(cueId)
           existsArray.push(pair)
-          log.debug(`array pair pt 2 ${nspct2(pair)}`)
+          // log.debug(`array pair pt 2 ${nspct2(pair)}`)
         } catch (e) { }
       }
     }
 
-    log.debug(`existsArray: ${nspct2(existsArray)}`)
+    // log.debug(`existsArray: ${nspct2(existsArray)}`)
     const layerMap = new Map(existsArray) as EventCueMap
-    log.debug(`layerMap: ${nspct2(layerMap)}`)
+    // log.debug(`layerMap: ${nspct2(layerMap)}`)
     tempLayout.layers.push(layerMap)
   })
 
   layout.layers = tempLayout.layers
   layout.layerLabels = tempLayout.layerLabels
 
-  log.debug(nspect(savedLayout, 4))
-  log.debug(nspct2(tempLayout))
-  log.debug(nspct2(layout))
+  // log.debug(nspect(savedLayout, 4))
+  // log.debug(nspct2(tempLayout))
+  log.debug(`Loaded Layouts: ${nspct2(layout)}`)
 }
 
 // Handler function, declared here

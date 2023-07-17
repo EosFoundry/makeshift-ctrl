@@ -5,6 +5,10 @@ import { ref, inject } from 'vue';
 const makeshiftApi = inject('makeshift') as rndrCtrlAPI
 // makeshiftApi.test()
 const path = ref('')
+
+async function handleGetThemeFromPath(path: string) {
+  makeshiftApi.get.themeFromPath(path)
+}
 </script>
 
 <template>
@@ -14,13 +18,13 @@ const path = ref('')
       class="inline mx-3"
     />
     <button
-      @click="makeshiftApi.get.themeFromPath(path)"
+      @click="handleGetThemeFromPath(path)"
       class="inline mx-3"
     >
       get theme from path
     </button>
     <button
-      @click="makeshiftApi.test()"
+      @click="makeshiftApi.test('asdf')"
       class="inline mx-3"
     >
       call test()

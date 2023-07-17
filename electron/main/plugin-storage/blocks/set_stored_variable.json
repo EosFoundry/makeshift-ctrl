@@ -1,0 +1,34 @@
+  {
+    "type": "set_stored_variable",
+    "message0": "set %1 to %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "NAME",
+        "options": [
+          [
+            "option",
+            "OPTIONNAME"
+          ],
+          [
+            "option",
+            "OPTIONNAME"
+          ],
+          [
+            "option",
+            "OPTIONNAME"
+          ]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "NAME"
+      }
+    ],
+    "inputsInline": false,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "",
+    "helpUrl": ""
+  }

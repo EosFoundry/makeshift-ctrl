@@ -14,6 +14,8 @@ import * as Nut from '@nut-tree/nut-js'
 import { ctrlLogger } from './utils'
 import { dialog } from 'electron'
 import { plugins } from './plugins'
+import { load } from 'blockly/core/serialization/workspaces'
+import { Fileio } from './fileio'
 // import { DeviceId } from '.'
 
 export type IModule = typeof Electron.CrossProcessExports
@@ -44,10 +46,11 @@ export interface CueModule extends IModule {
     }
   },
   modulePath: string,
+  [key: string]: any
 }
 
 // Create Loggers
-const msgen = new Msg({ host: 'CueHandler', logLevel: 'info' })
+const msgen = new Msg({ host: 'CueHandler', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 const textDecoder = new TextDecoder()
@@ -59,6 +62,7 @@ let cueTempDir = ''
 
 
 export async function initCues() {
+  log.info('Initializing CueHandler...')
   const examplesFolder = join(process.env.CUES, 'examples')
   cueTempDir = join(process.env.TEMP, 'temp')
   if (existsSync(examplesFolder)) { } else {
@@ -81,7 +85,13 @@ export function cueExists(cueId: CueId): boolean {
   return existsSync(join(process.env.CUES, cueId))
 }
 
-export function cueFromRelativePath(path): Cue {
+
+/**
+ * Creates a new cue from a path relative to the default cue folder 
+ * i.e.  `{folders if any}/cuefile.cue.js` - the path does not need to exist.
+ * @param path 
+ */
+export function generateCueFromRelativePath(path): Cue {
   const fileName = basename(path)
   const folderName = dirname(path)
   const fullPath = resolve(join(process.env.CUES, path))
@@ -95,13 +105,14 @@ export function cueFromRelativePath(path): Cue {
     throw 'Path given does not contain a cue file.'
   }
   const cueName = basename(fileName, ext)
+  const id = normalizePosix(path)
   log.debug(`Adding new file...`)
   log.debug(`path: ${path}`)
-  log.debug(`url: ${nspct2(fullPath)}`)
+  log.debug(`id: ${id}`)
+  log.debug(`fullPath: ${fullPath}`)
   log.debug(`folder: ${folderName}`)
   log.debug(`file: ${fileName}`)
   log.debug(`cueName: ${cueName}`)
-  const id = normalizePosix(path)
   return {
     id: id,
     file: fileName,
@@ -111,26 +122,40 @@ export function cueFromRelativePath(path): Cue {
   } as Cue
 }
 
-export async function saveCueFile(data: { cueId: string, contents: Uint8Array }): Promise<string> {
+export async function saveCueFile(data: { cueId: CueId, contents: Uint8Array | string }): Promise<string> {
   const { cueId, contents } = data
   // log.debug(nspct2(cueId))
   log.debug(`Saving ${cueId} with data: ${nspct2(data)}`)
-  const contentString = textDecoder.decode(contents)
+
+  let contentString
+
+  if (typeof contents !== 'string') {
+    contentString = textDecoder.decode(contents)
+  } else {
+    contentString = contents
+  }
+
   const fullPath = join(process.env.CUES, cueId)
 
   try {
-    await writeFile(fullPath, contentString)
+    await Fileio.writeFile(fullPath, contentString)
     return fullPath
   } catch (e) {
     return ''
   }
 }
 
+/**
+ * Imports a cue module by generating a temporary file name and copying the cue file to it.
+ * If the cue module has already been loaded, it will be unloaded before being reloaded.
+ * @param cue The cue to import
+ * @returns The imported cue
+ */
 export async function importCueModule(cue: Cue): Promise<Cue> {
   log.debug(`importing... ${cue.id}\n\tExisting cue: loadedCues[${cue.id}] => ${typeof loadedCueModules[cue.id]}`)
   if (typeof loadedCueModules[cue.id] !== 'undefined') {
     // TODO: change to hash checking for better performance
-    log.debug(`Cue ${cue.id} has been loaded as ${nspct2(loadedCueModules[cue.id])}`)
+    log.debug(`Cue ${cue.id} has been loaded as ${nspect(loadedCueModules[cue.id], 0)}`)
     unloadCueModule(cue)
   }
   // the temporary cue file naming scheme:
@@ -199,13 +224,18 @@ export async function importCueModule(cue: Cue): Promise<Cue> {
   }
 }
 
+
+/**
+ * Unloads a cue module from memory.
+ * @param cue The cue to unload.
+ */
 export async function unloadCueModule(cue: Cue) {
   // this deliberately does not detach any loaded cues
   // to avoid running errors if an event is still attached
   if (typeof loadedCueModules[cue.id] !== 'undefined') {
     const moduleId = loadedCueModules[cue.id].modulePath
 
-    log.info(`Unloading ${cue.id} loaded as ${moduleId}`)
+    log.info(`Unloading '${cue.id}' with loaded module: '${moduleId}'`)
 
     const cacheList = Object.keys(require.cache)
     const cueModulesCacheList = cacheList.filter((val) => {

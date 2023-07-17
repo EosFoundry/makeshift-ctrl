@@ -9,17 +9,16 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "declarationDir": "../types/electron",
+    "declaration": true
   },
   "typedocOptions": {
     "entryPoints": [
       "main/index.ts"
     ],
-    "out": "docs",
+    "out": "docs"
   },
   "include": [
-    "./main/*",
-    "./preload/*",
-    "./ipcApi.ts",
-    "./electron-env.d.ts"
-  ],
+    "./**/*.ts",
+    "./main/**/*.ts"
+  ]
 }

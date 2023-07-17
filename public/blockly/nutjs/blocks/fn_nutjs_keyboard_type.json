@@ -1,0 +1,21 @@
+{
+  "type": "fn_nutjs_keyboard_type",
+  "message0": "type %1",
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "KEYBOARD_KEY",
+      "check": [
+        "String",
+        "Array",
+        "Key"
+      ]
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 180,
+  "tooltip": "types a string or array of keys",
+  "helpUrl": "https://nut-tree.github.io/apidoc/classes/keyboard_class.KeyboardClass.html#type",
+  "version": "0.0.1"
+}
