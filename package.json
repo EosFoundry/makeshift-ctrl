@@ -1,7 +1,7 @@
 {
   "name": "@eos-makeshift/ctrl",
   "productName": "makeshift-ctrl",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "desktop interface for MakeShift",
   "main": "dist/electron/main/index.js",
   "scripts": {
