@@ -9,6 +9,7 @@ directories:
 files:
   - dist
 extraFiles:
+  - public
   - examples
 linux:
   artifactName: "${productName}.${ext}"

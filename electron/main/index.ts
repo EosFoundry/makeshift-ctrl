@@ -173,7 +173,7 @@ process.env.DIST_CLIENT = join(process.env.DIST, 'client')
 if (app.isPackaged) {
   msgen.logLevel = 'info'
   process.env.INSTALL_ROOT = join(process.env.APPROOT, '../..')
-  process.env.PUBLIC = process.env.DIST_CLIENT
+  process.env.PUBLIC = join(process.env.INSTALL_ROOT, 'public')
   process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
 } else {
   process.env.INSTALL_ROOT = process.env.APPROOT
