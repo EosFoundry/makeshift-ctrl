@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, computed, onMounted, watch, Ref, onUnmounted, ComputedRef } from 'vue'
+import { inject, ref, computed, onMounted, watch, Ref, onUnmounted, ComputedRef, nextTick } from 'vue'
 
 // @ts-ignore
 import BlocklyDarkTheme from '@blockly/theme-dark'
@@ -164,10 +164,6 @@ onUnmounted(() => {
   // ipcRenderer.removeAllListeners(ctrlIpcApi.onEv.blockly.toolboxUpdate)
 })
 
-function initWorkspace(workspace: WorkspaceSvg) {
-
-}
-
 
 function refitWorkspace() {
   // Compute the absolute coordinates and dimensions of blocklyArea.
@@ -178,55 +174,59 @@ function refitWorkspace() {
   // console.log(wrapperEl, divEl)
   let x = 0
   let y = 0
-  do {
+  if (wrapperEl && wrapperEl !== null) {
     x += wrapperEl.offsetLeft + 2
-    y += wrapperEl.offsetTop + 2 //+ remToPx(3.5)
+    y += wrapperEl.offsetTop + 4 //+ remToPx(3.5)
     wrapperEl = wrapperEl.offsetParent as HTMLDivElement
-  } while (wrapperEl && wrapperEl !== null)
 
-  // Position blocklyDiv over blocklyArea.
-  //@ts-ignore
-  let dx = blocklyWrapper.value.offsetWidth - 8
-  //@ts-ignore
-  let dy = blocklyWrapper.value.offsetHeight - 8 - remToPx(toolbarHeightRem.value)
-  divEl.style.left = x + 'px'
-  divEl.style.top = y + remToPx(toolbarHeightRem.value) + 'px'
-  divEl.style.width = dx + 'px'
-  divEl.style.height = dy + 'px'
+    // Position blocklyDiv over blocklyArea.
+    //@ts-ignore
+    let dx = blocklyWrapper.value.offsetWidth - 8
+    //@ts-ignore
+    let dy = blocklyWrapper.value.offsetHeight - 8 - remToPx(toolbarHeightRem.value)
+    divEl.style.left = x + 'px'
+    divEl.style.top = y + remToPx(toolbarHeightRem.value) + 'px'
+    divEl.style.width = dx + 'px'
+    divEl.style.height = dy + 'px'
 
-  console.log(`blockly refit | dx: ${dx}, dy: ${dy}`)
+    console.log(`blockly refit | dx: ${dx}, dy: ${dy}`)
 
-  Blockly.svgResize(workspace)
+    Blockly.svgResize(workspace)
+
+  }
 }
 
 watch(
   () => props.panelHeight,
-  (newHeight, oldHeight) => { refitWorkspace() }
+  (newHeight, oldHeight) => {
+    console.log(`panelHeight changed from ${oldHeight} to ${newHeight}`)
+    nextTick(() => refitWorkspace())
+  },
+  { immediate: true }
 )
 
 function saveWorkspace() {
   console.log('needful')
   // console.log(jsCode)
-  const state = Blockly.serialization.workspaces.save(workspace)
-  state.blocks.blocks.forEach((block: any) => {
+  const serialWorkspace = Blockly.serialization.workspaces.save(workspace)
+  serialWorkspace.blocks.blocks.forEach((block: any) => {
     // console.log(block)
     block.hash = blockmap[block.type].hash
     // console.log(Blockly.Blocks[block.type])
   })
-  console.log(state)
-  MakeShiftApi.set.serialWorkspaceAsCue(state).then((res: Cue | undefined) => {
-    console.log(res)
-    if (res === undefined) {
-      showSimplePopup({
-        message: 'Failed to save cue',
-        onOkay: () => { }
-      })
-      return
-    }
-    workspaceId.value = res.id
-  })
-  // TODO: save block version data with the state by pulling it from the workspace
-  // after serialization, then appending it to the state before saving
+  console.log(serialWorkspace)
+  MakeShiftApi.set.serialWorkspaceAsCue(serialWorkspace)
+    .then((res: Cue | undefined) => {
+      console.log(res)
+      if (res === undefined) {
+        showSimplePopup({
+          message: 'Failed to save cue',
+          onOkay: () => { }
+        })
+        return
+      }
+      workspaceId.value = res.id
+    })
 }
 
 function loadWorkspace(newId: string) {
@@ -236,6 +236,7 @@ function loadWorkspace(newId: string) {
     console.log(res)
     Blockly.serialization.workspaces.load(res, workspace)
   })
+  // TODO: check workspace block hashes against loaded blocklist hashes and warn user if blocks are outdated or changed
 }
 
 function deployAsCue(workspaceId: string) {
@@ -250,7 +251,6 @@ function deployAsCue(workspaceId: string) {
   MakeShiftApi.set.cueForEvent({ cueId: workspaceId, event: selectedEvent.value }).then((res) => {
     console.log(res)
   })
-
 }
 
 
@@ -268,7 +268,7 @@ function deployAsCue(workspaceId: string) {
     id="blockly-wrapper"
     ref="blocklyWrapper"
     :class="['overflow-clip',
-      'm-3',
+      // 'm-3',
       'z-50',
       'rounded-lg',
       'border-solid',

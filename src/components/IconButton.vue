@@ -40,7 +40,7 @@ if (props.hoverColor) {
     :size="props.size"
     :color="iconColor.value"
     :clickable="props.clickable"
-    :tite="props.title"
+    :title="props.title"
   />
 </template>
 

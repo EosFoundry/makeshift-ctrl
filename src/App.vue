@@ -13,13 +13,7 @@ import SplitPanelVert from './components/SplitPanelVert.vue'
 import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 import BlocklyBox from './components/BlocklyBox.vue'
-import TesterButton from './components/TesterButton.vue'
 import Popup from './components/Popup.vue'
-import { useBooleanState } from './composables/booleanState'
-import { show } from 'blockly/core/contextmenu'
-import { usePopup } from './composables/popup'
-import { showPositionedByBlock } from 'blockly/core/dropdowndiv'
-import { rndrCtrlAPI } from './renderer'
 
 type Size = {
 	width: number
@@ -31,11 +25,11 @@ link.rel = 'stylesheet'
 link.href = 'src/styles/test.css'
 // document.head.appendChild(link)
 
-const api = inject('makeshift') as rndrCtrlAPI
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
 const colorTheme = inject('color-theme') as Ref<string>
+const terminalActive = inject('terminal-active') as Ref<boolean>
 
 colorTheme.value = 'colorblind-light-theme'
 
@@ -49,16 +43,32 @@ const blocklyBoxSize = computed(() => {
 })
 
 const topPanelHeightPercent = ref(69)
+const topPanelSavedHeight = ref(-1)
+const bottomPanelSavedHeight = ref(-1)
 const topPanelHeight = ref(-1)
 const bottomPanelHeight = ref(-1)
+const termHeight = computed(() => {
+	return terminalActive.value ? bottomPanelHeight.value : 0
+})
 
 function panelVertResizeHandler(event: any) {
+	console.log('panelVertResizeHandler')
 	console.log(event)
 	topPanelHeight.value = event.topPanelHeight
 	bottomPanelHeight.value = event.bottomPanelHeight
 	// console.log(bottomPanelHeight.value)
 }
 
+watch(terminalActive, (isActive, oldVal) => {
+	console.log(`terminalActive changed from ${oldVal} to ${isActive}`)
+	topPanelHeightPercent.value = isActive ? 69 : 100
+	// if (isActive) {
+	// 	bottomPanelHeight.value = bottomPanelSavedHeight.value
+	// } else {
+	// 	bottomPanelSavedHeight.value = bottomPanelHeight.value
+	// 	bottomPanelHeight.value = 0
+	// }
+})
 
 const leftPanelWidth = ref(-1)
 const leftPanelWidthPercent = ref(80)
@@ -90,6 +100,11 @@ onMounted(() => {
 			height: document.documentElement.clientHeight
 		}
 	})
+	if(terminalActive.value) {
+		topPanelHeightPercent.value = 69
+	} else {
+		topPanelHeightPercent.value = 100
+	}
 	if (typeof FontSizeMonitorDiv.value !== 'undefined') {
 		fontChecker.observe(FontSizeMonitorDiv.value)
 		checkFontSize(FontSizeMonitorDiv.value)
@@ -103,21 +118,11 @@ nextTick(() => {
 	// topPaneHeight.value = 70
 })
 
-const { state: popupShown, toggle: togglePopup } = useBooleanState()
-const { showPrompt, } = usePopup()
-
-
-function toast() {
-	console.log(api)
-	api.get.blocklyToolbox().then((toolbox) => {
-		console.log(toolbox)
-		console.log(typeof toolbox)
-	})
-}
 </script>
 
 <template>
 	<div :class="[colorTheme, 'bg-bg', 'color-text', 'h-full']">
+		<!-- invisible elements -->
 		<div
 			id='font-size-monitor-div'
 			ref="FontSizeMonitorDiv"
@@ -125,58 +130,23 @@ function toast() {
 		>
 			font-size-monitor-text
 		</div>
-		<Popup/>
-		<!-- <select
-			name="color-theme-selector"
-			v-model="colorTheme"
-		>
-			<option value="light-theme">Light</option>
-			<option value="dark-theme">Dark</option>
-		</select>
-		<button @click="toast">toast</button>
-		<div :class="['width-full']">
-			<TesterButton />
-		</div> -->
+		<Popup />
+		<!-- visible elements -->
 		<TestInterface />
-		<BlocklyBox :panel-height="blocklyBoxSize.height" />
-		<!-- <SplitPanelVert
-		 :height="clientSize.height - remToPx(2.5)"
-		 :topPanelHeightPercent="70"
-		 :margin="8"
-		 @resizing="panelVertResizeHandler"
+		<SplitPanelVert
+			:height="clientSize.height - remToPx(2.2) - 288 - 16 - 12"
+			:topPanelHeightPercent="topPanelHeightPercent"
+			:max-height-percent="70"
+			:margin="8"
+			@resizing="panelVertResizeHandler"
 		>
 			<template #top>
-				<SplitPanelHorz
-				 :height="topPanelHeight"
-				 :width="clientSize.width - 16"
-				 :leftPanelWidthPercent="70"
-				 :margin="0"
-				 @resizing="panelHorzResizeHandler"
-				>
-					<template #left>
-						<CodeBox :panelHeight="topPanelHeight" />
-					</template>
-					<template #right>
-						<SplitPanelVert
-						 :height="topPanelHeight"
-						 :width="rightPanelWidth"
-						 :topPanelHeightPercent="25"
-						 :margin="0"
-						>
-							<template #top>
-								<DevicePanel />
-							</template>
-							<template #bottom>
-								<CuePanel />
-							</template>
-						</SplitPanelVert>
-					</template>
-				</SplitPanelHorz>
+				<BlocklyBox :panelHeight="topPanelHeight" />
 			</template>
 			<template #bottom>
 				<Terminal :panelHeight="bottomPanelHeight" />
 			</template>
-		</SplitPanelVert> -->
+		</SplitPanelVert>
 		<BottomBar />
 	</div>
 </template>

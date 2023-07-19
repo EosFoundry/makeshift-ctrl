@@ -462,9 +462,13 @@ const ipcMainSetHandler = {
       const cueName = serialWorkspace.blocks.blocks[0].fields['CUE_NAME']
       log.debug(`cueName: ${cueName}`)
       const cue = generateCueFromRelativePath(cueName + '.cue.js')
+
       log.debug(`cue: ${nspct2(cue)}`)
+      // This line saves the blocks that the user created
       saveSerialWorkspace(cue, serialWorkspace)
+
       log.debug(`jsCode: ${jsCode}`)
+      // This line saves the cue generated from the blocks
       saveCueFile({
         cueId: cue.id,
         contents: jsCode,

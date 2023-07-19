@@ -46,6 +46,7 @@ const cueRoot: Folder = {
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
     activePopups: ref<SimplePopup[]>([]),
+    terminalActive: ref(false),
   }
 
   console.log(Constants.HardwareDescriptors)
@@ -124,6 +125,7 @@ const cueRoot: Folder = {
     .provide('selected-event', state.selectedEvent)
     .provide('current-device', state.currentDevice)
     .provide('popups', state.activePopups)
+    .provide('terminal-active', state.terminalActive)
     .mount('#app')
     .$nextTick(() => {
       postMessage({ payload: 'removeLoading' }, '*')

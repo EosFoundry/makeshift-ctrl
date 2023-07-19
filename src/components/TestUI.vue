@@ -8,7 +8,7 @@ export default {
 
 <script setup lang="ts">
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
-import { inject, ref, computed, watch, provide, ComputedRef, Ref, onMounted } from 'vue';
+import { inject, ref, computed, watch, provide, ComputedRef, Ref, onMounted, onUnmounted } from 'vue';
 import Icon from './Icon.vue'
 import { Maybe } from 'purify-ts/Maybe'
 import WorkspacePanel from './WorkspacePanel.vue';
@@ -111,6 +111,9 @@ onMounted(() => {
   console.log(eventListFromSelectedInputId.value)
 })
 
+onUnmounted(() => {
+  console.log('unmounted')
+})
 /**
  * TODO:
  * - use `inject()` to get the global variable `selectedEvent` into this component

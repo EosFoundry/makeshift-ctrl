@@ -120,73 +120,76 @@ onUnmounted(() => {
 // fit every last one of them
 watch(
   () => props.panelHeight,
-  (newHeight, oldHeight) => fitTerm()
+  (newHeight, oldHeight) => {
+    nextTick(() => fitTerm())
+  },
+  { immediate: true }
 )
 
 </script>
 
 <template>
   <div
-   class="pane-border w-full h-full flex flex-col"
-   ref="xtermWrapperElement"
+    class="pane-border w-full h-full flex flex-col"
+    ref="xtermWrapperElement"
   >
     <div
-     :class="[
-       'box-border',
-       'border-solid',
-       'border-2',
-       'border-hl',
-       'rounded-lg',
-       'overflow-hidden',
-       'pl-4',
-       'h-full'
-     ]"
-     :style="{
-       backgroundColor: makeShiftTheme.background
-     }"
+      :class="[
+        'box-border',
+        'border-solid',
+        'border-2',
+        'border-hl',
+        'rounded-lg',
+        'overflow-hidden',
+        'pl-4',
+        'h-full'
+      ]"
+      :style="{
+        backgroundColor: makeShiftTheme.background
+      }"
     >
       <div
-       ref="xtermContainerElement"
-       class="xterm-container h-full"
+        ref="xtermContainerElement"
+        class="xterm-container h-full"
       />
     </div>
     <div
-     class="xterm-commandline"
-     :style="{
-       display: cliInputDisplay,
-     }"
+      class="xterm-commandline"
+      :style="{
+        display: cliInputDisplay,
+      }"
     >
       <input
-       class="xterm-cli-input"
-       :style="{
-         color: makeShiftTheme.foreground,
-         backgroundColor: makeShiftTheme.cursorBackground,
-         borderColor: 'var(--color-hl)',
-         caretColor: makeShiftTheme.cursor
-       }"
-       v-model="terminalCommand"
-       @keyup.enter="sendCommand"
+        class="xterm-cli-input"
+        :style="{
+          color: makeShiftTheme.foreground,
+          backgroundColor: makeShiftTheme.cursorBackground,
+          borderColor: 'var(--color-hl)',
+          caretColor: makeShiftTheme.cursor
+        }"
+        v-model="terminalCommand"
+        @keyup.enter="sendCommand"
       />
       <text-button @click="sendCommand">send</text-button>
     </div>
     <div
-     class="hideCli"
-     @click="hideCli"
-     :style="{
-       width: '100%',
-       cursor: 'pointer',
-     }"
+      class="hideCli"
+      @click="hideCli"
+      :style="{
+        width: '100%',
+        cursor: 'pointer',
+      }"
     >
       <div
-       class="icon"
-       :style="{
-         height: '15px',
-         width: '15px',
-         margin: 'auto',
-         marginBottom: '-4px',
-         backgroundColor: 'aliceblue',
-         maskImage: `url(${chevronUrl})`,
-       }"
+        class="icon"
+        :style="{
+          height: '15px',
+          width: '15px',
+          margin: 'auto',
+          marginBottom: '-4px',
+          backgroundColor: 'aliceblue',
+          maskImage: `url(${chevronUrl})`,
+        }"
       />
     </div>
   </div>
@@ -455,4 +458,5 @@ watch(
 .xterm-decoration-top {
   z-index: 2;
   position: relative;
-}</style>
+}
+</style>

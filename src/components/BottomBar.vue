@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { inject, onMounted, Ref } from 'vue';
+import { computed, inject, onMounted, Ref } from 'vue';
 import { MakeShiftDeviceEvents, MakeShiftPortFingerprint, MakeShiftSerialEvents } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg';
 import { rndrCtrlAPI } from '../renderer';
+import termOpenIcon from '../assets/icon/bootstrap/terminal.svg?url'
+import termCloseIcon from '../assets/icon/bootstrap/terminal-fill.svg?url'
+import IconButton from './IconButton.vue';
+import TextButton from './TextButton.vue';
 
 const Events = inject('makeshift-serial-events') as MakeShiftSerialEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
@@ -10,13 +14,17 @@ const makeshift = inject('makeshift') as rndrCtrlAPI
 const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftPortFingerprint[]>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
+const terminalActive = inject('terminal-active') as Ref<boolean>
 
 // console.log(logLevel.value);
 
 const LogLevels = Object.keys(Events.Log)
+const termIcon = computed(() => {
+  return terminalActive.value ? termCloseIcon : termOpenIcon
+})
 
-function needful() {
-  // makeshift.test()
+function toggleTerm() {
+  terminalActive.value = !terminalActive.value
 }
 
 onMounted(() => {
@@ -25,24 +33,50 @@ onMounted(() => {
   }
 })
 
+
 </script>
 
 <template>
-  <div id="toolbar-wrapper">
+  <div
+    id="toolbar-wrapper"
+    :class="[
+      'bg-hl',
+      'absolute',
+      'bottom-0',
+      'left-0',
+      'flex',
+      'h-10',
+      'w-full',
+      'px-3'
+    ]"
+  >
 
     <!-- conncted-devices text div -->
-    <div class="status-text">
-      Connected Device(s):
+    <div :class="[
+      'w-fit',
+      'h-fit',
+      'mr-3'
+    ]">
+      Device(s):
     </div>
 
     <!-- Device list -->
     <div id="device-list">
       <form>
-        <label class="device-status-blob" v-for="dev in connectedDevices" :for="dev.deviceSerial">
-          <input type="radio" :id="dev.deviceSerial" :value="dev" v-model="currentDevice" />
+        <label
+          class="device-status-blob"
+          v-for="dev in connectedDevices"
+          :for="dev.deviceSerial"
+        >
+          <input
+            type="radio"
+            :id="dev.deviceSerial"
+            :value="dev"
+            v-model="currentDevice"
+          />
           <code>
-         <b>ID: {{ dev.deviceSerial.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
-        </code>
+                       <b>ID: {{ dev.deviceSerial.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
+                      </code>
         </label>
       </form>
     </div>
@@ -54,16 +88,31 @@ onMounted(() => {
 
     <!-- Log level selector -->
     <!-- {{ logLevel }} -->
-    <select name="log-level-selector" v-model="logLevel">
+    <select
+      name="log-level-selector"
+      v-model="logLevel"
+    >
       <option v-for="lv in LogLevels">
         {{ lv }}
       </option>
     </select>
 
+
+    <TextButton
+      :icon-url="termIcon"
+      color="var(--color-bg)"
+      hover-color="var(--color-text)"
+      :class="[
+        'ml-3'
+      ]"
+      @click="toggleTerm"
+    >
+    {{ terminalActive ? 'Close' : 'Open' }} Terminal
+    </TextButton>
     <!-- Current Targeted Event status -->
-    <div :class="['mr-3']">
+    <!-- <div :class="['mr-3']">
     {{ selectedEvent }}
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -89,14 +138,6 @@ input[type="radio"]+svg {
 }
 
 
-.status-text {
-  width: fit-content;
-  height: fit-content;
-  margin-left: 8px;
-  margin-right: 8px;
-
-}
-
 .device-status-blob {
   font-family: 'Iosevka Makeshift';
   font-size: 11pt;
@@ -110,5 +151,4 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-bg));
   border-radius: 3px;
 }
-
 </style>
