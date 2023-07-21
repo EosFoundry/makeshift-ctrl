@@ -59,7 +59,7 @@ declare const ipcMainGetHandler: {
         none: number;
     }>;
     allCues: () => Promise<CueMap>;
-    cuesAttachedToEvent: (event: string) => Promise<CueId>;
+    cuesAttachedToEvent: (event: string) => Promise<CueId | undefined>;
     cueById: (id: any) => Promise<Cue>;
     cueByFolder: (folder: any) => Promise<CueMap>;
     clientSize: () => Promise<Size>;

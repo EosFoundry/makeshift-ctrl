@@ -1,11 +1,12 @@
 import { createApp, Ref, ref, computed, watch, ComputedRef } from 'vue'
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
-import { Cue, CueMap } from '../types/electron/main/cues'
+import { Cue, CueMap, CueId } from '../types/electron/main/cues'
 import App from './App.vue'
 import { Size } from 'types/electron/main'
 import { SimplePopup } from './composables/popup'
 import { Selected } from 'blockly/core/events/events_selected'
+import { Maybe, Nothing } from 'purify-ts'
 export type SensorEventDetails = {
   sensorId: number,
   sensorType: string,
@@ -43,6 +44,7 @@ const cueRoot: Folder = {
     cueDirectory: ref(cueRoot) as Ref<Folder>,
     logLevel: ref('info') as Ref<LogLevel>,
     selectedEvent: ref('sensor-0-dial-increment'),
+    selectedEventCues: ref(''),
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
     activePopups: ref<SimplePopup[]>([]),
@@ -50,8 +52,22 @@ const cueRoot: Folder = {
   }
 
   console.log(Constants.HardwareDescriptors)
-
+  
+  // set up initial selected event cue state
+  state.selectedEventCues.value = await window.MakeShiftCtrl.get.cuesAttachedToEvent(state.selectedEvent.value)
+  
+  // console.log(`initial selected event: ${state.selectedEvent}`)
+  // console.log(`initial selected event cues: ${state.selectedEventCues}`)
+  
+  // set up watcher for selected event to keep the attached cues up to date
+  watch(state.selectedEvent, async (newEventName: string) => {
+    // console.log(`selected event changed to ${newEventName}`)
+    state.selectedEventCues.value = await window.MakeShiftCtrl.get.cuesAttachedToEvent(newEventName)
+    // console.log(`selected event cues: ${state.selectedEventCues.value}`)
+  })
+  
   const initialDevices = await window.MakeShiftCtrl.get.connectedDevices()
+
   // Set up event hooks for device connections
   state.connectedDevices.value = initialDevices
   if (initialDevices.length > 0) {
@@ -123,6 +139,7 @@ const cueRoot: Folder = {
     .provide('logLevel', state.logLevel)
     .provide('makeshift-logRank', state.logRank)
     .provide('selected-event', state.selectedEvent)
+    .provide('selected-event-cues', state.selectedEventCues)
     .provide('current-device', state.currentDevice)
     .provide('popups', state.activePopups)
     .provide('terminal-active', state.terminalActive)

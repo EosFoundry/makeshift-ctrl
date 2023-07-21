@@ -25,13 +25,14 @@ import { workspaceCommentOption } from 'blockly/core/contextmenu'
 import { remToPx } from '../utilities/cssUnits'
 import { SensorEventDetails } from '../main'
 import { capitalizeFirstLetter, getEventDetails } from '../utilities/str'
-import { Cue } from 'electron/main/cues'
+import { Cue, CueId } from '../../types/electron/main/cues'
 // console.log(toast)
 // console.log(storage)
 
 const colorTheme = inject('color-theme') as Ref<string>
 const MakeShiftApi = inject('makeshift') as rndrCtrlAPI
 const selectedEvent = inject('selected-event') as Ref<string>
+const selectedEventCues = inject('selected-event-cues') as Ref<CueId | undefined>
 
 const selectedEventDetails = ref(getEventDetails(selectedEvent.value)) as Ref<SensorEventDetails>
 
@@ -239,8 +240,9 @@ function loadWorkspace(newId: string) {
   // TODO: check workspace block hashes against loaded blocklist hashes and warn user if blocks are outdated or changed
 }
 
-function deployAsCue(workspaceId: string) {
+async function deployAsCue(workspaceId: string) {
   console.log(`deploying workspace ${workspaceId} as cue`)
+
   if (selectedEvent.value === 'none' || selectedEvent.value === '' || selectedEvent.value === undefined) {
     showSimplePopup({
       message: 'No event selected',
@@ -248,9 +250,15 @@ function deployAsCue(workspaceId: string) {
     })
     return
   }
-  MakeShiftApi.set.cueForEvent({ cueId: workspaceId, event: selectedEvent.value }).then((res) => {
-    console.log(res)
+
+  await MakeShiftApi.set.cueForEvent({
+    cueId: workspaceId,
+    event: selectedEvent.value
   })
+
+  selectedEventCues.value = workspaceId
+  // console.log(selectedEventCues)
+
 }
 
 

@@ -10,20 +10,21 @@ export default {
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial';
 import { inject, ref, computed, watch, provide, ComputedRef, Ref, onMounted, onUnmounted } from 'vue';
 import Icon from './Icon.vue'
-import { Maybe } from 'purify-ts/Maybe'
 import WorkspacePanel from './WorkspacePanel.vue';
 import pressedIcon from '../assets/icon/bootstrap/layer-backward.svg?url'
 import releasedIcon from '../assets/icon/bootstrap/layer-forward.svg?url'
 import incrementIcon from '../assets/icon/bootstrap/arrow-clockwise.svg?url'
 import decrementIcon from '../assets/icon/bootstrap/arrow-counterclockwise.svg?url'
 import { SensorEventDetails } from 'src/main';
+import { CueId } from '../../types/electron/main/cues';
 import { getEventDetails } from '../utilities/str';
 
 const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
 const HardwareDescriptors = inject('hardware-descriptors') as any
-const SelectedEvent = inject('selected-event') as Ref<string>
-const initialEventDetails = getEventDetails(SelectedEvent.value)
-const SelectedEventDetails = ref(initialEventDetails) as Ref<SensorEventDetails>
+const selectedEvent = inject('selected-event') as Ref<string>
+const selectedEventCues = inject('selected-event-cues') as Ref<CueId|undefined>
+const initialEventDetails = getEventDetails(selectedEvent.value)
+const selectedEventDetails = ref(initialEventDetails) as Ref<SensorEventDetails>
 
 
 const MakeshiftMap = HardwareDescriptors.MakeShift
@@ -104,51 +105,51 @@ function selectInput(input: any) {
 }
 
 onMounted(() => {
-  console.log('mounted')
-  console.log(SelectedEvent.value)
-  console.log(SelectedEventDetails.value.eventType)
-  console.log(selectedInputId.value)
-  console.log(eventListFromSelectedInputId.value)
+  // console.log('mounted')
+  // console.log(selectedEvent.value)
+  // console.log(selectedEventDetails.value.eventType)
+  // console.log(selectedInputId.value)
+  // console.log(eventListFromSelectedInputId.value)
 })
 
 onUnmounted(() => {
-  console.log('unmounted')
+  // console.log('unmounted')
 })
+
 /**
  * TODO:
  * - use `inject()` to get the global variable `selectedEvent` into this component
  *   - The `selectedEvent` variable is declared in `src/main.ts`
  * - when handling the click event, update the global variable `selectedEvent`
  */
-
 const selectedDeviceEventName = ref()
 function updateSelectedEventName(inputType: any, inputEvent: any) {
-  console.log('updateSelectedEventName')
-  selectedDeviceEventName.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
-  console.log(inputType)
-  console.log(inputEvent)
-  console.log(SelectedEventDetails.value)
-  SelectedEvent.value = selectedDeviceEventName.value
-  console.log(SelectedEvent)
+  // console.log('updateSelectedEventName')
+  selectedEvent.value = DeviceEvents[inputType][selectedInputId.value][inputEvent.toUpperCase()]
+  // console.log(inputType)
+  // console.log(inputEvent)
+  // console.log(selectedEventDetails.value)
+  // console.log(selectedEvent)
 }
-const attachedCues = ref('none')
-watch(selectedDeviceEventName, () => {
-  console.log('selectedDeviceEventName changed')
-  console.log(selectedDeviceEventName.value)
-  window.MakeShiftCtrl.get.cuesAttachedToEvent(selectedDeviceEventName.value)
-    .then((maybeCueId) => {
-      if (typeof maybeCueId === 'undefined') {
-        attachedCues.value = 'none'
-      } else {
-        attachedCues.value = maybeCueId
-      }
-    })
-})
+
+// const attachedCues = ref('none')
+// watch(selectedDeviceEventName, () => {
+//   console.log('selectedDeviceEventName changed')
+//   console.log(selectedDeviceEventName.value)
+//   window.MakeShiftCtrl.get.cuesAttachedToEvent(selectedDeviceEventName.value)
+//     .then((maybeCueId) => {
+//       if (typeof maybeCueId === 'undefined') {
+//         attachedCues.value = 'none'
+//       } else {
+//         attachedCues.value = maybeCueId
+//       }
+//     })
+// })
 
 watch(
-  () => SelectedEvent.value,
+  () => selectedEvent.value,
   (newVal, oldVal) => {
-    SelectedEventDetails.value = getEventDetails(newVal)
+    selectedEventDetails.value = getEventDetails(newVal)
   })
 
 const eventIcons: any = {
@@ -216,9 +217,9 @@ const eventIcons: any = {
             :class="[
               inputSelector,
               'rounded-lg',
-              (SelectedEventDetails.sensorId === selectedInputId &&
-                SelectedEventDetails.sensorType === eventMap.sensorType &&
-                SelectedEventDetails.eventType.toLowerCase() === eventMap.eventType ?
+              (selectedEventDetails.sensorId === selectedInputId &&
+                selectedEventDetails.sensorType === eventMap.sensorType &&
+                selectedEventDetails.eventType.toLowerCase() === eventMap.eventType ?
                 selected : unselected),
             ]"
             :key="eventMap.eventType"
@@ -237,10 +238,10 @@ const eventIcons: any = {
         </div>
         <div :class="[colClass, `justify-items-start m-0 text-left`]">
           <p>
-            Selected event: {{ selectedDeviceEventName }}
+            Selected event: {{ selectedEvent }}
           </p>
           <p>
-            Cues attached to event: {{ attachedCues }}
+            Cues attached to event: {{ selectedEventCues }}
           </p>
         </div>
         <div>

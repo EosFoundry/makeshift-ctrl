@@ -392,17 +392,16 @@ const ipcMainGetHandler = {
   eventsAsList: async () => DeviceEventsFlat,
   logRank: async () => logRank,
   allCues: async () => cues,
-  cuesAttachedToEvent: async (event: string): Promise<CueId> => {
+  cuesAttachedToEvent: async (event: string): Promise<CueId|undefined> => {
     log.debug(`cuesAttachedToEvent: ${event}`)
     log.debug(`layout: ${nspct2(Array.from(layout.layers[currentLayer].keys()))}`)
     log.debug(`cue: ${nspct2(layout.layers[currentLayer].get(event))}`)
     const maybeCue = layout.layers[currentLayer].get(event)
 
     if (maybeCue !== undefined) {
-      return maybeCue.name
+      return maybeCue.id
     }
     return undefined
-    // return 'butthole'
   },
   cueById: async (id) => cues.get(id),
   cueByFolder: async (folder) => {
