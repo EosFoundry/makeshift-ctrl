@@ -37,7 +37,7 @@ export type BlockGroup = {
 }
 
 // Create Loggers
-const msgen = new Msg({ host: 'BlocklyBuilder', logLevel: 'debug' })
+const msgen = new Msg({ host: 'BlocklyBuilder', logLevel: 'info' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
@@ -107,7 +107,6 @@ export async function initBlockly() {
 
   // log.debug(`groups ${nspct2(groups)}`)
   syncGroupsWithToolbox()
-  generateDefaultWorkspace()
   sendWorkspaceList()
   // log.debug(`toolbox ${nspct2(toolbox)}`)
 }
@@ -200,13 +199,13 @@ function hashBlock(block: MakeShiftBlockJSON): MakeShiftBlockJSON {
 }
 
 export async function loadBlockFromPath(blockPath: string) {
-  log.debug(`Loading block from ${blockPath}...`)
+  log.debug(`Loading block from ${blockPath}`)
   const codeGeneratorPath = blockPath.replace('.json', '.js')
 
   let generateCode = () => { }
   let init
 
-  log.debug(`Importing block javascript ${codeGeneratorPath}...`)
+  log.debug(`Importing block javascript ${codeGeneratorPath}`)
   const maybeBlockJs = Maybe.fromNullable(require(codeGeneratorPath))
   if (maybeBlockJs.isNothing()) {
     log.error(`Error: Could not find loadable code in ${codeGeneratorPath}`)
@@ -283,9 +282,10 @@ export async function syncGroupsWithToolbox() {
   getMainWindow()
     .ifJust((mw) => {
       mw.webContents.send(ctrlIpcApi.onEv.blockly.toolboxUpdate, toolbox)
+      log.info(`Toolbox sent to renderer.`)
+      log.debug(`${nspct2(toolbox)}`)
     })
 
-  log.info(`Toolbox synced as ${nspct2(toolbox)}`)
 }
 
 export async function sendBlocks() {
@@ -306,6 +306,7 @@ export async function sendBlocks() {
 async function generateDefaultWorkspace() {
   let workspace = new Workspace()
 
+  log.debug(`blocklist ${nspct2(blocklist)}`)
   Blockly.serialization.blocks.append(blocklist['default_cue'].block, workspace)
   const workspaceSerial = await Blockly.serialization.workspaces.save(workspace)
   log.debug(`workspaceSerial ${nspct2(workspaceSerial)}`)
