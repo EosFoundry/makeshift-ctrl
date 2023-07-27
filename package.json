@@ -8,7 +8,8 @@
     "dev": "tsc --emitDeclarationOnly -p ./electron && vite",
     "gen-api": "tsc --emitDeclarationOnly -p ./electron && vue-tsc --emitDeclarationOnly",
     "docgen": "typedoc",
-    "build": "tsc --emitDeclarationOnly -p ./electron && vue-tsc -noEmit && vite build && electron-builder",
+    "build": "tsc --emitDeclarationOnly -p ./electron && vue-tsc -noEmit && vite build",
+    "package": "tsc --emitDeclarationOnly -p ./electron && vue-tsc -noEmit && vite build && electron-builder",
     "postinstall": "node ./scripts/postinstall.mjs"
   },
   "repository": {
@@ -39,6 +40,7 @@
     "colorjs.io": "^0.4.5",
     "defu": "^6.1.2",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.4",
     "fs-extra": "^11.1.1",
     "highlight.js": "^11.8.0",
     "nanoid": "^4.0.2",
@@ -61,7 +63,7 @@
     "@vitejs/plugin-vue": "^4.2.3",
     "ace-builds": "^1.23.3",
     "electron": "^25.2.0",
-    "electron-builder": "^24.4.0",
+    "electron-builder": "^24.6.3",
     "semver": "^7.5.4",
     "ts-morph": "^19.0.0",
     "ts-node": "^10.9.1",

@@ -24,15 +24,14 @@ linux:
     # - target: rpm
     #   arch: x64
 mac:
-  artifactName: "${productName}_${arch}.${ext}"
   category: public.app-category.utilities
   target:
     - target: dmg
       arch:
         - x64
         - arm64
+  artifactName: "${productName}_${arch}.${ext}"
 win:
-  artifactName: "${productName}.${ext}"
   target:
     - target: zip
       arch:
@@ -43,6 +42,10 @@ win:
     # - target: portable
     #   arch:
     #     - x64
+  artifactName: "${productName}.${ext}"
+  publish: 
+    - provider: github
+      protocol: https
 nsis:
   oneClick: false
   perMachine: false

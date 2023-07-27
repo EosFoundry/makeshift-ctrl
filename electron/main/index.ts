@@ -63,6 +63,7 @@ import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 
 // makeshift ctrl imports
 import { plugins, initPlugins, installPlugin } from './plugins'
+import { updater, initUpdater } from './updater'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { ctrlLogger } from './utils'
 import {
@@ -289,6 +290,7 @@ const preloadBarrier = []
 // preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
 preloadBarrier.push(initCues())
+preloadBarrier.push(initUpdater())
 
 // Open splash
 app.whenReady()
@@ -392,7 +394,7 @@ const ipcMainGetHandler = {
   eventsAsList: async () => DeviceEventsFlat,
   logRank: async () => logRank,
   allCues: async () => cues,
-  cuesAttachedToEvent: async (event: string): Promise<CueId|undefined> => {
+  cuesAttachedToEvent: async (event: string): Promise<CueId | undefined> => {
     log.debug(`cuesAttachedToEvent: ${event}`)
     log.debug(`layout: ${nspct2(Array.from(layout.layers[currentLayer].keys()))}`)
     log.debug(`cue: ${nspct2(layout.layers[currentLayer].get(event))}`)
@@ -568,6 +570,7 @@ async function createMainWindow() {
   if (store.has(storeKeys.MainWindowState)) {
     windowPos = store.get(storeKeys.MainWindowState)
   }
+  updater.checkForUpdates()
 
   const mw = new BrowserWindow({
     show: false,
@@ -599,8 +602,8 @@ async function createMainWindow() {
   }
 
   // attach PA listeners
-  PortAuthority.on(PortAuthorityEvents.port.opened, mainWindowPortHandler.opened)
-  PortAuthority.on(PortAuthorityEvents.port.closed, mainWindowPortHandler.closed)
+  PortAuthority.on(PortAuthorityEvents.port.opened, portAuthorityEventHandler.opened)
+  PortAuthority.on(PortAuthorityEvents.port.closed, portAuthorityEventHandler.closed)
 
   mw.on('ready-to-show', mw.show)
   mw.on('close', () => {
@@ -643,7 +646,7 @@ async function createMainWindow() {
 
 // these more or less handle logging, 
 // user written code is attached directly in the main process
-const mainWindowPortHandler = {
+const portAuthorityEventHandler = {
   opened: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.ifJust(mw => {
       mw.webContents.send(Api.onEv.device.connected, fp)
@@ -655,7 +658,6 @@ const mainWindowPortHandler = {
       }
       attachedDeviceFingerprints.push[fp.deviceSerial]
     })
-
   },
   closed: async function (fp: MakeShiftPortFingerprint) {
     mainWindow.ifJust(mw => {
@@ -676,16 +678,6 @@ async function serialLogToMainWindow(data: LogMessage) {
     }
   })
 }
-
-// app.on('second-instance', () => {
-//   createWindow()
-// })
-// 
-/**
- * Blockly section
- */
-
-
 
 
 /**

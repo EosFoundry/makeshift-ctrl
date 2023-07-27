@@ -6,6 +6,7 @@
 .idea
 .volarrc
 *.volarrc
+.secrets/
 
 # VScode vue plugin
 env.d.ts

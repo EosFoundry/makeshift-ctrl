@@ -50,7 +50,7 @@ export interface CueModule extends IModule {
 }
 
 // Create Loggers
-const msgen = new Msg({ host: 'CueHandler', logLevel: 'debug' })
+const msgen = new Msg({ host: 'CueHandler', logLevel: 'info' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 const textDecoder = new TextDecoder()
