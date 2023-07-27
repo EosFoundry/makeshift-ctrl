@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SimplePopup } from 'src/composables/popup';
+import { SimplePopup } from '../composables/popup';
 import { Ref, inject, onMounted, provide, ref, watch } from 'vue'
 
 const activePopups = inject('popups') as Ref<SimplePopup[]>

@@ -15,7 +15,7 @@ import pressedIcon from '../assets/icon/bootstrap/layer-backward.svg?url'
 import releasedIcon from '../assets/icon/bootstrap/layer-forward.svg?url'
 import incrementIcon from '../assets/icon/bootstrap/arrow-clockwise.svg?url'
 import decrementIcon from '../assets/icon/bootstrap/arrow-counterclockwise.svg?url'
-import { SensorEventDetails } from 'src/main';
+import { SensorEventDetails } from '../main';
 import { CueId } from '../../types/electron/main/cues';
 import { getEventDetails } from '../utilities/str';
 
