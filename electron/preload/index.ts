@@ -27,6 +27,7 @@ const hydratedMakeShiftApi = {
   call: hydrate(dryMakeShiftApi.call, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   get: hydrate(dryMakeShiftApi.get, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   set: hydrate(dryMakeShiftApi.set, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
+  delete: hydrate(dryMakeShiftApi.delete, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   onEv: hydrate(dryMakeShiftApi.onEv, (evName) => { return (cb: any) => ipcRndr.on(evName, cb) }),
 }
 // console.log(hydratedMakeShiftApi)

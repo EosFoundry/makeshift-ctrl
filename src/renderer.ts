@@ -2,7 +2,8 @@ import { LogMessage, MakeShiftPortFingerprint } from "@eos-makeshift/serial"
 import {
   IpcMainCallHandler,
   IpcMainGetHandler,
-  IpcMainSetHandler
+  IpcMainSetHandler,
+  ipcMainDeleteHandler
 } from 'types/electron/main/index'
 import { CtrlIpcApi } from "electron/ipcApi"
 import { Cue } from 'types/electron/main/cues'
@@ -18,6 +19,7 @@ export interface rndrCtrlAPI {
   call: IpcMainCallHandler,
   get: IpcMainGetHandler,
   set: IpcMainSetHandler,
+  delete: ipcMainDeleteHandler,
   onEv: {
     blockly: {
       toolboxUpdate: (callback: (e: any, toolbox: any) => void) => void,

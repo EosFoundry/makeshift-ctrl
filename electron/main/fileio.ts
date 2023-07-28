@@ -92,9 +92,20 @@ async function writeFile(filePath: PathLike | fs.FileHandle, contents: string) {
   }
 }
 
+export async function unlink(path) {
+  try {
+    log.debug(`Unlinking ${path}`)
+    await fs.unlink(path)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
 export const Fileio = {
   readFile,
   readJson,
   writeFile,
-  writeJson
+  writeJson,
+  unlink,
 }

@@ -31,6 +31,9 @@ export declare const ctrlIpcApi: {
         cueForEvent: string;
         serialWorkspaceAsCue: string;
     };
+    delete: {
+        workspace: string;
+    };
     onEv: {
         blockly: {
             toolboxUpdate: string;

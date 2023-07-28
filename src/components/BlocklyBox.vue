@@ -187,7 +187,7 @@ function refitWorkspace() {
     divEl.style.width = dx + 'px'
     divEl.style.height = dy + 'px'
 
-    console.log(`blockly refit | dx: ${dx}, dy: ${dy}`)
+    // console.log(`blockly refit | dx: ${dx}, dy: ${dy}`)
 
     Blockly.svgResize(workspace)
 
@@ -197,7 +197,7 @@ function refitWorkspace() {
 watch(
   () => props.panelHeight,
   (newHeight, oldHeight) => {
-    console.log(`panelHeight changed from ${oldHeight} to ${newHeight}`)
+    // console.log(`panelHeight changed from ${oldHeight} to ${newHeight}`)
     nextTick(() => refitWorkspace())
   },
   { immediate: true }

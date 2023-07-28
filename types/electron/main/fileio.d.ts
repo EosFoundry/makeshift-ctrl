@@ -33,10 +33,12 @@ declare function writeJson(filePath: PathLike, contents: object): Promise<boolea
  * @returns A Promise that resolves to true if the write was successful, or false otherwise.
  */
 declare function writeFile(filePath: PathLike | fs.FileHandle, contents: string): Promise<boolean>;
+export declare function unlink(path: any): Promise<boolean>;
 export declare const Fileio: {
     readFile: typeof readFile;
     readJson: typeof readJson;
     writeFile: typeof writeFile;
     writeJson: typeof writeJson;
+    unlink: typeof unlink;
 };
 export {};

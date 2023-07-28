@@ -31,6 +31,9 @@ export const ctrlIpcApi = {
     cueForEvent: 'mkshft-set-cueForEvent',
     serialWorkspaceAsCue: 'mkshft-set-serialWorkspaceAsCue',
   },
+  delete: {
+    workspace: 'blockly-delete-workspace',
+  },
   onEv: {
     blockly: {
       toolboxUpdate: 'blockly-toolbox-sync',

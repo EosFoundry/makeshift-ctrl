@@ -89,6 +89,9 @@ declare const ipcMainSetHandler: {
         contents?: Uint8Array;
     }) => Promise<string>;
 };
+declare const ipcMainDeleteHandler: {
+    workspace: (workspaceName: string) => Promise<void>;
+};
 export declare function attachCueWatchers(): Promise<void>;
 export declare function detachCueFromEvent({ layerName, event, cueId }: {
     layerName: string;
@@ -106,4 +109,5 @@ export declare function attachCueToEvent({ layerName, event, cueId }: {
 export type IpcMainCallHandler = typeof ipcMainCallHandler;
 export type IpcMainGetHandler = typeof ipcMainGetHandler;
 export type IpcMainSetHandler = typeof ipcMainSetHandler;
+export type ipcMainDeleteHandler = typeof ipcMainDeleteHandler;
 export {};

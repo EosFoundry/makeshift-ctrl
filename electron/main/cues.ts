@@ -16,6 +16,7 @@ import { dialog } from 'electron'
 import { plugins } from './plugins'
 import { load } from 'blockly/core/serialization/workspaces'
 import { Fileio } from './fileio'
+import { cueWatcherHandler } from '.'
 // import { DeviceId } from '.'
 
 export type IModule = typeof Electron.CrossProcessExports
@@ -79,6 +80,16 @@ export async function initCues() {
   cueWatcher = chokidar.watch(process.env.CUES, {
     cwd: process.env.CUES
   })
+}
+
+export async function attachCueWatchers() {
+  cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
+  cueWatcher.on('add', path => cueWatcherHandler.add(path))
+  cueWatcher.on('change', path => cueWatcherHandler.add(path))
+  cueWatcher.on('unlink', path => cueWatcherHandler.unlink(path))
+  cueWatcher.on('addDir', path => log.debug(`Added directory to watch list: ${path}`))
+  cueWatcher.on('unlinkDir', path => log.debug(`Removing directory from watch list: ${path}`))
+  cueWatcher.on('error', err => log.debug(`err ${err}`))
 }
 
 export function cueExists(cueId: CueId): boolean {

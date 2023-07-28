@@ -34,6 +34,7 @@ export declare function sendDefaultWorkspace(): Promise<void>;
 export declare function sendSerialWorkspace(serialWorkspace: any): Promise<void>;
 export declare function loadSerialWorkspaceFromFile(cue: Cue): Promise<Maybe<any>>;
 export declare function saveSerialWorkspace(cue: Cue, serialWorkspace: any): Promise<any>;
+export declare function deleteSerialWorkspace(serialWorkspaceName: string): Promise<void>;
 export declare function sendWorkspaceList(): Promise<void>;
 export type BlocklyTypes = 'Number' | 'Boolean' | 'String' | 'Array' | 'Colour';
 export type MakeShiftBlockFieldJSON = {

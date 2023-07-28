@@ -8,6 +8,7 @@ import Terminal from './components/Terminal.vue'
 import BottomBar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
+import TesterButton from './components/TesterButton.vue'
 import TestInterface from './components/TestUI.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
 import SplitPanelHorz from './components/SplitPanelHorz.vue'
@@ -52,8 +53,8 @@ const termHeight = computed(() => {
 })
 
 function panelVertResizeHandler(event: any) {
-	console.log('panelVertResizeHandler')
-	console.log(event)
+	// console.log('panelVertResizeHandler')
+	// console.log(event)
 	topPanelHeight.value = event.topPanelHeight
 	bottomPanelHeight.value = event.bottomPanelHeight
 	// console.log(bottomPanelHeight.value)
@@ -132,6 +133,7 @@ nextTick(() => {
 		</div>
 		<Popup />
 		<!-- visible elements -->
+		<!-- <TesterButton /> -->
 		<TestInterface />
 		<SplitPanelVert
 			:height="clientSize.height - remToPx(2.2) - 288 - 16 - 12"

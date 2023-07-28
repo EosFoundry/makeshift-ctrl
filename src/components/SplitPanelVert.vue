@@ -64,7 +64,7 @@ const bottomPaneHeight = computed(() => {
     - topPanelHeight.value
     - dividerHeight.value
     - (state.value.margin * 2)
-  console.log(`bph: ${bph} | tph: ${topPanelHeight.value} | dh: ${dividerHeight.value} | m: ${state.value.margin} | h: ${state.value.height}`)
+  // console.log(`bph: ${bph} | tph: ${topPanelHeight.value} | dh: ${dividerHeight.value} | m: ${state.value.margin} | h: ${state.value.height}`)
   return bph
 })
 const topPanelHeightRem = computed(() => {
@@ -104,7 +104,7 @@ watch(
       (topPanelHeightPercent.value / 100)
       * (height - dividerHeight.value - state.value.margin * 2)
     )
-    console.log(`height changed to ${height}`)
+    // console.log(`height changed to ${height}`)
   },
   { immediate: true }
 )
@@ -118,7 +118,7 @@ watch(
         (topPanelHeightPercent.value / 100)
         * (state.value.height - dividerHeight.value - state.value.margin * 2)
       )
-      console.log(`tPHPercent ${propsHeightPercent} | topHeight: ${topPanelHeight.value} | botHeight: ${bottomPaneHeight.value}`)
+      // console.log(`tPHPercent ${propsHeightPercent} | topHeight: ${topPanelHeight.value} | botHeight: ${bottomPaneHeight.value}`)
       emitPanelEvent('resizing')
     }
   },
@@ -168,7 +168,7 @@ window.addEventListener('mouseup', endResize)
 window.addEventListener('resize', (ev) => {
   topPanelHeight.value = (state.value.height - dividerHeight.value - state.value.margin) * (topPanelHeightPercent.value / 100)
 
-  console.log(`${topPanelHeight.value} | ${pxToRem(topPanelHeight.value)} | ${state.value.height} | ${pxToRem(state.value.height)}`)
+  // console.log(`${topPanelHeight.value} | ${pxToRem(topPanelHeight.value)} | ${state.value.height} | ${pxToRem(state.value.height)}`)
 
   emitPanelEvent('resizing')
 })

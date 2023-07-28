@@ -21,7 +21,7 @@ import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { block } from 'blockly/core/tooltip';
 
 import { Fileio } from './fileio'
-import { writeFile } from 'original-fs';
+
 
 
 export type BlockGroup = {
@@ -265,6 +265,7 @@ export async function loadBlockFromPath(blockPath: string) {
 }
 
 export async function syncGroupsWithToolbox() {
+  if (toolbox.contents === undefined) { return }
   let newToolbox = {
     kind: 'categoryToolbox',
     contents: [...toolbox.contents]
@@ -349,6 +350,12 @@ export async function saveSerialWorkspace(cue: Cue, serialWorkspace) {
   //   log.info(`Saved workspace to blocklyFilePath ${nspct2(blocklyFilePath)}`)
   // }
   // return success
+}
+
+export async function deleteSerialWorkspace(serialWorkspaceName: string) {
+  await workspaceStore.delete(serialWorkspaceName)
+  delete workspaceList[serialWorkspaceName]
+  sendWorkspaceList()
 }
 
 export async function sendWorkspaceList() {

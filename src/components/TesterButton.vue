@@ -3,33 +3,20 @@ import { rndrCtrlAPI } from 'src/renderer';
 import { ref, inject } from 'vue';
 
 const makeshiftApi = inject('makeshift') as rndrCtrlAPI
-// makeshiftApi.test()
 const path = ref('')
 
 async function handleGetThemeFromPath(path: string) {
-  makeshiftApi.get.themeFromPath(path)
+  makeshiftApi.delete.workspace('asdf.cue.js')
 }
 </script>
 
 <template>
-  <span>
-    <input
-      v-model="path"
-      class="inline mx-3"
-    />
     <button
       @click="handleGetThemeFromPath(path)"
-      class="inline mx-3"
+      class="absolute top-0 left-0 z-50"
     >
-      get theme from path
+    test
     </button>
-    <button
-      @click="makeshiftApi.test('asdf')"
-      class="inline mx-3"
-    >
-      call test()
-    </button>
-  </span>
 </template>
 
 <style></style>

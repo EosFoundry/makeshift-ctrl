@@ -74,7 +74,8 @@ import {
   sendDefaultWorkspace,
   saveSerialWorkspace,
   workspaceStore,
-  workspaceList
+  workspaceList,
+  deleteSerialWorkspace
 } from './blockly'
 import {
   // data structures
@@ -82,11 +83,12 @@ import {
   // functions
   initCues, loadedCueModules, importCueModule, saveCueFile, generateCueFromRelativePath, cueExists,
   // types
-  Cue, CueId, CueMap, CueModule,
+  Cue, CueId, CueMap, CueModule, attachCueWatchers,
 } from './cues'
 import { DefaultTheme, Theme, loadTheme } from './themes'
 import { block } from 'blockly/core/tooltip'
 import { maybe } from 'purify-ts'
+import { Fileio } from './fileio'
 
 
 let nanoid
@@ -285,6 +287,8 @@ log.debug(`ctrlIpcApi.call: ${nspect(ctrlIpcApi.call, 1)}`)
 log.debug(`ctrlIpcApi.get: ${nspect(ctrlIpcApi.get, 1)}`)
 log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 
+attachCueWatchers()
+
 // Load non-conflicting resources
 const preloadBarrier = []
 // preloadBarrier.push(initPlugins())
@@ -305,7 +309,6 @@ app.whenReady()
       log.debug(`${key}: ${nspect(val, 1)}`)
     })
     // loadingBarrier.push(loadLayouts())
-    loadingBarrier.push(attachCueWatchers())
 
     PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
     PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
@@ -527,9 +530,25 @@ const ipcMainSetHandler = {
   },
 }
 
+const ipcMainDeleteHandler = {
+  workspace: async (workspaceName: string) => {
+    deleteSerialWorkspace(workspaceName)
+    log.info(`Deleting workspace: ${workspaceName}`)
+    log.debug(cues.get(workspaceName))
+    for (const key of cues.keys()) {
+      log.debug(`key: ${key}`)
+    }
+
+    if (cues.get(workspaceName) !== undefined) {
+      Fileio.unlink(join(process.env.CUES, workspaceName))
+    }
+  },
+}
+
 attachHandlers(ctrlIpcApi.call, ipcMainCallHandler)
 attachHandlers(ctrlIpcApi.get, ipcMainGetHandler)
 attachHandlers(ctrlIpcApi.set, ipcMainSetHandler)
+attachHandlers(ctrlIpcApi.delete, ipcMainDeleteHandler)
 
 /**
  * Window Creation functions
@@ -700,15 +719,6 @@ function runCue(eventData) {
   }
 }
 
-export async function attachCueWatchers() {
-  cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
-  cueWatcher.on('add', path => cueWatcherHandler.add(path))
-  cueWatcher.on('change', path => cueWatcherHandler.add(path))
-  cueWatcher.on('unlink', path => cueWatcherHandler.unlink(path))
-  cueWatcher.on('addDir', path => log.debug(`Added directory to watch list: ${path}`))
-  cueWatcher.on('unlinkDir', path => log.debug(`Removing directory from watch list: ${path}`))
-  cueWatcher.on('error', err => log.debug(`err ${err}`))
-}
 
 export async function detachCueFromEvent({ layerName, event, cueId }:
   {
@@ -778,7 +788,7 @@ export async function attachCueToEvent({ layerName, event, cueId }:
   }
 }
 
-const cueWatcherHandler = {
+export const cueWatcherHandler = {
   add: async function (path) {
     let newCue
     try {
@@ -803,7 +813,7 @@ const cueWatcherHandler = {
       })
       cues.delete(maybeCue.id)
     } catch (e) {
-      log.debug(`Unabled to load cue from ${path} => ${e}`)
+      log.debug(`Unabled to remove cue, might not be a cue? path: ${path} => ${e}`)
       return
     }
   },
@@ -908,3 +918,4 @@ async function removeKnownDevice(fp: MakeShiftPortFingerprint) {
 export type IpcMainCallHandler = typeof ipcMainCallHandler
 export type IpcMainGetHandler = typeof ipcMainGetHandler
 export type IpcMainSetHandler = typeof ipcMainSetHandler
+export type ipcMainDeleteHandler = typeof ipcMainDeleteHandler
