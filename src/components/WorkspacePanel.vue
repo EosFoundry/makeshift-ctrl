@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { inject, onBeforeMount, onMounted, ref, Ref } from 'vue';
 import { Folder } from '../main';
 import { Cue, CueMap } from '../../types/electron/main/cues'
+import { rndrCtrlAPI } from 'src/renderer'
 
 import folderIcon from '../assets/icon/bootstrap/folder2-open.svg?url'
 
@@ -11,8 +12,9 @@ import TextButton from "./TextButton.vue";
 import IconButton from "./IconButton.vue";
 import ToolBarSpacer from './ToolBarSpacer.vue';
 
-
+const selectedWorkspace = ref("") as Ref<string>
 const workspaceList = ref([]) as Ref<string[]>
+const makeshiftApi = inject('makeshift') as rndrCtrlAPI
 
 
 onMounted(() => {
@@ -42,6 +44,13 @@ function sendLoadEvent(workspaceId: string) {
   window.dispatchEvent(new CustomEvent('loadWorkspace', { detail: workspaceId}))
 }
 
+function deleteWorkspace(workspaceId: string) {
+  makeshiftApi.delete.workspace(workspaceId)
+}
+
+function selectWorkspace(workspaceId: string) {
+  selectedWorkspace.value = workspaceId
+}
 </script>
 
 
@@ -62,8 +71,13 @@ function sendLoadEvent(workspaceId: string) {
       <div class="pane-title toolbar shrink">
         <div class="toolbar-cluster">
           SAVED WORKSPACES
+          {{ selectedWorkspace }}
         </div>
         <div class="toolbar-cluster">
+          <div class="option-selector inline-flex space-x-3">
+            <div @click="sendLoadEvent(selectedWorkspace)">Open</div>
+            <div @click="deleteWorkspace(selectedWorkspace)">Delete</div>
+          </div>
           <!-- <icon-button
            :icon-url="folderIcon"
            @click="openCueFolder"
@@ -75,8 +89,8 @@ function sendLoadEvent(workspaceId: string) {
       </div>
       <div class="overflow-scroll m-0 pb-6 h-full">
         <li
-          class="list-entry"
-          @click="sendLoadEvent(workspaceId)"
+          :class="['list-entry', {'selected': workspaceId === selectedWorkspace}]"
+          @click="selectWorkspace(workspaceId)"
           v-for="(workspaceId) in workspaceList"
         >
           <div class="entry-name">
@@ -99,6 +113,10 @@ function sendLoadEvent(workspaceId: string) {
   // color: rgb(var(--color-hl1));
 }
 
+.option-selector {
+  cursor: pointer;
+}
+
 .list-entry {
   display: flex;
   flex-direction: row;
@@ -113,6 +131,10 @@ function sendLoadEvent(workspaceId: string) {
   &:hover {
     background-color: rgb(var(--color-primary2));
   }
+}
+
+.selected {
+  background-color: rgb(var(--color-primary2));
 }
 
 .entry-name {

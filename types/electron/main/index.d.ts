@@ -92,7 +92,6 @@ declare const ipcMainSetHandler: {
 declare const ipcMainDeleteHandler: {
     workspace: (workspaceName: string) => Promise<void>;
 };
-export declare function attachCueWatchers(): Promise<void>;
 export declare function detachCueFromEvent({ layerName, event, cueId }: {
     layerName: string;
     event: MakeShiftEvent;
@@ -103,6 +102,13 @@ export declare function attachCueToEvent({ layerName, event, cueId }: {
     event: MakeShiftEvent;
     cueId: CueId;
 }): Promise<void>;
+export declare const cueWatcherHandler: {
+    add: (path: any) => Promise<void>;
+    unlink: (path: any) => void;
+    addDir: (path: any) => void;
+    unlinkDir: (path: any) => void;
+    error: (path: any) => void;
+};
 /**
  * Exports
  */
