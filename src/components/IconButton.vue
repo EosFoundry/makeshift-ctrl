@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import icon from './Icon.vue'
 
 const props = defineProps<{
@@ -21,6 +21,13 @@ const iconColor = computed(() => {
     return _defaultColor
   }
 })
+
+watch(
+  () => props.color,
+  (newVal) => {
+    _defaultColor.value = newVal || 'var(--color-bg)'
+  }
+)
 
 if (props.color) {
   _defaultColor.value = props.color

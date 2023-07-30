@@ -130,9 +130,9 @@ const resizing = ref(false)
 function startResize(ev: MouseEvent) {
   if (isLocked.value) { return }
   if (resizing.value) { return }
-  console.log(ev)
+  // console.log(ev)
   resizeLastPos.value = ev.clientY
-  console.log(resizeLastPos.value)
+  // console.log(resizeLastPos.value)
   window.addEventListener('mousemove', onMouseMoveResize)
   resizing.value = true
   emitPanelEvent('start-resize')
@@ -148,7 +148,7 @@ function onMouseMoveResize(ev: MouseEvent) {
   let delta = ev.clientY - resizeLastPos.value
   const newTopPanelHeight = topPanelHeight.value + delta
   resizeLastPos.value = ev.clientY
-  console.log(`${ev.clientY} | ${pxToRem(ev.clientY)} | ${delta} | ${pxToRem(delta)}`)
+  // console.log(`${ev.clientY} | ${pxToRem(ev.clientY)} | ${delta} | ${pxToRem(delta)}`)
   if (topPanelHeight.value + delta >= 0
     && bottomPaneHeight.value - delta >= 0
   ) {

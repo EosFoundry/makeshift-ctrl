@@ -9,17 +9,19 @@ import BottomBar from './components/BottomBar.vue'
 import CuePanel from './components/CuePanel.vue'
 import DevicePanel from './components/DevicePanel.vue'
 import TesterButton from './components/TesterButton.vue'
-import TestInterface from './components/TestUI.vue'
+import BlocklyControlPanel from './components/BlocklyControlPanel.vue'
 import SplitPanelVert from './components/SplitPanelVert.vue'
 import SplitPanelHorz from './components/SplitPanelHorz.vue'
 import { checkFontSize, remToPx, updateFont } from './utilities/cssUnits'
 import BlocklyBox from './components/BlocklyBox.vue'
 import Popup from './components/Popup.vue'
+import { View } from './renderer'
 
 type Size = {
 	width: number
 	height: number
 }
+
 
 const link = document.createElement('link')
 link.rel = 'stylesheet'
@@ -27,12 +29,13 @@ link.href = 'src/styles/test.css'
 // document.head.appendChild(link)
 
 const FontSizeMonitorDiv = ref<HTMLElement>()
+const selectedView = inject('selected-view') as Ref<View>
 const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
 const clientSize = inject('client-size') as Ref<Size>
 const colorTheme = inject('color-theme') as Ref<string>
 const terminalActive = inject('terminal-active') as Ref<boolean>
 
-colorTheme.value = 'colorblind-light-theme'
+// colorTheme.value = 'colorblind-light-theme'
 
 provide<Ref<string>>('current-session', editorContents)
 
@@ -101,7 +104,7 @@ onMounted(() => {
 			height: document.documentElement.clientHeight
 		}
 	})
-	if(terminalActive.value) {
+	if (terminalActive.value) {
 		topPanelHeightPercent.value = 69
 	} else {
 		topPanelHeightPercent.value = 100
@@ -134,23 +137,65 @@ nextTick(() => {
 		<Popup />
 		<!-- visible elements -->
 		<!-- <TesterButton /> -->
-		<TestInterface />
-		<SplitPanelVert
-			:height="clientSize.height - remToPx(2.2) - 288 - 16 - 12"
-			:topPanelHeightPercent="topPanelHeightPercent"
-			:max-height-percent="70"
-			:margin="8"
-			@resizing="panelVertResizeHandler"
-		>
-			<template #top>
-				<BlocklyBox :panelHeight="topPanelHeight" />
-			</template>
-			<template #bottom>
-				<Terminal :panelHeight="bottomPanelHeight" />
-			</template>
-		</SplitPanelVert>
-		<BottomBar />
+		<div v-if="selectedView === 'blockly'">
+			<BlocklyControlPanel />
+			<SplitPanelVert
+				:height="clientSize.height - remToPx(4) - 288 - 16"
+				:topPanelHeightPercent="topPanelHeightPercent"
+				:max-height-percent="70"
+				:margin="8"
+				@resizing="panelVertResizeHandler"
+			>
+				<template #top>
+					<BlocklyBox :panelHeight="topPanelHeight" />
+				</template>
+				<template #bottom>
+					<Terminal :panelHeight="bottomPanelHeight" />
+				</template>
+			</SplitPanelVert>
+		</div>
+		<div v-else-if="selectedView === 'code'">
+			<SplitPanelVert
+				:height="clientSize.height - remToPx(4)"
+				:topPanelHeightPercent="topPanelHeightPercent"
+				:max-height-percent="70"
+				:margin="8"
+				@resizing="panelVertResizeHandler"
+			>
+				<template #top>
+					<SplitPanelHorz
+						:height="topPanelHeight"
+						:width="clientSize.width - 16"
+						:leftPanelWidthPercent="leftPanelWidthPercent"
+						:max-width-percent="80"
+						@resizing="panelHorzResizeHandler"
+					>
+						<template #left>
+							<CodeBox />
+						</template>
+						<template #right>
+							<SplitPanelVert
+								:height="topPanelHeight"
+								:width="rightPanelWidth"
+								:topPanelHeightPercent="15"
+							>
+								<template #top>
+									<DevicePanel />
+								</template>
+								<template #bottom>
+									<CuePanel />
+								</template>
+							</SplitPanelVert>
+						</template>
+					</SplitPanelHorz>
+				</template>
+				<template #bottom>
+					<Terminal :panelHeight="bottomPanelHeight" />
+				</template>
+			</SplitPanelVert>
+		</div>
 	</div>
+	<BottomBar />
 </template>
 
 <style lang="scss">

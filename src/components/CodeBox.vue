@@ -58,6 +58,7 @@ const availableThemes = {
   light: 'ace/theme/xcode',
   dark: 'ace/theme/twilight',
 }
+const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
 
 const autoSaveWaitTime = 4000
 let editor: Ace.Editor
@@ -169,7 +170,9 @@ onMounted(() => nextTick(async () => {
     editorContents.value = textDecoder.decode(existingCue.contents)
   }
 
-  editor = ace.edit("codebox-editor") as Ace.Editor
+  editor = ace.edit("codebox-editor", {
+    theme: initialTheme,
+  }) as Ace.Editor
   editor.commands.addCommand({
     name: 'saveFile',
     bindKey: {
@@ -180,8 +183,8 @@ onMounted(() => nextTick(async () => {
       saveCue()
     }
   });
-  const initialTheme = currentTheme.value.match('light') === null ? 'ace/theme/twilight' : 'ace/theme/xcode'
-  editor.setTheme(initialTheme)
+
+  console.log('currentTheme.value: ' + currentTheme.value)
   editor.setOption('fontFamily', 'Iosevka MakeShift')
   // editor.setOption('fontSpacing', 'Iosevka MakeShift')
   editor.setFontSize(15);
