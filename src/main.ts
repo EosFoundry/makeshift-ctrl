@@ -7,6 +7,7 @@ import { Size } from 'types/electron/main'
 import { SimplePopup } from './composables/popup'
 import { Selected } from 'blockly/core/events/events_selected'
 import { Maybe, Nothing } from 'purify-ts'
+import { View } from './renderer'
 export type SensorEventDetails = {
   sensorId: number,
   sensorType: string,
@@ -45,6 +46,7 @@ const cueRoot: Folder = {
     logLevel: ref('info') as Ref<LogLevel>,
     selectedEvent: ref('sensor-0-dial-increment'),
     selectedEventCues: ref(''),
+    selectedView: ref('blockly') as Ref<View>,
     logRank: await window.MakeShiftCtrl.get.logRank(),
     clientSize: ref(await window.MakeShiftCtrl.get.clientSize()) as Ref<Size>,
     activePopups: ref<SimplePopup[]>([]),
@@ -140,6 +142,7 @@ const cueRoot: Folder = {
     .provide('makeshift-logRank', state.logRank)
     .provide('selected-event', state.selectedEvent)
     .provide('selected-event-cues', state.selectedEventCues)
+    .provide('selected-view', state.selectedView)
     .provide('current-device', state.currentDevice)
     .provide('popups', state.activePopups)
     .provide('terminal-active', state.terminalActive)

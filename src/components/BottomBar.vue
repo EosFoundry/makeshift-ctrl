@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, Ref } from 'vue';
+import { ref, computed, inject, watch, onMounted, Ref } from 'vue';
 import { MakeShiftDeviceEvents, MakeShiftPortFingerprint, MakeShiftSerialEvents } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg';
-import { rndrCtrlAPI } from '../renderer';
+import { rndrCtrlAPI, View, ViewList } from '../renderer';
 import termOpenIcon from '../assets/icon/bootstrap/terminal.svg?url'
 import termCloseIcon from '../assets/icon/bootstrap/terminal-fill.svg?url'
+import codeViewIcon from '../assets/icon/bootstrap/code-square.svg?url'
+import blocklyViewIcon from '../assets/icon/bootstrap/puzzle.svg?url'
 import IconButton from './IconButton.vue';
 import TextButton from './TextButton.vue';
+import { set } from 'colorjs.io/fn';
 
 const Events = inject('makeshift-serial-events') as MakeShiftSerialEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
@@ -15,6 +18,30 @@ const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftP
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
 const terminalActive = inject('terminal-active') as Ref<boolean>
+const selectedView = inject('selected-view') as Ref<View>
+
+const viewIcons = {
+  'blockly': blocklyViewIcon,
+  'code': codeViewIcon,
+}
+
+const viewColor = ref({
+  'blockly': 'var(--color-hl)',
+  'code': 'var(--color-hl)',
+})
+
+viewColor.value[selectedView.value] = 'var(--color-text)'
+
+watch(
+  () => selectedView.value,
+  (newVal, oldVal) => {
+    viewColor.value[newVal] = 'var(--color-text)'
+    viewColor.value[oldVal] = 'var(--color-hl)'
+    console.log(`viewColornew: ${viewColor.value[newVal]}`)
+    console.log(`viewColorold: ${viewColor.value[oldVal]}`)
+    console.log(`selectedView changed from ${oldVal} to ${newVal}`)
+  }
+)
 
 // console.log(logLevel.value);
 
@@ -45,9 +72,10 @@ onMounted(() => {
       'bottom-0',
       'left-0',
       'flex',
-      'h-10',
+      'h-16',
       'w-full',
-      'px-3'
+      'px-3',
+      'gap-3',
     ]"
   >
 
@@ -74,9 +102,7 @@ onMounted(() => {
             :value="dev"
             v-model="currentDevice"
           />
-          <code>
-                       <b>ID: {{ dev.deviceSerial.slice(0, 4) }} | PATH: {{ dev.devicePath }}</b>
-                      </code>
+          <code> <b> ID: {{ dev.deviceSerial.slice(0, 4) }} | PATH: {{ dev.devicePath }} </b> </code>
         </label>
       </form>
     </div>
@@ -84,19 +110,46 @@ onMounted(() => {
     <!-- Log level text -->
     <div>
       Log Level:
+
+      <!-- Log level selector -->
+      <!-- {{ logLevel }} -->
+      <select
+        name="log-level-selector"
+        v-model="logLevel"
+      >
+        <option v-for="lv in LogLevels">
+          {{ lv }}
+        </option>
+      </select>
     </div>
 
-    <!-- Log level selector -->
-    <!-- {{ logLevel }} -->
-    <select
-      name="log-level-selector"
-      v-model="logLevel"
-    >
-      <option v-for="lv in LogLevels">
-        {{ lv }}
-      </option>
-    </select>
 
+    <span :class="[
+      'flex',
+      'flex-row',
+      'gap-2',
+      'items-center',
+    ]">
+      view:
+      <span :class="[
+        'flex',
+        'flex-row',
+        'gap-2',
+        'p-2.5',
+        'rounded-md',
+        'bg-dark',
+        'items-center',
+      ]">
+        <IconButton
+          v-for="view in ViewList"
+          :icon-url="viewIcons[view]"
+          @click="selectedView = view"
+          :color="viewColor[view]"
+          hover-color="var(--color-text)"
+        />
+
+      </span>
+    </span>
 
     <TextButton
       :icon-url="termIcon"
@@ -107,7 +160,7 @@ onMounted(() => {
       ]"
       @click="toggleTerm"
     >
-    {{ terminalActive ? 'Close' : 'Open' }} Terminal
+      {{ terminalActive ? 'Close' : 'Open' }} Terminal
     </TextButton>
     <!-- Current Targeted Event status -->
     <!-- <div :class="['mr-3']">
@@ -126,7 +179,7 @@ input[type="radio"]+svg {
   background-color: rgb(var(--color-hl));
   display: flex;
   align-items: center;
-  height: 2.5rem;
+  color: rgb(var(--color-text));
   // padding: 8px;
   // padding-left: 0px;
   // padding-right: 0px;

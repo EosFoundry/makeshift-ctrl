@@ -13,6 +13,9 @@ type CueEvHandler = (callback: (e: any, cue: Cue) => void) => void
 type DeviceEvHandler = (callback: (e: any, fp: MakeShiftPortFingerprint) => void) => void
 type TerminalEvHandler = (callback: (e: any, fp: LogMessage) => void) => void
 
+export type View = 'blockly' | 'code'
+
+export const ViewList: View[] = ['blockly', 'code']
 
 export interface rndrCtrlAPI {
   test: (val: any) => void,
