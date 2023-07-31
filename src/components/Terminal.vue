@@ -90,7 +90,7 @@ function writePrompt() {
   terminal.write(`makeshift <== `)
 }
 
-function LogEventHandler(event: any, logMessage: LogMessage) {
+function LogEventHandler(logMessage: LogMessage) {
   if (logRank[logMessage.level] >= logRank[logLevel.value]) {
     terminal.writeln(logMessage.message)
   }

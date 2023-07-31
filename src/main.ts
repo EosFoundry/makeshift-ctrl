@@ -76,14 +76,14 @@ const cueRoot: Folder = {
     state.currentDevice.value = initialDevices[0]
   }
 
-  window.MakeShiftCtrl.onEv.device.connected((garb: any, newfp: MakeShiftPortFingerprint) => {
+  window.MakeShiftCtrl.onEv.device.connected((newfp: MakeShiftPortFingerprint) => {
     if (state.connectedDevices.value.length === 0) {
       state.currentDevice.value = newfp
     }
     state.connectedDevices.value.push(newfp)
   })
 
-  window.MakeShiftCtrl.onEv.device.disconnected((garb: any, dcfp: MakeShiftPortFingerprint) => {
+  window.MakeShiftCtrl.onEv.device.disconnected((dcfp: MakeShiftPortFingerprint) => {
     state.connectedDevices.value = state.connectedDevices.value.filter((currfp: MakeShiftPortFingerprint) => {
       return (currfp.deviceSerial !== dcfp.deviceSerial || currfp.devicePath !== dcfp.devicePath)
     })
@@ -97,16 +97,16 @@ const cueRoot: Folder = {
     addCueToFolderList(cue)
   })
 
-  window.MakeShiftCtrl.onEv.cue.added((garb: any, cue: Cue) => {
+  window.MakeShiftCtrl.onEv.cue.added((cue: Cue) => {
     state.cues.value.set(cue.id, cue)
     addCueToFolderList(cue)
   })
 
-  window.MakeShiftCtrl.onEv.cue.changed((garb: any, cue: Cue) => {
+  window.MakeShiftCtrl.onEv.cue.changed((cue: Cue) => {
     state.cues.value.set(cue.id, cue)
   })
 
-  window.MakeShiftCtrl.onEv.cue.removed((garb: any, cue: Cue) => {
+  window.MakeShiftCtrl.onEv.cue.removed((cue: Cue) => {
     state.cues.value.delete(cue.id)
     removeCueFromFolderList(cue)
   })

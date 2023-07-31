@@ -1,4 +1,4 @@
-// The built directory structure
+// The built directory utructure
 //
 // ├─┬ dist
 // │ ├─┬ electron
@@ -370,7 +370,8 @@ const ipcMainCallHandler = {
         event: 'test',
       })
     } catch (e) {
-      log.error(`Cue ${cueId} could not be run\n\tIssue: ${e}`)
+      log.error(`Cue ${cueId} could not be run.`)
+      log.error(e)
     }
   },
   fetchBlocklyToolbox: async () => {

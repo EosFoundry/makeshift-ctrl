@@ -9,9 +9,9 @@ import { CtrlIpcApi } from "electron/ipcApi"
 import { Cue } from 'types/electron/main/cues'
 import { MakeShiftBlockJSON } from "electron/main/blockly"
 
-type CueEvHandler = (callback: (e: any, cue: Cue) => void) => void
-type DeviceEvHandler = (callback: (e: any, fp: MakeShiftPortFingerprint) => void) => void
-type TerminalEvHandler = (callback: (e: any, fp: LogMessage) => void) => void
+type CueEvHandler = (callback: (cue: Cue) => void) => () => void
+type DeviceEvHandler = (callback: (fp: MakeShiftPortFingerprint) => void) => () => void
+type TerminalEvHandler = (callback: (fp: LogMessage) => void) => () => void
 
 export type View = 'blockly' | 'code'
 
@@ -43,6 +43,7 @@ export interface rndrCtrlAPI {
       data: TerminalEvHandler
     },
   }
+  removeListener: (evName: string, cb: any) => void,
 }
 
 export interface IPluginAPI {

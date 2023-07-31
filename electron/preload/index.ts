@@ -12,8 +12,8 @@ console.log(dryMakeShiftApi)
 
 function hydrate(section, handler: Function): any {
   if (typeof section === 'string') {
-    const s = section
-    section = handler(s)
+    const evName = section
+    section = handler(evName)
   } else {
     for (const subS in section) {
       section[subS] = hydrate(section[subS], handler)
@@ -28,7 +28,14 @@ const hydratedMakeShiftApi = {
   get: hydrate(dryMakeShiftApi.get, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   set: hydrate(dryMakeShiftApi.set, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   delete: hydrate(dryMakeShiftApi.delete, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
-  onEv: hydrate(dryMakeShiftApi.onEv, (evName) => { return (cb: any) => ipcRndr.on(evName, cb) }),
+  onEv: hydrate(dryMakeShiftApi.onEv, (evName) => {
+    return (cb: any) => {
+      const listener = (e, ...args) => { cb(...args) }
+      ipcRndr.on(evName, listener)
+      return () => ipcRndr.removeListener(evName, listener)
+    }
+  }),
+  removeListener: (evName, cb) => ipcRndr.removeListener(evName, cb),
 }
 // console.log(hydratedMakeShiftApi)
 

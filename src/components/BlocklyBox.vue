@@ -23,6 +23,7 @@ import { remToPx } from '../utilities/cssUnits'
 import { SensorEventDetails } from '../main'
 import { capitalizeFirstLetter, getEventDetails } from '../utilities/str'
 import { Cue, CueId } from '../../types/electron/main/cues'
+import { remove } from 'fs-extra'
 // console.log(toast)
 // console.log(storage)
 
@@ -132,19 +133,19 @@ onMounted(() => {
     loadWorkspace(ev.detail)
   })
 
-  MakeShiftApi.onEv.blockly.toolboxUpdate((garb: any, toolbox) => {
+  MakeShiftApi.onEv.blockly.toolboxUpdate((toolbox) => {
     console.log('toolboxSync')
     console.log(toolbox)
     workspace.updateToolbox(toolbox)
   })
 
-  MakeShiftApi.onEv.blockly.blocksUpdate((garb: any, blocklist) => {
+  MakeShiftApi.onEv.blockly.blocksUpdate((blocklist) => {
     console.log('blocksSync')
     console.log(blocklist)
     importBlocklist(blocklist)
   })
 
-  MakeShiftApi.onEv.blockly.workspaceUpdate((garb: any, state) => {
+  MakeShiftApi.onEv.blockly.workspaceUpdate((state) => {
     console.log('workspaceSync')
     console.log(state)
     Blockly.serialization.workspaces.load(state, workspace)
@@ -203,7 +204,7 @@ watch(
   { immediate: true }
 )
 
-function saveWorkspace() {
+async function saveWorkspace() {
   console.log('needful')
   // console.log(jsCode)
   const serialWorkspace = Blockly.serialization.workspaces.save(workspace)
@@ -213,18 +214,18 @@ function saveWorkspace() {
     // console.log(Blockly.Blocks[block.type])
   })
   console.log(serialWorkspace)
-  MakeShiftApi.set.serialWorkspaceAsCue(serialWorkspace)
-    .then((res: Cue | undefined) => {
-      console.log(res)
-      if (res === undefined) {
-        showSimplePopup({
-          message: 'Failed to save cue',
-          onOkay: () => { }
-        })
-        return
-      }
-      workspaceId.value = res.id
+  const res = await MakeShiftApi.set.serialWorkspaceAsCue(serialWorkspace)
+  console.log(res)
+  if (res === undefined) {
+    showSimplePopup({
+      message: 'Failed to save cue',
+      onOkay: () => { }
     })
+    return false
+  } else {
+    workspaceId.value = res.id
+    return true
+  }
 }
 
 function loadWorkspace(newId: string) {
@@ -237,6 +238,23 @@ function loadWorkspace(newId: string) {
   // TODO: check workspace block hashes against loaded blocklist hashes and warn user if blocks are outdated or changed
 }
 
+let removeCueListener:any
+async function runWorkspace() {
+  console.log('Saving workspace')
+  const success = await saveWorkspace()
+  removeCueListener = MakeShiftApi.onEv.cue.added(runOnceSaved)
+  console.log(removeCueListener)
+}
+
+function runOnceSaved(cue: Cue) {
+  console.log(cue)
+  if (cue.id === workspaceId.value) {
+    console.log('cue is the one we want')
+    MakeShiftApi.call.runCue(cue.id)
+    removeCueListener()
+  }
+}
+
 async function deployAsCue(workspaceId: string) {
   console.log(`deploying workspace ${workspaceId} as cue`)
 
@@ -247,17 +265,18 @@ async function deployAsCue(workspaceId: string) {
     })
     return
   }
-  
-  saveWorkspace()
 
-  await MakeShiftApi.set.cueForEvent({
-    cueId: workspaceId,
-    event: selectedEvent.value
-  })
+  console.log('saving workspace')
+  const success = await saveWorkspace()
 
-  selectedEventCues.value = workspaceId
-  // console.log(selectedEventCues)
-
+  if (success) {
+    console.log('save successful, setting cue for event')
+    await MakeShiftApi.set.cueForEvent({
+      cueId: workspaceId,
+      event: selectedEvent.value
+    })
+    selectedEventCues.value = workspaceId
+  }
 }
 
 
@@ -317,7 +336,11 @@ async function deployAsCue(workspaceId: string) {
         >
           Save Workspace
         </button>
-        <button>
+        <button
+          :class="[
+          ]"
+          @click="runWorkspace"
+        >
           Run Workspace
         </button>
       </div>

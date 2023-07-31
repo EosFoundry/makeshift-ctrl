@@ -102,7 +102,6 @@ export declare function attachCueToEvent({ layerName, event, cueId }: {
     event: MakeShiftEvent;
     cueId: CueId;
 }): Promise<void>;
-export declare function attachCueWatchers(): Promise<void>;
 export declare const cueWatcherHandler: {
     add: (path: any) => Promise<void>;
     unlink: (path: any) => void;

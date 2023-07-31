@@ -150,7 +150,7 @@ const saveStateStyles = reactive({
   iconUrl: fileSavedIcon,
 })
 
-window.MakeShiftCtrl.onEv.cue.removed((e, q) => {
+window.MakeShiftCtrl.onEv.cue.removed((q) => {
   console.log(q)
   if (cueId.value === q.id) {
     hasSaveFile.value = false
