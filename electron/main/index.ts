@@ -83,7 +83,7 @@ import {
   // functions
   initCues, loadedCueModules, importCueModule, saveCueFile, generateCueFromRelativePath, cueExists,
   // types
-  Cue, CueId, CueMap, CueModule, attachCueWatchers,
+  Cue, CueId, CueMap, CueModule,
 } from './cues'
 import { DefaultTheme, Theme, loadTheme } from './themes'
 import { block } from 'blockly/core/tooltip'
@@ -287,7 +287,6 @@ log.debug(`ctrlIpcApi.call: ${nspect(ctrlIpcApi.call, 1)}`)
 log.debug(`ctrlIpcApi.get: ${nspect(ctrlIpcApi.get, 1)}`)
 log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 
-attachCueWatchers()
 
 // Load non-conflicting resources
 const preloadBarrier = []
@@ -309,6 +308,7 @@ app.whenReady()
       log.debug(`${key}: ${nspect(val, 1)}`)
     })
     // loadingBarrier.push(loadLayouts())
+    loadingBarrier.push(attachCueWatchers())
 
     PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
     PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
@@ -510,6 +510,8 @@ const ipcMainSetHandler = {
     event: string,
     contents?: Uint8Array,
   }) => {
+    log.debug(`cueForEvent: ${nspct2(data)}`)
+    log.debug(`cues: ${nspct2(cues.get(data.cueId))}`)
     if (data.contents !== undefined) {
       const fullPath = await saveCueFile({
         cueId: data.cueId,
@@ -786,6 +788,16 @@ export async function attachCueToEvent({ layerName, event, cueId }:
   } else {
     log.error('No MakeShift device found, cue not attached')
   }
+}
+
+async function attachCueWatchers() {
+  cueWatcher.on('ready', () => { log.info('Now watching Cue directory') })
+  cueWatcher.on('add', path => cueWatcherHandler.add(path))
+  cueWatcher.on('change', path => cueWatcherHandler.add(path))
+  cueWatcher.on('unlink', path => cueWatcherHandler.unlink(path))
+  cueWatcher.on('addDir', path => log.debug(`Added directory to watch list: ${path}`))
+  cueWatcher.on('unlinkDir', path => log.debug(`Removing directory from watch list: ${path}`))
+  cueWatcher.on('error', err => log.debug(`err ${err}`))
 }
 
 export const cueWatcherHandler = {

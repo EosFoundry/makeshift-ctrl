@@ -247,6 +247,8 @@ async function deployAsCue(workspaceId: string) {
     })
     return
   }
+  
+  saveWorkspace()
 
   await MakeShiftApi.set.cueForEvent({
     cueId: workspaceId,
