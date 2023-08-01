@@ -127,10 +127,8 @@ makeshift-ctrl/ --- main project folder
 │   ├── electron/     --- compiled electron/nodejs files
 │   └── release/      --- packaged application
 |
-├── docs/       --- notes + documentation
-│   └── styles/       --- CSS
-|
-├── build/      --- electron-builder artifacts
+├── docs/       --- notes
+├── build/      --- electron-builder required shenanigans
 ├── examples/   --- example cues
 ├── public/     --- loose files (directly routed in UI) [1]
 ├── scripts/    --- misc utility scripts
