@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { inject, onBeforeMount, onMounted, ref, Ref } from 'vue';
 import { Folder } from '../main';
 import { Cue, CueMap } from '../../types/electron/main/cues'
-import { rndrCtrlAPI } from 'src/renderer'
+import { rndrCtrlAPI } from '../renderer'
 
 import folderIcon from '../assets/icon/bootstrap/folder2-open.svg?url'
 

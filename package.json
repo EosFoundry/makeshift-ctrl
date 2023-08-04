@@ -1,9 +1,9 @@
 {
-  "name": "@eos-makeshift/ctrl",
+  "name": "makeshift-ctrl",
   "productName": "makeshift-ctrl",
   "version": "0.3.1",
-  "description": "desktop interface for MakeShift",
-  "main": "dist/electron/main/index.js",
+  "description": "Desktop interface for MakeShift",
+  "main": "dist/node/main/index.js",
   "scripts": {
     "dev": "tsc --emitDeclarationOnly -p ./electron && vite",
     "gen-api": "tsc --emitDeclarationOnly -p ./electron && vue-tsc --emitDeclarationOnly",
@@ -39,6 +39,7 @@
     "chokidar": "^3.5.3",
     "colorjs.io": "^0.4.5",
     "defu": "^6.1.2",
+    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.4",
     "fs-extra": "^11.1.1",
@@ -59,6 +60,13 @@
     "xterm-addon-webgl": "^0.15.0"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/maker-deb": "^6.2.1",
+    "@electron-forge/maker-rpm": "^6.2.1",
+    "@electron-forge/maker-squirrel": "^6.2.1",
+    "@electron-forge/maker-zip": "^6.2.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
+    "@electron-forge/plugin-vite": "^6.2.1",
     "@types/uuid": "^9.0.2",
     "@vitejs/plugin-vue": "^4.2.3",
     "ace-builds": "^1.23.4",

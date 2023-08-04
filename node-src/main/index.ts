@@ -165,8 +165,11 @@ msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
 // Set up app directories that are relative to install location
+//
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
 const workingDir = __dirname
-const devUrl = process.env.VITE_DEV_SERVER_URL as string
+const devUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL as string
 
 process.env.DIST_ELECTRON = join(workingDir, '..')
 process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
@@ -210,7 +213,7 @@ mkdirSync(process.env.TEMP)
 
 // generate paths for html/js entry points
 const preloadScriptPath = join(process.env.DIST_ELECTRON, 'preload/index.js')
-const htmlEntry = join(process.env.DIST_CLIENT, './index.html')
+const mainHtmlEntry = join(process.env.DIST_CLIENT, './index.html')
 const loaderEntry = join(process.env.DIST_CLIENT, './loader.html')
 
 // Set up API constants
@@ -616,7 +619,7 @@ async function createMainWindow() {
 
   // This loads the index and chains into src/main.ts
   if (app.isPackaged) {
-    mw.loadFile(htmlEntry)
+    mw.loadFile(mainHtmlEntry)
   } else {
     mw.loadURL(devUrl)
     // Open devTool if the app is not packaged
@@ -752,42 +755,45 @@ export async function attachCueToEvent({ layerName, event, cueId }:
     cueId: CueId
   }
 ): Promise<void> {
-  if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDeviceFingerprints[0].deviceSerial;
 
-    let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
-    if (targetLayer === -1) { targetLayer = 0 }
-
-    // TODO: set up layouts by default
-    if (layout.layers[targetLayer].has(event)) {
-      log.debug(`Attempting to unload existing event: ${event}`)
-      // find and remove the existing event
-      const mappedCue = layout.layers[targetLayer].get(event)
-      log.debug(`existing cue: ${nspct2(mappedCue)}`)
-    }
-    log.debug(`Attaching cue ${cueId} to ${event}`)
-    try {
-      const importedCue = await importCueModule(cues.get(cueId))
-      cues.set(cueId, importedCue)
-
-      const layerCue = cues.get(cueId)
-      layout.layers[targetLayer].set(event, layerCue)
-
-      if (typeof loadedCueModules[cueId].runTriggers[deviceId] === 'undefined') {
-        log.debug(`Creating run trigger record for device: ${deviceId}`)
-        loadedCueModules[cueId].runTriggers[deviceId] = { events: [] }
-      }
-
-      loadedCueModules[cueId].runTriggers[deviceId].events.push(event)
-
-      saveLayouts()
-
-      log.info(`Cue ${cueId} set to run for event: ${event}`)
-    } catch (e) {
-      log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
-    }
-  } else {
+  if (Object.keys(Ports).length <= 0) {
     log.error('No MakeShift device found, cue not attached')
+    return
+  }
+
+  const deviceId = knownDeviceFingerprints[0].deviceSerial;
+
+  let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
+  if (targetLayer === -1) { targetLayer = 0 }
+
+  // TODO: set up layouts by default
+  if (layout.layers[targetLayer].has(event)) {
+    log.debug(`Attempting to unload existing event: ${event}`)
+    // find and remove the existing event
+    const mappedCue = layout.layers[targetLayer].get(event)
+    log.debug(`existing cue: ${nspct2(mappedCue)}`)
+  }
+
+  log.debug(`Attaching cue ${cueId} to ${event}`)
+  try { //actually load and attach cue after error checks pass
+    const importedCue = await importCueModule(cues.get(cueId))
+    cues.set(cueId, importedCue)
+
+    const layerCue = cues.get(cueId)
+    layout.layers[targetLayer].set(event, layerCue)
+
+    if (typeof loadedCueModules[cueId].runTriggers[deviceId] === 'undefined') {
+      log.debug(`Creating run trigger record for device: ${deviceId}`)
+      loadedCueModules[cueId].runTriggers[deviceId] = { events: [] }
+    }
+
+    loadedCueModules[cueId].runTriggers[deviceId].events.push(event)
+
+    saveLayouts()
+
+    log.info(`Cue ${cueId} set to run for event: ${event}`)
+  } catch (e) {
+    log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
   }
 }
 

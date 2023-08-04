@@ -305,7 +305,7 @@ export async function sendBlocks() {
 }
 
 async function generateDefaultWorkspace() {
-  let workspace = new Workspace()
+  const workspace = new Workspace()
 
   log.debug(`blocklist ${nspct2(blocklist)}`)
   Blockly.serialization.blocks.append(blocklist['default_cue'].block, workspace)

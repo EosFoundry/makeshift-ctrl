@@ -1,12 +1,12 @@
 // import { contextBridge, ipcRenderer } from 'electron'
-import { CtrlIpcApi } from '../ipcApi'
+import { ctrlIpcApi, CtrlIpcApi } from '../ipcApi'
 const election = require('electron')
-const MakeShiftApi: CtrlIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
+// const MakeShiftApi: CtrlIpcApi = JSON.parse(process.env.MakeShiftSerializedApi)
 
 const ipcRndr = election.ipcRenderer
 
 let dryMakeShiftApi: any = {}
-Object.assign(dryMakeShiftApi, JSON.parse(process.env.MakeShiftSerializedApi))
+Object.assign(dryMakeShiftApi, ctrlIpcApi)
 
 console.log(dryMakeShiftApi)
 
@@ -23,7 +23,7 @@ function hydrate(section, handler: Function): any {
 }
 
 const hydratedMakeShiftApi = {
-  test: (ev) => ipcRndr.invoke(MakeShiftApi.test, ev),
+  test: (ev) => ipcRndr.invoke(ctrlIpcApi.test, ev),
   call: hydrate(dryMakeShiftApi.call, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   get: hydrate(dryMakeShiftApi.get, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),
   set: hydrate(dryMakeShiftApi.set, (evName) => { return (val) => ipcRndr.invoke(evName, val) }),

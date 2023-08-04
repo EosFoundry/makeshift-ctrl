@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { rndrCtrlAPI } from 'src/renderer';
+import { rndrCtrlAPI } from '../renderer';
 import { ref, inject } from 'vue';
 
 const makeshiftApi = inject('makeshift') as rndrCtrlAPI
