@@ -63,7 +63,6 @@ import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 
 // makeshift ctrl imports
 import { plugins, initPlugins, installPlugin } from './plugins'
-import { updater, initUpdater } from './updater'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
 import { ctrlLogger } from './utils'
 import {
@@ -174,7 +173,7 @@ const devUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL as string
 process.env.DIST_ELECTRON = join(workingDir, '..')
 process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
-process.env.DIST_CLIENT = join(process.env.DIST, 'client')
+process.env.DIST_CLIENT = join(process.env.DIST, 'renderer')
 
 if (app.isPackaged) {
   msgen.logLevel = 'info'
@@ -296,7 +295,6 @@ const preloadBarrier = []
 // preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
 preloadBarrier.push(initCues())
-preloadBarrier.push(initUpdater())
 
 // Open splash
 app.whenReady()
@@ -595,7 +593,6 @@ async function createMainWindow() {
   if (store.has(storeKeys.MainWindowState)) {
     windowPos = store.get(storeKeys.MainWindowState)
   }
-  updater.checkForUpdates()
 
   const mw = new BrowserWindow({
     show: false,

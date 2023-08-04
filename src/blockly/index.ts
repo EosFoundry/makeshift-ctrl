@@ -9,11 +9,6 @@ import { javascriptGenerator } from 'blockly/javascript'
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial'
 
 import { usePopup } from '../composables/popup'
-import * as basicToolbox from '../assets/blockly/toolbox.json'
-import * as defaultCue from '../assets/blockly/groups/makeshift/default_cue.json'
-import { block } from 'blockly/core/tooltip'
-import { generateBlock } from '../assets/blockly/groups/makeshift/default_cue.js'
-import { State } from 'blockly/core/utils/aria'
 import '@blockly/field-grid-dropdown'
 import { MakeShiftBlockJSON } from 'electron/main/blockly'
 

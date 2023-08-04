@@ -11,14 +11,10 @@ import { javascriptGenerator } from 'blockly/javascript'
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial'
 
 import { usePopup } from '../composables/popup'
-import * as basicToolbox from '../assets/blockly/toolbox.json'
-import * as defaultCue from '../assets/blockly/groups/makeshift/default_cue.json'
 import { rndrCtrlAPI } from '../renderer'
-import { generateBlock } from '../assets/blockly/groups/makeshift/default_cue'
 
 
 import { blockmap, importBlocklist } from '../blockly/index'
-import { ctrlIpcApi } from '../../electron/ipcApi'
 import { remToPx } from '../utilities/cssUnits'
 import { SensorEventDetails } from '../main'
 import { capitalizeFirstLetter, getEventDetails } from '../utilities/str'
@@ -122,7 +118,6 @@ onMounted(() => {
   const bd = document.getElementById('blockly-div')!
   workspace = Blockly.inject(bd, {
     theme: darkTheme,
-    toolbox: basicToolbox
   });
   // console.log(workspace)
 

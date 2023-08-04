@@ -2,6 +2,10 @@ const pkg = require('./package.json');
 
 module.exports = {
   packagerConfig: {
+    extraResource: [
+      './public/**/*',
+      './examples/**/*',
+    ],
     ignore: [
       /^\/\.cache.*/,
       /^\/\.secrets.*/,
@@ -14,6 +18,7 @@ module.exports = {
       /^\/tsconfig.*/,
       /^\/scripts.*/,
       /^\/src.*/,
+      /^\/node\-src.*/,
       /^\/types.*/,
     ],
     // asar: true,
