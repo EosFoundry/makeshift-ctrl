@@ -87,7 +87,7 @@ export async function generateCodeFromWorkspace(serialWorkspace) {
 export async function initBlockly() {
 
   log.info('Initializing Blockly builder...')
-  BlocklyPublicDir = join(process.env.PUBLIC, 'blockly')
+  BlocklyPublicDir = join(process.env.DATA, 'blockly')
   BlocklyAppDataDir = process.env.BLOCKLY_CUES
   log.debug(`BlocklyPublicDir ${nspct2(BlocklyPublicDir)}`)
   log.debug(`BlocklyAppDataDir ${nspct2(BlocklyAppDataDir)}`)

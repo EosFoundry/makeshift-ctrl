@@ -170,19 +170,21 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 const workingDir = __dirname
 const devUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL as string
 
-process.env.DIST_ELECTRON = join(workingDir, '..')
-process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
+process.env.DIST_NODE = join(workingDir, '..')
+process.env.APPROOT = join(process.env.DIST_NODE, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
-process.env.DIST_CLIENT = join(process.env.DIST, 'renderer')
+process.env.DIST_RENDERER = join(process.env.DIST, 'renderer')
 
 if (app.isPackaged) {
-  msgen.logLevel = 'info'
-  process.env.INSTALL_ROOT = join(process.env.APPROOT, '../..')
-  process.env.PUBLIC = join(process.env.INSTALL_ROOT, 'public')
-  process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
+  // msgen.logLevel = 'info'
+  process.env.RESOURCES = join(process.env.APPROOT, '..')
+  process.env.PUBLIC = join(process.env.RESOURCES, 'public')
+  process.env.DATA = join(process.env.RESOURCES, 'data')
+  process.env.ASSETS = join(process.env.DIST_RENDERER, 'assets')
 } else {
-  process.env.INSTALL_ROOT = process.env.APPROOT
+  process.env.RESOURCES = process.env.APPROOT
   process.env.PUBLIC = join(process.env.APPROOT, 'public')
+  process.env.DATA = join(process.env.APPROOT, 'data')
   process.env.ASSETS = join(process.env.APPROOT, 'src/assets')
 }
 
@@ -211,9 +213,9 @@ if (existsSync(process.env.TEMP)) {
 mkdirSync(process.env.TEMP)
 
 // generate paths for html/js entry points
-const preloadScriptPath = join(process.env.DIST_ELECTRON, 'preload/index.js')
-const mainHtmlEntry = join(process.env.DIST_CLIENT, './index.html')
-const loaderEntry = join(process.env.DIST_CLIENT, './loader.html')
+const preloadScriptPath = join(process.env.DIST_NODE, 'preload/index.js')
+const mainHtmlEntry = join(process.env.DIST_RENDERER, './index.html')
+const loaderEntry = join(process.env.DIST_RENDERER, './loader.html')
 
 // Set up API constants
 const Api = ctrlIpcApi
@@ -238,11 +240,12 @@ const DeviceEventsFlat = flattenEmitterApi(DeviceEvents)
 process.env.MakeShiftSerializedApi = JSON.stringify(ctrlIpcApi)
 // log.debug(nspct2(DeviceEventsFlat))
 
-log.debug('pkgroot:       ' + process.env.APPROOT)
+log.debug('approot:       ' + process.env.APPROOT)
 log.debug('dist:          ' + process.env.DIST)
-log.debug('dist_electron: ' + process.env.DIST_ELECTRON)
-log.debug('dist_client:   ' + process.env.DIST_CLIENT)
+log.debug('dist_electron: ' + process.env.DIST_NODE)
+log.debug('dist_client:   ' + process.env.DIST_RENDERER)
 log.debug('assets:        ' + process.env.ASSETS)
+log.debug('data:          ' + process.env.DATA)
 log.debug('public:        ' + process.env.PUBLIC)
 log.debug('appdata:       ' + process.env.APPDATA)
 log.debug('plugins:       ' + process.env.PLUGINS)

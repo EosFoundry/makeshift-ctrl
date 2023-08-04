@@ -19,7 +19,8 @@ import { remToPx } from '../utilities/cssUnits'
 import { SensorEventDetails } from '../main'
 import { capitalizeFirstLetter, getEventDetails } from '../utilities/str'
 import { Cue, CueId } from '../../types/electron/main/cues'
-import { remove } from 'fs-extra'
+import defaultToolbox from '../assets/base_toolbox.json'
+
 // console.log(toast)
 // console.log(storage)
 
@@ -118,6 +119,7 @@ onMounted(() => {
   const bd = document.getElementById('blockly-div')!
   workspace = Blockly.inject(bd, {
     theme: darkTheme,
+    toolbox: defaultToolbox,
   });
   // console.log(workspace)
 

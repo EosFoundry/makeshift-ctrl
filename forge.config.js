@@ -3,23 +3,31 @@ const pkg = require('./package.json');
 module.exports = {
   packagerConfig: {
     extraResource: [
-      './public/**/*',
-      './examples/**/*',
+      './data/',
+      './examples/',
     ],
     ignore: [
+      // hidden folders
       /^\/\.cache.*/,
       /^\/\.secrets.*/,
+
+      // hidden files
       /^\/\.gitignore.*/,
       /^\/\.gitmodules.*/,
       /^\/\.nvmrc.*/,
-      /^\/forge\..*/,
-      /^\/vite\..*/,
-      /^\/test\.mjs/,
+      // folders
+      /^\/data.*/,
+      /^\/examples.*/,
+      /^\/public.*/,
+      /^\/node\-src.*/,
       /^\/tsconfig.*/,
       /^\/scripts.*/,
       /^\/src.*/,
-      /^\/node\-src.*/,
       /^\/types.*/,
+      // files
+      /^\/forge\..*/,
+      /^\/test\.mjs/,
+      /^\/vite\..*/,
     ],
     // asar: true,
     junk: true,
