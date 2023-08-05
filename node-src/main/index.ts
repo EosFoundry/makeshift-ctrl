@@ -27,6 +27,7 @@ import { pathToFileURL } from 'node:url'
 // electron related imports
 import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
 import * as Store from 'electron-store'
+import { log as electronLog } from 'electron-log/main'
 import { Block } from 'blockly'
 
 // makeshift serial imports
@@ -107,6 +108,13 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
+if (require('electron-squirrel-startup')) { app.exit(); }
+require('update-electron-app')({
+  repo: 'EosFoundry/makeshift-ctrl',
+  updateInterval: '48 hour',
+  // logger: electronLog,
+})
+
 // initializing all independent globals
 let attachedDeviceFingerprints: MakeShiftPortFingerprint[] = []
 let knownDeviceFingerprints: MakeShiftPortFingerprint[] = [];
@@ -115,9 +123,7 @@ let splashWindow: Maybe<BrowserWindow> = Nothing
 let tray: Tray | null = null
 let menu: Menu | null = null
 
-const nodePathNormalize = normalize
 const store = new Store.default()
-const textDecoder = new TextDecoder()
 
 
 
@@ -153,9 +159,7 @@ const layout: Layout = {
     color: '#FFFFFF'
   }],
 }
-const cueMapLayers: EventCueMap[] = [
-  new Map()
-]
+
 let currentLayer = 0
 
 // Create Loggers

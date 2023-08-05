@@ -2,6 +2,8 @@ const pkg = require('./package.json');
 
 module.exports = {
   packagerConfig: {
+    asar: true,
+    junk: true,
     extraResource: [
       './data/',
       './examples/',
@@ -29,8 +31,6 @@ module.exports = {
       /^\/test\.mjs/,
       /^\/vite\..*/,
     ],
-    // asar: true,
-    junk: true,
   },
   rebuildConfig: {},
   makers: [
@@ -43,7 +43,7 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      config: {}
     },
     {
       name: '@electron-forge/maker-deb',
@@ -52,6 +52,18 @@ module.exports = {
     {
       name: '@electron-forge/maker-rpm',
       config: {},
+    },
+  ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'EosFoundry',
+          name: 'makeshift-ctrl'
+        },
+        draft: true,
+      },
     },
   ],
   plugins: [
@@ -80,4 +92,4 @@ module.exports = {
       },
     },
   ],
-};
+}
