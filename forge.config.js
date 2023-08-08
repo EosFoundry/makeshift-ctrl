@@ -1,9 +1,26 @@
 const pkg = require('./package.json');
+let appVersion = pkg.version;
+switch (process.env.BUILD_TYPE) {
+  case 'production':
+    process.env.NODE_ENV = 'production';
+    break;
+  case 'ci':
+    break;
+  case 'development':
+    process.env.NODE_ENV = 'development';
+    break;
+  default:
+    process.env.NODE_ENV = 'development';
+    break;
+}
+
+
 
 module.exports = {
   packagerConfig: {
     asar: true,
     junk: true,
+    appVersion: pkg.version,
     extraResource: [
       './data/',
       './examples/',
