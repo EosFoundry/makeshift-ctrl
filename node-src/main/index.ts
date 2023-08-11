@@ -16,10 +16,6 @@ import { readdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'original-fs'
-import {
-  resolve as resolvePosix,
-  normalize as normalizePosix,
-} from 'pathe'
 import { ensureDir, copyFile, ensureDirSync } from 'fs-extra'
 import * as chokidar from 'chokidar'
 import { pathToFileURL } from 'node:url'
@@ -27,7 +23,6 @@ import { pathToFileURL } from 'node:url'
 // electron related imports
 import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
 import * as Store from 'electron-store'
-import { log as electronLog } from 'electron-log/main'
 import { Block } from 'blockly'
 
 // makeshift serial imports
