@@ -17,7 +17,7 @@ declare namespace NodeJS {
      * │
      * ```
      */
-    VSCODE_DEBUG?: 'true'
+    // VSCODE_DEBUG?: 'true'
 
     //---------- Folders
     RESOURCES: string
@@ -26,6 +26,7 @@ declare namespace NodeJS {
     DIST_NODE: string
     DIST_RENDERER: string
     ASSETS: string
+
     /** /dist/client (packaged) or /public (during dev) */
     PUBLIC: string
     DATA: string
@@ -38,6 +39,7 @@ declare namespace NodeJS {
 
     //---------- Constants
     NAMESPACE:string
+    APP_VERSION:string
     
     //---------- Objects
     MakeShiftSerializedApi: string

@@ -101,14 +101,10 @@ if (!app.requestSingleInstanceLock()) {
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
-if (process.platform === 'win32') app.setAppUserModelId(app.getName())
-
-if (require('electron-squirrel-startup')) { app.exit(); }
-require('update-electron-app')({
-  repo: 'EosFoundry/makeshift-ctrl',
-  updateInterval: '48 hour',
-  // logger: electronLog,
-})
+if (process.platform === 'win32') {
+  app.setAppUserModelId(app.getName())
+  if (require('electron-squirrel-startup')) { app.exit(); }
+}
 
 // initializing all independent globals
 let attachedDeviceFingerprints: MakeShiftPortFingerprint[] = []
@@ -120,6 +116,7 @@ let menu: Menu | null = null
 
 const store = new Store.default()
 
+process.env.APP_VERSION = app.getVersion()
 
 
 // TODO: Fix the API so these are real
@@ -239,6 +236,7 @@ const DeviceEventsFlat = flattenEmitterApi(DeviceEvents)
 process.env.MakeShiftSerializedApi = JSON.stringify(ctrlIpcApi)
 // log.debug(nspct2(DeviceEventsFlat))
 
+log.info(`Starting Makeshift Ctrl v${app.getVersion()}`)
 log.debug('approot:       ' + process.env.APPROOT)
 log.debug('dist:          ' + process.env.DIST)
 log.debug('dist_electron: ' + process.env.DIST_NODE)
@@ -815,7 +813,7 @@ export const cueWatcherHandler = {
       newCue.contents = await readFile(newCue.fullPath)
       cues.set(newCue.id, newCue)
       // log.debug(nspct2(newCue))
-      log.debug(`Created new cue from ${path}`)
+      log.info(`Created new cue from ${path}`)
     } catch (e) {
       log.debug(`Checked ${path}\n\t${e}`)
     }
