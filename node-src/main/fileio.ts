@@ -33,15 +33,15 @@ async function readJson(filePath: PathLike | fs.FileHandle): Promise<Maybe<any>>
  */
 async function readFile(filePath: PathLike | fs.FileHandle): Promise<Maybe<string>> {
   try {
-    const locked = await lockfile.check(filePath)
-    if (locked) {
-      log.error(`File ${filePath} is locked while trying to read.`)
-      return Nothing
-    }
+    // const locked = await lockfile.check(filePath)
+    // if (locked) {
+    //   log.error(`File ${filePath} is locked while trying to read.`)
+    //   return Nothing
+    // }
 
-    const release = await lockfile.lock(filePath)
+    // const release = await lockfile.lock(filePath)
     const contents = await fs.readFile(filePath, 'utf-8')
-    await release()
+    // await release()
     return Maybe.of(contents)
   } catch (e) {
     log.error(`Error reading file ${filePath}: ${e}`)
@@ -77,14 +77,14 @@ async function writeFile(filePath: PathLike | fs.FileHandle, contents: string) {
 
   try {
     await ensureFile(filePath.toString())
-    const locked = await lockfile.check(filePath)
-    if (locked) {
-      log.error(`File ${filePath} is locked while trying to write.`)
-      return false
-    }
-    const release = await lockfile.lock(filePath)
+    // const locked = await lockfile.check(filePath)
+    // if (locked) {
+    //   log.error(`File ${filePath} is locked while trying to write.`)
+    //   return false
+    // }
+    // const release = await lockfile.lock(filePath)
     await fs.writeFile(filePath, contents)
-    await release()
+    // await release()
     return true
   } catch (e) {
     log.error(`Error writing file ${filePath}: ${e}`)

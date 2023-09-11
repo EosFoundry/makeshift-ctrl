@@ -5,7 +5,7 @@ import { Msg, nspct2 } from '@eos-makeshift/msg';
 // @ts-ignore
 import { javascriptGenerator, Order } from 'blockly/javascript';
 import Blockly, { Block, Workspace } from 'blockly';
-import '@blockly/field-grid-dropdown'
+import { FieldGridDropdown } from '@blockly/field-grid-dropdown'
 
 import * as Crypto from 'crypto'
 
@@ -93,6 +93,10 @@ export async function initBlockly() {
   log.debug(`BlocklyAppDataDir ${nspct2(BlocklyAppDataDir)}`)
   toolbox = (await loadJsonFile(join(BlocklyPublicDir, './base_toolbox.json'))).extract();
 
+  Blockly.fieldRegistry.register('field_grid_dropdown', FieldGridDropdown)
+
+
+
   for (const groupName of ['makeshift-ctrl', 'nutjs']) {
     (await loadBlockGroup(
       join(BlocklyPublicDir, './' + groupName + '/')
@@ -101,6 +105,7 @@ export async function initBlockly() {
     })
   }
 
+  // load saved workspaces
   for (const workspacePair of workspaceStore) {
     workspaceList[workspacePair[0]] = workspacePair[1]
   }

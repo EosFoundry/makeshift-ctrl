@@ -475,7 +475,7 @@ const ipcMainSetHandler = {
       // This line saves the blocks that the user created
       saveSerialWorkspace(cue, serialWorkspace)
 
-      log.debug(`jsCode: ${jsCode}`)
+      // log.debug(`jsCode: ${jsCode}`)
       // This line saves the cue generated from the blocks
       saveCueFile({
         cueId: cue.id,
