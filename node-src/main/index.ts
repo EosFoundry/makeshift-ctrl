@@ -58,9 +58,7 @@ import {
 import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 
 // makeshift ctrl imports
-import { plugins, initPlugins, installPlugin } from './plugins'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
-import { ctrlLogger } from './utils'
 import {
   initBlockly,
   syncGroupsWithToolbox,
@@ -80,10 +78,14 @@ import {
   // types
   Cue, CueId, CueMap, CueModule,
 } from './cues'
+import { checkForUpdates } from './updater'
+import { plugins, initPlugins, installPlugin } from './plugins'
 import { DefaultTheme, Theme, loadTheme } from './themes'
+import { ctrlLogger } from './utils'
+import { Fileio } from './fileio'
+
 import { block } from 'blockly/core/tooltip'
 import { maybe } from 'purify-ts'
-import { Fileio } from './fileio'
 
 
 let nanoid
@@ -117,6 +119,8 @@ let menu: Menu | null = null
 const store = new Store.default()
 
 process.env.APP_VERSION = app.getVersion()
+
+checkForUpdates()
 
 
 // TODO: Fix the API so these are real

@@ -35,6 +35,9 @@ export const ctrlIpcApi = {
     workspace: 'blockly-delete-workspace',
   },
   onEv: {
+    app: {
+      updateAvailable: 'mkshft-ev-app-updateAvailable',
+    },
     blockly: {
       toolboxUpdate: 'blockly-toolbox-sync',
       blocksUpdate: 'blockly-blocks-sync',
