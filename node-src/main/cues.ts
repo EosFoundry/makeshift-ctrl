@@ -68,7 +68,7 @@ export async function initCues() {
     // this should be on first run or if the user nukes 
     // the ../AppData/../makeshift-ctrl folder
     const dest = examplesFolder
-    const src = join(process.env.INSTALL_ROOT, 'examples')
+    const src = join(process.env.APP_RESOURCES, 'examples')
     await ensureDir(dest)
     const examples = await readdir(src)
     examples.forEach((filePath) => {

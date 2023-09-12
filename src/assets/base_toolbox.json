@@ -660,31 +660,13 @@
     },
     {
       "kind": "category",
-      "name": "Stored Variables",
-      "contents": [],
-      "custom": "STORAGE",
-      "categorystyle": "variable_category"
-    },
-    {
-      "kind": "category",
       "name": "Functions",
       "contents": [],
       "custom": "PROCEDURE",
       "categorystyle": "procedure_category"
     },
     {
-      "kind": "category",
-      "name": "MakeShift",
-      "contents": [
-        {
-          "kind": "block",
-          "type": "default_cue",
-          "disabled": true
-        }
-      ],
-      "categorystyle": {
-        "colour": "#555555"
-      }
+      "kind": "sep"
     }
   ]
 }

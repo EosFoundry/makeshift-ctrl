@@ -11,19 +11,16 @@ import { javascriptGenerator } from 'blockly/javascript'
 import { MakeShiftDeviceEvents } from '@eos-makeshift/serial'
 
 import { usePopup } from '../composables/popup'
-import * as basicToolbox from '../assets/blockly/toolbox.json'
-import * as defaultCue from '../assets/blockly/groups/makeshift/default_cue.json'
 import { rndrCtrlAPI } from '../renderer'
-import { generateBlock } from '../assets/blockly/groups/makeshift/default_cue'
 
 
 import { blockmap, importBlocklist } from '../blockly/index'
-import { ctrlIpcApi } from '../../electron/ipcApi'
 import { remToPx } from '../utilities/cssUnits'
 import { SensorEventDetails } from '../main'
 import { capitalizeFirstLetter, getEventDetails } from '../utilities/str'
 import { Cue, CueId } from '../../types/electron/main/cues'
-import { remove } from 'fs-extra'
+import defaultToolbox from '../assets/base_toolbox.json'
+
 // console.log(toast)
 // console.log(storage)
 
@@ -122,7 +119,7 @@ onMounted(() => {
   const bd = document.getElementById('blockly-div')!
   workspace = Blockly.inject(bd, {
     theme: darkTheme,
-    toolbox: basicToolbox
+    toolbox: defaultToolbox,
   });
   // console.log(workspace)
 
@@ -238,7 +235,7 @@ function loadWorkspace(newId: string) {
   // TODO: check workspace block hashes against loaded blocklist hashes and warn user if blocks are outdated or changed
 }
 
-let removeCueListener:any
+let removeCueListener: any
 async function runWorkspace() {
   console.log('Saving workspace')
   const success = await saveWorkspace()
@@ -251,8 +248,8 @@ function runOnceSaved(cue: Cue) {
   if (cue.id === workspaceId.value) {
     console.log('cue is the one we want')
     MakeShiftApi.call.runCue(cue.id)
-    removeCueListener()
   }
+  removeCueListener()
 }
 
 async function deployAsCue(workspaceId: string) {
@@ -290,38 +287,30 @@ async function deployAsCue(workspaceId: string) {
   >
     Load Cue Blocks</button> 
   -->
-  <div
-    id="blockly-wrapper"
-    ref="blocklyWrapper"
-    :class="['overflow-clip',
-      // 'm-3',
-      'z-50',
-      'rounded-lg',
+  <div id="blockly-wrapper" ref="blocklyWrapper" :class="['overflow-clip',
+    // 'm-3',
+    'z-50',
+    'rounded-lg',
+    'border-solid',
+    'border-2',
+    'box-border',
+    'border-hl'
+  ]" :style="{
+  height: props.panelHeight + 'px'
+}">
+    <div id="blockly-toolbar" :class="[
+      'h-14',
+      'flex',
+      'flex-row',
+      'items-center',
+      'justify-between',
+      'bg-bg',
       'border-solid',
-      'border-2',
-      'box-border',
-      'border-hl'
-    ]"
-    :style="{
-      height: props.panelHeight + 'px'
-    }"
-  >
-    <div
-      id="blockly-toolbar"
-      :class="[
-        'h-14',
-        'flex',
-        'flex-row',
-        'items-center',
-        'justify-between',
-        'bg-bg',
-        'border-solid',
-        'border-b-2',
-        'border-hl',
-        'rounded-t-lg',
-        'shadow-md'
-      ]"
-    >
+      'border-b-2',
+      'border-hl',
+      'rounded-t-lg',
+      'shadow-md'
+    ]">
       <div :class="[
         'flex',
         'flex-row',
@@ -329,18 +318,12 @@ async function deployAsCue(workspaceId: string) {
         'gap-x-2',
         'p-2',
       ]">
-        <button
-          :class="[
-          ]"
-          @click="saveWorkspace"
-        >
+        <button :class="[
+        ]" @click="saveWorkspace">
           Save Workspace
         </button>
-        <button
-          :class="[
-          ]"
-          @click="runWorkspace"
-        >
+        <button :class="[
+        ]" @click="runWorkspace">
           Run Workspace
         </button>
       </div>
@@ -358,23 +341,17 @@ async function deployAsCue(workspaceId: string) {
           {{ selectedEventDetails.sensorId }},
           {{ capitalizeFirstLetter(selectedEventDetails.eventType) }}
         </div>
-        <button
-          :class="[
-          ]"
-          @click="deployAsCue(workspaceId)"
-        >
+        <button :class="[
+        ]" @click="deployAsCue(workspaceId)">
           Deploy as Cue
         </button>
       </div>
     </div>
-    <div
-      id="blockly-div"
-      :class="[
-        'z-0',
-        'absolute',
-        'overflow-clip',
-      ]"
-    ></div>
+    <div id="blockly-div" :class="[
+      'z-0',
+      'absolute',
+      'overflow-clip',
+    ]"></div>
   </div>
 </template>
 

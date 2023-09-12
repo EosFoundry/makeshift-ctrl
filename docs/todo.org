@@ -4,32 +4,20 @@
 
 ** TODO Giving cues a global variable store
 
-** TODO URGENT Safely store user secrets
-
-* TODO Auto Updater
+* PROGRESS Auto Updater
 Plan to follow https://www.electronjs.org/docs/latest/tutorial/updates
-
-** TODO hack together something with electron-builder
-use autoupdater module to look for + extract + install new updates from github releases
 
 ** HOLD differential updates
 probably more of a 'nice to have'
 
-** WAIT electron-forge migration
+** DONE electron-forge migration
 forge is better supported than builder, less confusing build path and documentation
 
-HOWEVER...
-
-*** WAIT electron forge vite support
-waiting on https://github.com/electron/forge/pull/3071
-
-* TODO UI
+* PROGRESS UI
 Create an editor based on [[https://developers.google.com/blockly/guides/get-started/web][Blockly]] to represent imported functions from plugins.
 
 ** TODO Blockly Integration
 [[Plugins]]
-
-** TODO UX flow
 
 * TODO Notifications
 
@@ -38,8 +26,6 @@ Add a notification system to the app so cues can access it
 [[https://www.electronjs.org/docs/latest/tutorial/notifications][Notifications]]
 
 ** BLOCKED Custom Icon Changes Through Cues
-Blocked by [[
-
 
 * TODO Plugins
 Finalise the plugin developer workflow
@@ -49,12 +35,3 @@ Project setup - npm, required tooling, etc.
 
 ** TODO Example Plugins
 Heavily commented code
-
-* TODO Cue Mapping system
-
-** TODO Cue - signal data structure
-
-** TODO Cue operations refactor for data structure
-i.e. attaching cues, creating cues, etc.
-
-** TODO Save and Load cue maps

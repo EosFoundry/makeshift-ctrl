@@ -17,17 +17,19 @@ declare namespace NodeJS {
      * │
      * ```
      */
-    VSCODE_DEBUG?: 'true'
+    // VSCODE_DEBUG?: 'true'
 
     //---------- Folders
-    INSTALL_ROOT: string
+    RESOURCES: string
     APPROOT: string
     DIST: string
-    DIST_ELECTRON: string
-    DIST_CLIENT: string
+    DIST_NODE: string
+    DIST_RENDERER: string
     ASSETS: string
+
     /** /dist/client (packaged) or /public (during dev) */
     PUBLIC: string
+    DATA: string
 
     /** AppData */
     APPDATA: string
@@ -37,6 +39,7 @@ declare namespace NodeJS {
 
     //---------- Constants
     NAMESPACE:string
+    APP_VERSION:string
     
     //---------- Objects
     MakeShiftSerializedApi: string

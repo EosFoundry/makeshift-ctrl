@@ -16,10 +16,6 @@ import { readdirSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'original-fs'
-import {
-  resolve as resolvePosix,
-  normalize as normalizePosix,
-} from 'pathe'
 import { ensureDir, copyFile, ensureDirSync } from 'fs-extra'
 import * as chokidar from 'chokidar'
 import { pathToFileURL } from 'node:url'
@@ -62,10 +58,7 @@ import {
 import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 
 // makeshift ctrl imports
-import { plugins, initPlugins, installPlugin } from './plugins'
-import { updater, initUpdater } from './updater'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
-import { ctrlLogger } from './utils'
 import {
   initBlockly,
   syncGroupsWithToolbox,
@@ -85,10 +78,14 @@ import {
   // types
   Cue, CueId, CueMap, CueModule,
 } from './cues'
+import { checkForUpdates } from './updater'
+import { plugins, initPlugins, installPlugin } from './plugins'
 import { DefaultTheme, Theme, loadTheme } from './themes'
+import { ctrlLogger } from './utils'
+import { Fileio } from './fileio'
+
 import { block } from 'blockly/core/tooltip'
 import { maybe } from 'purify-ts'
-import { Fileio } from './fileio'
 
 
 let nanoid
@@ -106,7 +103,10 @@ if (!app.requestSingleInstanceLock()) {
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
-if (process.platform === 'win32') app.setAppUserModelId(app.getName())
+if (process.platform === 'win32') {
+  app.setAppUserModelId(app.getName())
+  if (require('electron-squirrel-startup')) { app.exit(); }
+}
 
 // initializing all independent globals
 let attachedDeviceFingerprints: MakeShiftPortFingerprint[] = []
@@ -116,10 +116,11 @@ let splashWindow: Maybe<BrowserWindow> = Nothing
 let tray: Tray | null = null
 let menu: Menu | null = null
 
-const nodePathNormalize = normalize
 const store = new Store.default()
-const textDecoder = new TextDecoder()
 
+process.env.APP_VERSION = app.getVersion()
+
+checkForUpdates()
 
 
 // TODO: Fix the API so these are real
@@ -154,9 +155,7 @@ const layout: Layout = {
     color: '#FFFFFF'
   }],
 }
-const cueMapLayers: EventCueMap[] = [
-  new Map()
-]
+
 let currentLayer = 0
 
 // Create Loggers
@@ -165,22 +164,27 @@ msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
 // Set up app directories that are relative to install location
+//
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
 const workingDir = __dirname
-const devUrl = process.env.VITE_DEV_SERVER_URL as string
+const devUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL as string
 
-process.env.DIST_ELECTRON = join(workingDir, '..')
-process.env.APPROOT = join(process.env.DIST_ELECTRON, '../..')
+process.env.DIST_NODE = join(workingDir, '..')
+process.env.APPROOT = join(process.env.DIST_NODE, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
-process.env.DIST_CLIENT = join(process.env.DIST, 'client')
+process.env.DIST_RENDERER = join(process.env.DIST, 'renderer')
 
 if (app.isPackaged) {
-  msgen.logLevel = 'info'
-  process.env.INSTALL_ROOT = join(process.env.APPROOT, '../..')
-  process.env.PUBLIC = join(process.env.INSTALL_ROOT, 'public')
-  process.env.ASSETS = join(process.env.DIST_CLIENT, 'assets')
+  // msgen.logLevel = 'info'
+  process.env.RESOURCES = join(process.env.APPROOT, '..')
+  process.env.PUBLIC = join(process.env.RESOURCES, 'public')
+  process.env.DATA = join(process.env.RESOURCES, 'data')
+  process.env.ASSETS = join(process.env.DIST_RENDERER, 'assets')
 } else {
-  process.env.INSTALL_ROOT = process.env.APPROOT
+  process.env.RESOURCES = process.env.APPROOT
   process.env.PUBLIC = join(process.env.APPROOT, 'public')
+  process.env.DATA = join(process.env.APPROOT, 'data')
   process.env.ASSETS = join(process.env.APPROOT, 'src/assets')
 }
 
@@ -209,9 +213,9 @@ if (existsSync(process.env.TEMP)) {
 mkdirSync(process.env.TEMP)
 
 // generate paths for html/js entry points
-const preloadScriptPath = join(process.env.DIST_ELECTRON, 'preload/index.js')
-const htmlEntry = join(process.env.DIST_CLIENT, './index.html')
-const loaderEntry = join(process.env.DIST_CLIENT, './loader.html')
+const preloadScriptPath = join(process.env.DIST_NODE, 'preload/index.js')
+const mainHtmlEntry = join(process.env.DIST_RENDERER, './index.html')
+const loaderEntry = join(process.env.DIST_RENDERER, './loader.html')
 
 // Set up API constants
 const Api = ctrlIpcApi
@@ -236,11 +240,13 @@ const DeviceEventsFlat = flattenEmitterApi(DeviceEvents)
 process.env.MakeShiftSerializedApi = JSON.stringify(ctrlIpcApi)
 // log.debug(nspct2(DeviceEventsFlat))
 
-log.debug('pkgroot:       ' + process.env.APPROOT)
+log.info(`Starting Makeshift Ctrl v${app.getVersion()}`)
+log.debug('approot:       ' + process.env.APPROOT)
 log.debug('dist:          ' + process.env.DIST)
-log.debug('dist_electron: ' + process.env.DIST_ELECTRON)
-log.debug('dist_client:   ' + process.env.DIST_CLIENT)
+log.debug('dist_electron: ' + process.env.DIST_NODE)
+log.debug('dist_client:   ' + process.env.DIST_RENDERER)
 log.debug('assets:        ' + process.env.ASSETS)
+log.debug('data:          ' + process.env.DATA)
 log.debug('public:        ' + process.env.PUBLIC)
 log.debug('appdata:       ' + process.env.APPDATA)
 log.debug('plugins:       ' + process.env.PLUGINS)
@@ -293,7 +299,6 @@ const preloadBarrier = []
 // preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
 preloadBarrier.push(initCues())
-preloadBarrier.push(initUpdater())
 
 // Open splash
 app.whenReady()
@@ -472,7 +477,7 @@ const ipcMainSetHandler = {
       // This line saves the blocks that the user created
       saveSerialWorkspace(cue, serialWorkspace)
 
-      log.debug(`jsCode: ${jsCode}`)
+      // log.debug(`jsCode: ${jsCode}`)
       // This line saves the cue generated from the blocks
       saveCueFile({
         cueId: cue.id,
@@ -592,7 +597,6 @@ async function createMainWindow() {
   if (store.has(storeKeys.MainWindowState)) {
     windowPos = store.get(storeKeys.MainWindowState)
   }
-  updater.checkForUpdates()
 
   const mw = new BrowserWindow({
     show: false,
@@ -616,7 +620,7 @@ async function createMainWindow() {
 
   // This loads the index and chains into src/main.ts
   if (app.isPackaged) {
-    mw.loadFile(htmlEntry)
+    mw.loadFile(mainHtmlEntry)
   } else {
     mw.loadURL(devUrl)
     // Open devTool if the app is not packaged
@@ -752,42 +756,45 @@ export async function attachCueToEvent({ layerName, event, cueId }:
     cueId: CueId
   }
 ): Promise<void> {
-  if (Object.keys(Ports).length > 0) {
-    const deviceId = knownDeviceFingerprints[0].deviceSerial;
 
-    let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
-    if (targetLayer === -1) { targetLayer = 0 }
-
-    // TODO: set up layouts by default
-    if (layout.layers[targetLayer].has(event)) {
-      log.debug(`Attempting to unload existing event: ${event}`)
-      // find and remove the existing event
-      const mappedCue = layout.layers[targetLayer].get(event)
-      log.debug(`existing cue: ${nspct2(mappedCue)}`)
-    }
-    log.debug(`Attaching cue ${cueId} to ${event}`)
-    try {
-      const importedCue = await importCueModule(cues.get(cueId))
-      cues.set(cueId, importedCue)
-
-      const layerCue = cues.get(cueId)
-      layout.layers[targetLayer].set(event, layerCue)
-
-      if (typeof loadedCueModules[cueId].runTriggers[deviceId] === 'undefined') {
-        log.debug(`Creating run trigger record for device: ${deviceId}`)
-        loadedCueModules[cueId].runTriggers[deviceId] = { events: [] }
-      }
-
-      loadedCueModules[cueId].runTriggers[deviceId].events.push(event)
-
-      saveLayouts()
-
-      log.info(`Cue ${cueId} set to run for event: ${event}`)
-    } catch (e) {
-      log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
-    }
-  } else {
+  if (Object.keys(Ports).length <= 0) {
     log.error('No MakeShift device found, cue not attached')
+    return
+  }
+
+  const deviceId = knownDeviceFingerprints[0].deviceSerial;
+
+  let targetLayer = layout.layerLabels.findIndex(label => label.name === layerName)
+  if (targetLayer === -1) { targetLayer = 0 }
+
+  // TODO: set up layouts by default
+  if (layout.layers[targetLayer].has(event)) {
+    log.debug(`Attempting to unload existing event: ${event}`)
+    // find and remove the existing event
+    const mappedCue = layout.layers[targetLayer].get(event)
+    log.debug(`existing cue: ${nspct2(mappedCue)}`)
+  }
+
+  log.debug(`Attaching cue ${cueId} to ${event}`)
+  try { //actually load and attach cue after error checks pass
+    const importedCue = await importCueModule(cues.get(cueId))
+    cues.set(cueId, importedCue)
+
+    const layerCue = cues.get(cueId)
+    layout.layers[targetLayer].set(event, layerCue)
+
+    if (typeof loadedCueModules[cueId].runTriggers[deviceId] === 'undefined') {
+      log.debug(`Creating run trigger record for device: ${deviceId}`)
+      loadedCueModules[cueId].runTriggers[deviceId] = { events: [] }
+    }
+
+    loadedCueModules[cueId].runTriggers[deviceId].events.push(event)
+
+    saveLayouts()
+
+    log.info(`Cue ${cueId} set to run for event: ${event}`)
+  } catch (e) {
+    log.error(`Cue ${cueId} could not be assigned to ${event}\n\t Issue: ${e}`)
   }
 }
 
@@ -810,7 +817,7 @@ export const cueWatcherHandler = {
       newCue.contents = await readFile(newCue.fullPath)
       cues.set(newCue.id, newCue)
       // log.debug(nspct2(newCue))
-      log.debug(`Created new cue from ${path}`)
+      log.info(`Created new cue from ${path}`)
     } catch (e) {
       log.debug(`Checked ${path}\n\t${e}`)
     }
