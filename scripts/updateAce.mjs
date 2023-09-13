@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'fs/promises'
 import fsEx from 'fs-extra'
 import chalk from 'chalk'
-import semver, { minVersion } from 'semver'
+import * as semver from 'semver'
 
 const rawFile = await readFile('package.json', 'utf-8')
 const pubAceVersion = await readFile('public/ace-builds/aceversion', 'utf-8')
@@ -10,7 +10,7 @@ const packageJson = JSON.parse(rawFile)
 
 const CWD = process.cwd()
 const pkgAceVersion = packageJson.devDependencies['ace-builds']
-const targetAceVersion = minVersion(pkgAceVersion)
+const targetAceVersion = semver.minVersion(pkgAceVersion)
 
 export async function updateAce() {
   console.log(`Updating public ace-builds to ${targetAceVersion.raw}`)
