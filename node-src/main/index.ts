@@ -163,12 +163,13 @@ const msgen = new Msg({ host: 'Ctrl', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
+log.info(process.env.NAME)
+
 // Set up app directories that are relative to install location
-//
-declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
-declare const MAIN_WINDOW_VITE_NAME: string;
+declare const MAKESHIFT_CTRL_VITE_DEV_SERVER_URL: string;
+declare const MAKESHIFT_CTRL_VITE_NAME: string;
 const workingDir = __dirname
-const devUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL as string
+const devUrl = MAKESHIFT_CTRL_VITE_DEV_SERVER_URL as string
 
 process.env.DIST_NODE = join(workingDir, '..')
 process.env.APPROOT = join(process.env.DIST_NODE, '../..')
