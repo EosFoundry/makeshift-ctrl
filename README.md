@@ -113,7 +113,7 @@ Important directories are marked with an asterisk (\*)
 
 ```tree
 makeshift-ctrl/ --- main project folder
-├── * electron/   --- electron/nodejs source
+├── * node-src/   --- electron/nodejs source
 │   ├── main/         --- main process code
 │   └── preload/      --- preload/API setup code
 |
@@ -124,15 +124,14 @@ makeshift-ctrl/ --- main project folder
 |
 ├── dist/       --- build process outputs
 │   ├── client/       --- compiled UI files
-│   ├── electron/     --- compiled electron/nodejs files
-│   └── release/      --- packaged application
+│   └── node/         --- compiled electron/nodejs files
 |
 ├── docs/       --- notes
-├── build/      --- electron-builder required shenanigans
 ├── examples/   --- example cues
+├── out/        --- electron forge output
 ├── public/     --- loose files (directly routed in UI) [1]
 ├── scripts/    --- misc utility scripts
-└── types/      --- emitted types from electron sources
+└── types/      --- emitted types from electron sources, this is used to read front end stuff
 ```
 
 [1] - for more details on the public directory, see <https://vitejs.dev/guide/assets.html#the-public-directory>
