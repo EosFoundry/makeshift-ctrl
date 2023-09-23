@@ -14,6 +14,7 @@ export default defineConfig({
       external: [
         '@eos-makeshift/serial',
         '@nut-tree/nut-js',
+        'uuid',
         'blockly',
         'original-fs',
       ],
