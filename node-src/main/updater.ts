@@ -11,7 +11,10 @@ const octokit = new Octokit({
 })
 
 // Create Loggers
-const msgen = new Msg({ host: 'Updater', logLevel: 'debug' })
+const msgen = new Msg({
+  host: 'Updater',
+  logLevel: 'info'
+})
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
@@ -50,7 +53,7 @@ export async function checkForUpdates() {
 
   log.debug(`Latest release: ${newReleaseDigest[0]}`)
   log.debug(`Digest of new releases:`)
-  console.dir(newReleaseDigest, { depth: 3 })
+  // console.dir(newReleaseDigest, { depth: 3 })
 
   updaterStore.set('releaseList', sortedReleases)
   if (knownReleaseList.length === 0) {
@@ -61,7 +64,7 @@ export async function checkForUpdates() {
 
   const knownReleaseDigest = digestReleaseList(knownReleaseList)
   log.debug(`Digest of known releases:`)
-  console.dir(knownReleaseDigest, { depth: 3 })
+  // console.dir(knownReleaseDigest, { depth: 3 })
 
   const hasNewRelease = semver.gt(newReleaseDigest[0].tag_name, knownReleaseDigest[0].tag_name)
   log.debug(`Has new release: ${hasNewRelease}`)

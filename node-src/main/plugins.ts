@@ -1,49 +1,55 @@
 // import * as chokidar from 'chokidar'
 import { Msg } from '@eos-makeshift/msg'
-import { dialog, utilityProcess } from 'electron'
+import { dialog } from 'electron'
+import { fork } from 'node:child_process'
 import { readdir, mkdir } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'original-fs'
 import { isAbsolute, join } from 'pathe'
 import { ctrlIpcApi, storeKeys } from '../ipcApi'
-import { ctrlLogger } from './utils'
-import { NodeVM } from 'vm2'
 
 export const plugins = {}
 const msgen = new Msg({
   host: 'Plugins',
   showTime: false,
-  logLevel: 'info',
-  logger: ctrlLogger
+  logLevel: 'debug',
 })
 
+let pluginHost
 const log = msgen.getLevelLoggers()
 
 export async function initPlugins() {
-  try {
-    const dir = await readdir(process.env.PLUGINS)
-    log.debug(dir)
-    dir.forEach(async (path) => {
-      const plugPath = join(process.env.PLUGINS, path)
-      const toast = await readdir(plugPath)
-      log.debug(toast)
-      const manifest = join(plugPath, 'manifest.json')
-      if (lstatSync(manifest).isFile()) {
-        if (lstatSync(plugPath).isDirectory()) {
-          load(plugPath)
-        }
-        // } else {
-        //   // nuke the directory if it does not contain a plugin
-        //   rmSync(process.env.TEMP, {
-        //     recursive: true,
-        //   })
-      }
-    })
-  } catch (err) {
-    log.error(err)
-  }
+  log.info(process.env.APPROOT)
+  log.info('Initializing plugins...')
+  // setTimeout(() => {
+  //   pluginHost.kill()
+  // }, 1000)
+  startHost()
 }
 
+function startHost() {
+  pluginHost = fork(join(process.env.DIST_NODE, 'plugin/host.js'))
+  pluginHost.on('message', (msg) => {
+    log.debug(msg)
+  })
+  pluginHost.on('error', (err) => {
+    log.error('pluginHost error')
+    log.error(err)
+  })
+  pluginHost.on('exit', (code, signal) => {
+    log.debug('pluginHost exited')
+    log.debug(code)
+    log.debug(signal)
+  })
+  pluginHost.send({ msg: 'hello' })
+
+}
+
+export function reloadHost(){
+  pluginHost.kill()
+}
+
+function getPluginFolders() {}
 
 export async function installPlugin() {
   const openResult = await dialog.showOpenDialog({
@@ -59,14 +65,16 @@ export async function installPlugin() {
     ],
     properties: [
       'openFile',
-      'multiSelections']
+      'multiSelections'
+    ]
   })
 
   if (openResult.canceled === false) {
-    log.info(openResult)
-    log.info(process.env.TEMP)
+    log.debug(openResult)
+    log.debug(process.env.TEMP)
   }
 }
+
 
 async function load(pluginFolder: string) {
   const manifestPath = join(pluginFolder, 'manifest.json')
@@ -75,13 +83,12 @@ async function load(pluginFolder: string) {
   const pluginPath = join(pluginFolder, (name + '.mkshftpb.js'))
   const plugPathUrl = pathToFileURL(pluginPath)
 
-  // log.info(manifest)
-  // log.info(pluginPath)
-  // log.info(isAbsolute(pluginPath))
-  // log.info(plugPathUrl)
-  // log.info(lstatSync(pluginPath).isFile())
-  plugins[name] = await utilityProcess.fork(plugPathUrl.href)
-  // log.info(plugins)
+  log.debug(manifest)
+  log.debug(pluginPath)
+  log.debug(isAbsolute(pluginPath))
+  log.debug(plugPathUrl)
+  log.debug(lstatSync(pluginPath).isFile())
+  log.debug(plugins)
 }
 
 export class Plugin {

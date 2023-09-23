@@ -134,6 +134,10 @@ module.exports = {
             config: 'vite.main.config.ts',
           },
           {
+            entry: 'node-src/plugin/index.ts',
+            config: 'vite.plugin.config.ts',
+          },
+          {
             entry: 'node-src/preload/index.ts',
             config: 'vite.preload.config.ts',
           },

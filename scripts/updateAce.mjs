@@ -1,6 +1,8 @@
 import { readFile, writeFile } from 'fs/promises'
 import fsEx from 'fs-extra'
 import chalk from 'chalk'
+
+// @ts-ignore
 import * as semver from 'semver'
 
 const rawFile = await readFile('package.json', 'utf-8')
@@ -34,7 +36,7 @@ export async function updateAce() {
 
   console.log('public/ace-builds is outdated, copying...')
 
-  await fsEx.copy(`${CWD}/node_modules/ace-builds/src-min-noconflict`, `${CWD}/public/ace-builds/src-min-noconflict`, async (err) => {
+  fsEx.copy(`${CWD}/node_modules/ace-builds/src-min-noconflict`, `${CWD}/public/ace-builds/src-min-noconflict`, async (err) => {
     if (err) {
       console.log(err)
       process.exit(1)

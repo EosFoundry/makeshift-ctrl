@@ -1,8 +1,13 @@
-import * as ts from "typescript";
-import {Maybe} from "purify-ts/Maybe";
+import {createHash} from "crypto";
+import {readFile} from "node:fs/promises";
 
-const something = Maybe.fromNullable(undefined)
-console.log(something.isNothing())
+const hash = createHash("sha512");
+
+const sourceFile = 'node-src/main/index.ts';
+const sourceContents = await readFile(sourceFile);
+
+console.log(sourceContents.toString());
+console.log(hash.update(sourceContents).digest("hex"));
 
 // const source = "let x: string  = 'string'";
 

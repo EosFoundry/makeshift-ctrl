@@ -17,8 +17,6 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'original-fs'
 import { ensureDir, copyFile, ensureDirSync } from 'fs-extra'
-import * as chokidar from 'chokidar'
-import { pathToFileURL } from 'node:url'
 
 // electron related imports
 import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
@@ -50,7 +48,6 @@ import {
 
 // Utilities
 import { Msg, nspct2, LogLevel, MsgLevel, nspect, logRank } from '@eos-makeshift/msg'
-import { json } from 'stream/consumers'
 import {
   v4 as uuidv4,
   v5 as uuidv5,
@@ -83,9 +80,6 @@ import { plugins, initPlugins, installPlugin } from './plugins'
 import { DefaultTheme, Theme, loadTheme } from './themes'
 import { ctrlLogger } from './utils'
 import { Fileio } from './fileio'
-
-import { block } from 'blockly/core/tooltip'
-import { maybe } from 'purify-ts'
 
 
 let nanoid
@@ -159,11 +153,11 @@ const layout: Layout = {
 let currentLayer = 0
 
 // Create Loggers
-const msgen = new Msg({ host: 'Ctrl', logLevel: 'debug' })
+const msgen = new Msg({ host: 'Ctrl', logLevel: 'info' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
-log.info(process.env.NAME)
+// log.info(process.env.NAME)
 
 // Set up app directories that are relative to install location
 declare const MAKESHIFT_CTRL_VITE_DEV_SERVER_URL: string;
@@ -174,6 +168,7 @@ const devUrl = MAKESHIFT_CTRL_VITE_DEV_SERVER_URL as string
 process.env.DIST_NODE = join(workingDir, '..')
 process.env.APPROOT = join(process.env.DIST_NODE, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
+process.env.DIST_NODE = join(process.env.DIST, 'node')
 process.env.DIST_RENDERER = join(process.env.DIST, 'renderer')
 
 if (app.isPackaged) {
@@ -195,6 +190,7 @@ process.env.PLUGINS = join(process.env.APPDATA, 'plugins')
 process.env.CUES = join(process.env.APPDATA, 'cues')
 process.env.BLOCKLY_CUES = join(process.env.APPDATA, 'blocks')
 process.env.TEMP = join(app.getPath('temp'), 'makeshift-ctrl')
+
 if (process.platform === 'darwin') {
   process.env.TEMP = join('/private', process.env.TEMP)
 }
@@ -297,7 +293,7 @@ log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 
 // Load non-conflicting resources
 const preloadBarrier = []
-// preloadBarrier.push(initPlugins())
+preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
 preloadBarrier.push(initCues())
 
