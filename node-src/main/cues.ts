@@ -64,11 +64,11 @@ export async function initCues() {
   log.info('Initializing CueHandler...')
   const examplesFolder = join(process.env.CUES, 'examples')
   cueTempDir = join(process.env.TEMP, 'temp')
-  if (existsSync(examplesFolder)) { } else {
-    // this should be on first run or if the user nukes 
+  if (existsSync(examplesFolder) === false) {
+    // this should be on first run or if the user nukes
     // the ../AppData/../makeshift-ctrl folder
     const dest = examplesFolder
-    const src = join(process.env.APP_RESOURCES, 'examples')
+    const src = join(process.env.RESOURCES, 'examples')
     await ensureDir(dest)
     const examples = await readdir(src)
     examples.forEach((filePath) => {
