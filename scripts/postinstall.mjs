@@ -1,3 +1,5 @@
 import { updateAce } from "./updateAce.mjs"
 
-await updateAce()
+const aceRet = await updateAce()
+
+process.exit(aceRet)

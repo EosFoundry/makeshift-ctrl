@@ -31,7 +31,7 @@ export async function updateAce() {
 
   if (semver.satisfies(targetAceVersion, pubAceVersion)) {
     console.log('public/ace-builds is up to date')
-    process.exit(0)
+    return 0
   }
 
   console.log('public/ace-builds is outdated, copying...')
@@ -39,7 +39,7 @@ export async function updateAce() {
   fsEx.copy(`${CWD}/node_modules/ace-builds/src-min-noconflict`, `${CWD}/public/ace-builds/src-min-noconflict`, async (err) => {
     if (err) {
       console.log(err)
-      process.exit(1)
+      return 1
     } else {
       console.log('Copying finished, updating aceversion file...')
       try {
@@ -49,7 +49,7 @@ export async function updateAce() {
       } catch (err) {
         console.log(err)
         console.log(`Error writing \'${targetAceVersion.raw}\' into aceversion file, exiting`)
-        process.exit(1)
+        return 1
       }
     }
   })
