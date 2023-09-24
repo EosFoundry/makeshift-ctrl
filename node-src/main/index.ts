@@ -76,7 +76,7 @@ import {
   Cue, CueId, CueMap, CueModule,
 } from './cues'
 import { checkForUpdates } from './updater'
-import { plugins, initPlugins, installPlugin } from './plugins'
+import { plugins, initPlugins, installPlugin, killPluginHost } from './plugins'
 import { DefaultTheme, Theme, loadTheme } from './themes'
 import { ctrlLogger } from './utils'
 import { Fileio } from './fileio'
@@ -352,8 +352,9 @@ ipcMain.handle(Api.test, async (ev, workspace) => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     PortAuthority.removeAllListeners()
+    killPluginHost()
     app.quit()
-  }
+  } // TODO: handle macos
 })
 
 /**

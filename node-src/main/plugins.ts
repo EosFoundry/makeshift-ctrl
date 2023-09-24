@@ -45,7 +45,7 @@ function startHost() {
 
 }
 
-export function reloadHost(){
+export function killPluginHost(){
   pluginHost.kill()
 }
 
