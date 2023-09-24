@@ -34,7 +34,7 @@ function toggleHide() {
 }
 function sendLoadEvent(file: Cue) {
   console.log(file)
-  window.dispatchEvent(new CustomEvent('fileSelected', { detail: file.id }))
+  window.dispatchEvent(new CustomEvent('file-selected', { detail: file.id }))
 }
 
 watch(() => state.value.collapsed, (collapsed) => {
