@@ -153,7 +153,7 @@ const layout: Layout = {
 let currentLayer = 0
 
 // Create Loggers
-const msgen = new Msg({ host: 'Ctrl', logLevel: 'info' })
+const msgen = new Msg({ host: 'Ctrl', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
@@ -195,11 +195,15 @@ if (process.platform === 'darwin') {
   process.env.TEMP = join('/private', process.env.TEMP)
 }
 
-ensureDir(process.env.APPDATA)
-ensureDir(process.env.PLUGINS)
-ensureDir(process.env.CUES)
-ensureDir(process.env.BLOCKLY_CUES)
-ensureDir(process.env.TEMP)
+try {
+  ensureDir(process.env.APPDATA)
+  ensureDir(process.env.PLUGINS)
+  ensureDir(process.env.CUES)
+  ensureDir(process.env.BLOCKLY_CUES)
+  ensureDir(process.env.TEMP)
+} catch (e) {
+  log.warn(`Could not create temp directory: ${e}`)
+}
 
 // always cleanup temp from last startup
 if (existsSync(process.env.TEMP)) {
@@ -359,7 +363,7 @@ app.on('window-all-closed', () => {
 
 /**
  * IPC Call API
- * 
+ *
  * UI interactions with side effects - opening folders, running cues directly
  */
 const ipcMainCallHandler = {
@@ -390,7 +394,7 @@ const ipcMainCallHandler = {
 
 /**
  * IPC Get API
- * 
+ *
  * Gets state data in various formats
  */
 const ipcMainGetHandler = {
@@ -460,7 +464,7 @@ const ipcMainGetHandler = {
 
 /**
  * IPC Set API
- * 
+ *
  * modifies state
  */
 const ipcMainSetHandler = {
@@ -516,24 +520,53 @@ const ipcMainSetHandler = {
   }) => {
     log.debug(`cueForEvent: ${nspct2(data)}`)
     log.debug(`cues: ${nspct2(cues.get(data.cueId))}`)
-    if (data.contents !== undefined) {
-      const fullPath = await saveCueFile({
-        cueId: data.cueId,
-        contents: data.contents,
-      })
-      return fullPath
-    } else if (cues.get(data.cueId) !== undefined) {
-      await attachCueToEvent({
-        layerName: 'base',
-        cueId: data.cueId,
-        event: data.event,
-      })
-
-      return cues.get(data.cueId).fullPath
+    if (cues.get(data.cueId) !== undefined) {
+      if (data.contents !== undefined) {
+        log.debug('watching for add event to finalize cue attach')
+        cuesAwaitingAttach[data.cueId] = {
+          layerName: 'base',
+          event: data.event,
+        }
+        cueWatcher.on('add', attacheCueIfSaved)
+        cueWatcher.on('change', attacheCueIfSaved)
+        log.debug(`saving cue file: ${data.cueId}`)
+        const fullPath = await saveCueFile({
+          cueId: data.cueId,
+          contents: data.contents,
+        })
+        return fullPath
+      } else {
+        attachCueToEvent({
+          layerName: 'base',
+          cueId: data.cueId,
+          event: data.event,
+        })
+        return cues.get(data.cueId).fullPath
+      }
+    } else {
+      return undefined
     }
-
-    return undefined
   },
+}
+
+const cuesAwaitingAttach: { [index: string]: { layerName: string, event: string } } = {}
+
+function attacheCueIfSaved(cuePath) {
+  const cue = generateCueFromRelativePath(cuePath)
+  log.debug(`attacheCueIfSaved found: ${nspct2(cuePath)}`)
+  if (cuesAwaitingAttach[cue.id] !== undefined) {
+    log.debug(`attaching cue via add event: ${cue.id}`)
+    attachCueToEvent({
+      layerName: cuesAwaitingAttach[cue.id].layerName,
+      cueId: cue.id,
+      event: cuesAwaitingAttach[cue.id].event,
+    })
+    log.debug(`removing cue from cuesAwaitingAttach: ${cue.id}`)
+    delete cuesAwaitingAttach[cue.id]
+    log.debug(`removing cueWatcher listener`)
+    cueWatcher.removeListener('add', attacheCueIfSaved)
+    cueWatcher.removeListener('change', attacheCueIfSaved)
+  }
 }
 
 const ipcMainDeleteHandler = {
@@ -835,9 +868,9 @@ export const cueWatcherHandler = {
       return
     }
   },
-  addDir: function (path) { },
-  unlinkDir: function (path) { },
-  error: function (path) { },
+  addDir: function (path) {},
+  unlinkDir: function (path) {},
+  error: function (path) {},
 }
 
 
@@ -894,7 +927,7 @@ async function loadLayouts() {
           pair[1] = cues.get(cueId)
           existsArray.push(pair)
           // log.debug(`array pair pt 2 ${nspct2(pair)}`)
-        } catch (e) { }
+        } catch (e) {}
       }
     }
 
