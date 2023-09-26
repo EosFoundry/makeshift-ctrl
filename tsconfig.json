@@ -17,9 +17,6 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationDir": "./types/renderer",
-    "types": [
-      "vite/client"
-    ]
   },
   "include": [
     "./src"
