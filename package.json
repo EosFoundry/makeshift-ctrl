@@ -1,7 +1,7 @@
 {
   "name": "makeshift-ctrl",
   "productName": "makeshift-ctrl",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Desktop interface for MakeShift",
   "main": "dist/node/main/index.js",
   "scripts": {
