@@ -5,9 +5,9 @@ import {
   IpcMainSetHandler,
   ipcMainDeleteHandler
 } from 'types/electron/main/index'
-import { CtrlIpcApi } from "electron/ipcApi"
+import { CtrlIpcApi } from "types/electron/ipcApi"
 import { Cue } from 'types/electron/main/cues'
-import { MakeShiftBlockJSON } from "electron/main/blockly"
+import { MakeShiftBlockJSON } from "types/electron/main/blockly"
 
 type CueEvHandler = (callback: (cue: Cue) => void) => () => void
 type DeviceEvHandler = (callback: (fp: MakeShiftPortFingerprint) => void) => () => void

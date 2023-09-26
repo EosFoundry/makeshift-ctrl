@@ -1,7 +1,7 @@
 import { createApp, Ref, ref, computed, watch, ComputedRef } from 'vue'
 import { MakeShiftPortFingerprint } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg'
-import { Cue, CueMap, CueId } from '../types/electron/main/cues'
+import { Cue, CueMap, CueId } from 'types/electron/main/cues'
 import App from './App.vue'
 import { Size } from 'types/electron/main'
 import { SimplePopup } from './composables/popup'
@@ -57,6 +57,8 @@ const cueRoot: Folder = {
   
   // set up initial selected event cue state
   state.selectedEventCues.value = await window.MakeShiftCtrl.get.cuesAttachedToEvent(state.selectedEvent.value)
+
+  state.selectedView.value = await window.MakeShiftCtrl.get.currentView()
   
   // console.log(`initial selected event: ${state.selectedEvent}`)
   // console.log(`initial selected event cues: ${state.selectedEventCues}`)
