@@ -23,12 +23,14 @@ export const ctrlIpcApi = {
     cuesAttachedToEvent: 'cue-get-attachedToEvent',
     cueById: 'cue-get-byId',
     cueByFolder: 'cue-get-byFolder',
+    currentView: 'mkshft-get-currentView',
     defaultTheme: 'theme-get-default',
     themeFromPath: 'theme-get-fromPath',
   },
   set: {
     cueFile: 'mkshft-set-cueFile',
     cueForEvent: 'mkshft-set-cueForEvent',
+    currentView: 'mkshft-set-currentView',
     serialWorkspaceAsCue: 'mkshft-set-serialWorkspaceAsCue',
   },
   delete: {
@@ -63,7 +65,8 @@ export const ctrlIpcApi = {
 export const storeKeys = {
   UuidNamespace: 'uuidNamespace',
   MainWindowState: 'mainWindowState',
-  DeviceLayout: 'deviceLayout'
+  DeviceLayout: 'deviceLayout',
+  CurrentView: 'currentView',
 }
 
 export type CtrlIpcApi = typeof ctrlIpcApi

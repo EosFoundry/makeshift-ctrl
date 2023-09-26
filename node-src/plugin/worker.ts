@@ -20,10 +20,10 @@ if (isMainThread) {
 
 // handler for parent requests
 parentPort.on('message', (req: WorkerRequest ) => {
-  console.log('message to worker from parent', req)
+  // console.log('message to worker from parent', req)
   // RequestQueue.push(req)
 
-  console.log(`request: `, req)
+  // console.log(`request: `, req)
 })
 
 parentPort.postMessage({yo:'dawg'})

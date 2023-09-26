@@ -88,7 +88,7 @@ async function stop() {
 }
 
 process.on('message', (m) => {
-  console.log('CHILD got message:', m);
+  // console.log('CHILD got message:', m);
 });
 process.on('kill', (code) => {
   console.log('CHILD got kill:', code);

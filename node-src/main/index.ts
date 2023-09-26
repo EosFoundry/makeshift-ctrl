@@ -211,7 +211,10 @@ if (existsSync(process.env.TEMP)) {
     recursive: true,
   })
 }
-mkdirSync(process.env.TEMP)
+try { // try to recreate temp
+// mkdirSync errors in linux if the directory already exists
+  mkdirSync(process.env.TEMP)
+} catch (e){}
 
 // generate paths for html/js entry points
 const preloadScriptPath = join(process.env.DIST_NODE, 'preload/index.js')
@@ -432,6 +435,9 @@ const ipcMainGetHandler = {
       .orDefault([0, 0])
     return { width: sizeArray[0], height: sizeArray[1] }
   },
+  currentView: async (): Promise<string> => {
+    return store.get(storeKeys.CurrentView, 'blockly') as string
+  },
   blocklyToolbox: async (): Promise<any> => {
     return 'toaster'
   },
@@ -489,6 +495,9 @@ const ipcMainSetHandler = {
     }, undefined)
   },
   cueFile: saveCueFile,
+  currentView: async (view: string) => {
+    store.set(storeKeys.CurrentView, view)
+  },
   blocklyWorkspaceForEvent: async (data: {
     workspaceName: string,
     event: string,

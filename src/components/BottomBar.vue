@@ -2,18 +2,16 @@
 import { ref, computed, inject, watch, onMounted, Ref } from 'vue';
 import { MakeShiftDeviceEvents, MakeShiftPortFingerprint, MakeShiftSerialEvents } from '@eos-makeshift/serial'
 import { LogLevel } from '@eos-makeshift/msg';
-import { rndrCtrlAPI, View, ViewList } from '../renderer';
+import { View, ViewList } from '../renderer';
 import termOpenIcon from '../assets/icon/bootstrap/terminal.svg?url'
 import termCloseIcon from '../assets/icon/bootstrap/terminal-fill.svg?url'
 import codeViewIcon from '../assets/icon/bootstrap/code-square.svg?url'
 import blocklyViewIcon from '../assets/icon/bootstrap/puzzle.svg?url'
 import IconButton from './IconButton.vue';
 import TextButton from './TextButton.vue';
-import { set } from 'colorjs.io/fn';
 
 const Events = inject('makeshift-serial-events') as MakeShiftSerialEvents
 const logLevel = inject('logLevel') as Ref<LogLevel>
-const makeshift = inject('makeshift') as rndrCtrlAPI
 const connectedDevices = inject('makeshift-connected-devices') as Ref<MakeShiftPortFingerprint[]>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
@@ -40,6 +38,7 @@ watch(
     console.log(`viewColornew: ${viewColor.value[newVal]}`)
     console.log(`viewColorold: ${viewColor.value[oldVal]}`)
     console.log(`selectedView changed from ${oldVal} to ${newVal}`)
+    window.MakeShiftCtrl.set.currentView(newVal)
   }
 )
 
