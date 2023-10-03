@@ -10,9 +10,9 @@
 .vs
 
 # temp/workspace files
-test.mjs
-test.js
-test.cjs
+./test.mjs
+./test.js
+./test.cjs
 
 # VScode vue plugin
 env.d.ts
@@ -64,4 +64,3 @@ node_modules/
 
 # Gatsby files
 .cache/
-test.mjs
