@@ -64,3 +64,4 @@ node_modules/
 
 # Gatsby files
 .cache/
+test.mjs

@@ -114,7 +114,6 @@ const store = new Store.default()
 
 process.env.APP_VERSION = app.getVersion()
 
-checkForUpdates()
 
 
 // TODO: Fix the API so these are real
@@ -152,8 +151,36 @@ const layout: Layout = {
 
 let currentLayer = 0
 
+
+
+type LogSettings = {
+  serial: LogLevel,
+  main: LogLevel,
+  cues: LogLevel,
+  plugins: LogLevel,
+  blockly: LogLevel,
+  updater: LogLevel,
+}
+
+const logSettings: LogSettings = store.get(storeKeys.LogLevel, {
+  serial: 'info',
+  main: 'info',
+  cues: 'info',
+  plugins: 'info',
+  blockly: 'info',
+  updater: 'info',
+}) as LogSettings
+
+// TODO: debug setttings in UI?
+
 // Create Loggers
-const msgen = new Msg({ host: 'Ctrl', logLevel: 'debug' })
+let mainLogLevel:LogLevel = logSettings.main
+
+if (app.isPackaged === false) {
+  mainLogLevel = 'info'
+}
+
+const msgen = new Msg({ host: 'Ctrl', logLevel: logSettings.main })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 
@@ -170,6 +197,7 @@ process.env.APPROOT = join(process.env.DIST_NODE, '../..')
 process.env.DIST = join(process.env.APPROOT, 'dist')
 process.env.DIST_NODE = join(process.env.DIST, 'node')
 process.env.DIST_RENDERER = join(process.env.DIST, 'renderer')
+process.env.DIST_PLUGIN = join(process.env.DIST_NODE, 'plugin')
 
 if (app.isPackaged) {
   // msgen.logLevel = 'info'
@@ -302,7 +330,8 @@ log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 const preloadBarrier = []
 preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
-preloadBarrier.push(initCues())
+preloadBarrier.push(initCues({ logLvl: mainLogLevel }))
+preloadBarrier.push(checkForUpdates({}))
 
 // Open splash
 app.whenReady()
