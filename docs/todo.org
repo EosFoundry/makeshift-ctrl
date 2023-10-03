@@ -1,37 +1,66 @@
 #+title: Todo
 
-* TODO General
+* General
+** DONE Giving cues a global variable store
 
-** TODO Giving cues a global variable store
-
-* PROGRESS Auto Updater
-Plan to follow https://www.electronjs.org/docs/latest/tutorial/updates
+* Auto Updater
 
 ** HOLD differential updates
 probably more of a 'nice to have'
 
 ** DONE electron-forge migration
 forge is better supported than builder, less confusing build path and documentation
+** TODO github updater
 
-* PROGRESS UI
+Ping github using octokit, parse releases, download appropriate release
+
+* UI
 Create an editor based on [[https://developers.google.com/blockly/guides/get-started/web][Blockly]] to represent imported functions from plugins.
+** STRT Blockly Integration
+*** DONE Blockly cue save/loading complete
+*** STRT Plugin + Blockly integration
+*** STRT Tutorial system
+- make the first cue effortless for non-programmers
+- ensure examples are maximally accessible
+- desired outcome: an initial playground with a guided introduction
+* Internal Messaging System
+update or re-evaluate logging systems
+primary goals: logging
+** plugin worker messages
+- RPC
+  - Call responses
+- 'log' messages
 
-** TODO Blockly Integration
-[[Plugins]]
 
-* TODO Notifications
 
-** TODO Notification system
+* Notifications
 Add a notification system to the app so cues can access it
-[[https://www.electronjs.org/docs/latest/tutorial/notifications][Notifications]]
+** WAIT System Dialog
 
-** BLOCKED Custom Icon Changes Through Cues
+Call OS specific hooks
+** TODO Custom Icon Changes Through Cues
+** DONE In-app Dialog
+./src/components/Popup.vue
 
-* TODO Plugins
+* Plugins
 Finalise the plugin developer workflow
 
-** TODO First Steps
+
+** TODO Map out ideal First Steps
 Project setup - npm, required tooling, etc.
+** TODO Plugin Request format
+
+types:
+- PluginRPC - call plugin functions
+- WorkerRPC - tell worker to do stuff - restart, shutdown, etc.?
 
 ** TODO Example Plugins
 Heavily commented code
+
+** TODO Manifest Generation 2.0
+*** STRT typescript support
+**** [?] Do we bother importing types?
+Use eslint/tslint's internal typescript tree walk to extract exported function names along with comments.
+
+*** TODO js support
+- uncomment acorn walk

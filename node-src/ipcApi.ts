@@ -63,6 +63,7 @@ export const ctrlIpcApi = {
 
 
 export const storeKeys = {
+  LogLevel: 'logLevel',
   UuidNamespace: 'uuidNamespace',
   MainWindowState: 'mainWindowState',
   DeviceLayout: 'deviceLayout',

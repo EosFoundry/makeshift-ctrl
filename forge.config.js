@@ -1,5 +1,6 @@
 const pkg = require('./package.json');
 let appVersion = pkg.version;
+
 switch (process.env.BUILD_TYPE) {
   case 'production':
     process.env.NODE_ENV = 'production';
@@ -63,32 +64,65 @@ module.exports = {
       },
     },
     {
-      name: '@electron-forge/maker-flatpak',
+      name:'@reforged/maker-appimage',
       config: {
         options: {
-          maintainer: 'James Liu',
-          productName: 'MakeShift Ctrl',
-          genericName: 'MakeShift Ctrl',
-          homepage: 'https://eosfoundry.dev/',
-          icon: './forge/icons/makeshift-ctrl.png',
-          id:'dev.eosfoundry.makeshift-ctrl',
-          finishArgs: [
-            '--device=all',
-            '--share=network',
-            '--socket=fallback-x11',
-            '--share=ipc',
-            '--socket=wayland',
-            '--device=dri',
-            '--socket=pulseaudio',
-            '--filesystem=home',
-            '--filesystem=xdg-download',
-            '--filesystem=xdg-config/makeshift-ctrl',
-          ],
-          base:'org.electronjs.Electron2.BaseApp',
-          baseVersion: `v${pkg.devDependencies['electron'].replace('^', '')}`,
-        },
+          // Package name.
+          name: "makeshift-ctrl",
+          // Executable name.
+          bin: "makeshift-ctrl",
+          // Human-friendly name of the application.
+          productName: "MakeShift Ctrl",
+          // `GenericName` in generated `.desktop` file.
+          genericName: "MakeShift Ctrl",
+          // Path to application's icon.
+          icon: "./forge/icons/makeshift-ctrl.png",
+
+          // Array of application categories.
+          categories: [ "Utility" ],
+
+          // Desktop file to be used instead of the configuration above.
+          // desktopFile: "/path/to/example-app.desktop",
+
+          // Release of `AppImage/AppImageKit`, either number or "continuous".
+          AppImageKitRelease: "continuous",
+
+          // Support parsing Arch Linux '*_flags.conf' file.
+          flagsFile: "true"
+
+        }
       },
     },
+    // {
+    //   name: '@electron-forge/maker-flatpak',
+    //   config: {
+    //     options: {
+    //       maintainer: 'James Liu',
+    //       productName: 'MakeShift Ctrl',
+    //       genericName: 'MakeShift Ctrl',
+    //       homepage: 'https:eosfoundry.dev/',
+    //       icon: './forge/icons/makeshift-ctrl.png',
+    //       id:'dev.eosfoundry.makeshift-ctrl',
+    //       finishArgs: [
+    //         '--device=all',
+    //         '--share=network',
+    //         '--socket=fallback-x11',
+    //         '--share=ipc',
+    //         '--socket=wayland',
+    //         '--device=dri',
+    //         '--socket=pulseaudio',
+    //         '--filesystem=home',
+    //         '--filesystem=xdg-download',
+    //         '--filesystem=xdg-config/makeshift-ctrl',
+    //       ],
+    //       base:'org.electronjs.Electron2.BaseApp',
+    //       // baseVersion: '22.08',
+    //       runtime: 'org.freedesktop.Platform',
+    //       // runtimeVersion: '22.08',
+    //       sdk: 'org.freedesktop.Sdk',
+    //     },
+    //   },
+    // },
     {
       name: '@electron-forge/maker-deb',
       config: {
