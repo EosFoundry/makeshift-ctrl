@@ -1,7 +1,7 @@
 import { Octokit, App as OctokitApp } from 'octokit'
 import * as Store from 'electron-store'
 
-import { Msg } from "@eos-makeshift/msg"
+import { LogLevel, Msg } from "@eos-makeshift/msg"
 import { ctrlLogger } from "./utils"
 import { compare } from 'purify-ts'
 import * as semver from 'semver'
@@ -16,7 +16,7 @@ const msgen = new Msg({
   logLevel: 'info'
 })
 msgen.logger = ctrlLogger
-const log = msgen.getLevelLoggers()
+let log = msgen.getLevelLoggers()
 
 const updaterStore = new Store.default({
   name: 'updater',
@@ -28,7 +28,10 @@ export const knownReleaseList = updaterStore.get('releaseList')
 export let updateAvailable = false
 
 
-export async function checkForUpdates() {
+export async function checkForUpdates(opts: { logLvl?: LogLevel }) {
+  if (opts.logLvl) { msgen.logLevel = opts.logLvl }
+  log = msgen.getLevelLoggers()
+
   log.info('Checking for updates...')
 
   const releaseResponse = await octokit.request('GET /repos/EosFoundry/makeshift-ctrl/releases', {

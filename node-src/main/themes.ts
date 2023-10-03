@@ -55,12 +55,17 @@ const stylelintConfig = {
 // Create Loggers
 const msgen = new Msg({ host: 'ThemeLoader', logLevel: 'debug' })
 msgen.logger = ctrlLogger
-const log = msgen.getLevelLoggers()
+let log
 
 export type Theme = {
   cssClass: string
   isLight: boolean
   cssRaw: string
+}
+
+export function initThemes(opts:{logLvl?:LogLevel}){
+  if (opts.logLvl) { msgen.logLevel = opts.logLvl }
+  log = msgen.getLevelLoggers()
 }
 
 /**

@@ -59,8 +59,8 @@ export const cues: CueMap = new Map()
 export const loadedCueModules: { [key: CueId]: CueModule } = {}
 let cueTempDir = ''
 
-
-export async function initCues() {
+export async function initCues(opts: { logLvl?: LogLevel}) {
+  msgen.logLevel = opts.logLvl || 'info'
   log.info('Initializing CueHandler...')
   const examplesFolder = join(process.env.CUES, 'examples')
   cueTempDir = join(process.env.TEMP, 'temp')
