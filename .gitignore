@@ -1,4 +1,4 @@
-# MacOS garbage?
+# MacOS garbage
 .DS_Store
 .swp
 
@@ -8,6 +8,11 @@
 *.volarrc
 .secrets/
 .vs
+
+# temp/workspace files
+test.mjs
+test.js
+test.cjs
 
 # VScode vue plugin
 env.d.ts
