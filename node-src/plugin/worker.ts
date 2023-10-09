@@ -5,8 +5,16 @@ import { pathToFileURL } from 'node:url'
 import { lstatSync } from 'original-fs'
 import { EventEmitter } from 'node:events'
 import { RpcRequest, RpcErrorResponse } from '../pluginTypes'
+import { Msg } from '@eos-makeshift/msg'
 
 let plugin = {}
+
+const msgen = new Msg({
+  host: process.env.PLUGIN_NAME || 'Unnamed Plugin',
+  showTime: false,
+  logLevel: 'debug',
+})
+
 const RequestQueue: RpcRequest<string | WorkerAPI>[] = []
 const RequestHandler = new EventEmitter()
 
@@ -100,6 +108,9 @@ RequestHandler.on('request-complete', ({request, response}) => {
   console.log('request complete: ', request, response)
   parentPort.postMessage({
     id: request.id,
+    message: {
+
+    }
     request: request,
     result: response,
   })

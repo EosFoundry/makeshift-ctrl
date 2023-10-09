@@ -17,6 +17,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve, basename, normalize, sep as pathSep } from 'node:path'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'original-fs'
 import { ensureDir, copyFile, ensureDirSync } from 'fs-extra'
+import * as Winston from 'winston'
 
 // electron related imports
 import { app, Tray, BrowserWindow, shell, ipcMain, Menu, SafeStorage, dialog } from 'electron'
