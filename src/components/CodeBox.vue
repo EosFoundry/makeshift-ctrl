@@ -27,13 +27,48 @@ import toolbarSpacer from './ToolBarSpacer.vue'
 import { Cue, CueMap } from "../../types/electron/main/cues";
 import TextButton from "./TextButton.vue";
 import { nanoid } from '../utilities/nanoidTool'
+import { rndrCtrlAPI } from '../renderer'
 
 const editorContents = inject('current-session') as Ref<string>
+const MakeShiftApi = inject('makeshift') as rndrCtrlAPI
+ // @ts-ignore
 const acePath = import.meta.env.BASE_URL + 'ace-builds/src-min-noconflict'
 const cues = inject('cues') as Ref<CueMap>
 const currentDevice = inject('current-device') as Ref<MakeShiftPortFingerprint>
 const selectedEvent = inject('selected-event') as Ref<string>
 const DeviceEvents = inject('makeshift-device-events') as MakeShiftDeviceEvents
+
+const newCueContents = `// Welcome to makesh*t-ctrl alpha!
+
+// add plugins you want to use here as strings
+const requiredPlugins = [
+	'ctrlTerm',
+]
+
+// makeshift-ctrl will load the plugins into this object
+const plugins = {};
+
+// makeshift-ctrl will run this function once
+// as soon as the cue is first loaded in
+function setup() {
+}
+
+
+// Put your main code in the run() function below
+// this is the code that runs every time a button is pressed
+function run() {
+}
+
+// These are the only names that makeshift-ctrl looks for
+// when it interacts with your cue
+//
+// NOTE: if you delete any of these, it's very likely something will break!
+module.exports = {
+	requiredPlugins,
+	plugins,
+	setup,
+	run,
+}`
 // console.log(acePath)
 
 ace.config.set("basePath", acePath)
@@ -150,17 +185,18 @@ const saveStateStyles = reactive({
   iconUrl: fileSavedIcon,
 })
 
-window.MakeShiftCtrl.onEv.cue.removed((q) => {
-  console.log(q)
-  if (cueId.value === q.id) {
-    hasSaveFile.value = false
-    cueFullPath.value = ''
-  }
-})
 
-let autoSaveInterval: string | number | NodeJS.Timer | null | undefined = null
+let autoSaveInterval: any
+let removeCueRemovedListener: any
 onMounted(() => nextTick(async () => {
-  const existingCue = await window.MakeShiftCtrl.get.cueById(cueId.value)
+  const existingCue = await MakeShiftApi.get.cueById(cueId.value)
+  removeCueRemovedListener = MakeShiftApi.onEv.cue.removed((q) => {
+    console.log(q)
+    if (cueId.value === q.id) {
+      hasSaveFile.value = false
+      cueFullPath.value = ''
+    }
+  })
   if (typeof existingCue !== 'undefined'
     && typeof existingCue.contents !== 'undefined') {
     hasSaveFile.value = true
@@ -168,6 +204,8 @@ onMounted(() => nextTick(async () => {
     cueFolder.value = existingCue.folder
     cueName.value = existingCue.name
     editorContents.value = textDecoder.decode(existingCue.contents)
+  } else {
+    editorContents.value = newCueContents
   }
 
   editor = ace.edit("codebox-editor", {
@@ -232,9 +270,11 @@ onUnmounted(() => {
   if (autoSaveInterval !== null) {
     clearInterval(autoSaveInterval)
   }
+  removeCueRemovedListener();
   window.removeEventListener('file-selected', handleFileSelected)
   window.removeEventListener('resize', fitCodebox)
 })
+
 
 async function createCue() {
   if (hasSaveFile.value) {
@@ -246,14 +286,14 @@ async function createCue() {
   cueName.value = cue.name
   cueFolder.value = '.'
   cueFullPath.value = ''
-  editor.setValue('')
+  editor.setValue(newCueContents)
 }
 
 async function saveCue() {
   const id = cueId.value
   const contents = textEncoder.encode(editor.getValue())
   console.log(`Saving cue ${cue.value}`)
-  const fullPath = await window.MakeShiftCtrl.set.cueFile({
+  const fullPath = await MakeShiftApi.set.cueFile({
     cueId: id,
     contents: contents,
   })
@@ -266,7 +306,7 @@ async function assignCueToEvent() {
   const deviceId = currentDevice.value.deviceSerial
   const id = cueId.value
   const contents = textEncoder.encode(editor.getValue())
-  const fullPath = await window.MakeShiftCtrl.set.cueForEvent({
+  const fullPath = await MakeShiftApi.set.cueForEvent({
     event: selectedEvent.value,
     cueId: cueId.value,
     contents: contents,
@@ -291,14 +331,18 @@ async function handlePostSave(fullPath: string) {
   console.log(`Cue saved to ${fullPath}`)
 }
 
-async function testCue() {
-  await saveCue()
-  window.MakeShiftCtrl.call.runCue(cueId.value)
+function runCue() {
+  console.log('TESTING')
+  const contents = textEncoder.encode(editor.getValue())
+   MakeShiftApi.call.runCue({
+    cueId: cueId.value,
+    contents: contents
+  })
 }
 
 async function loadCue(cueId: Cue) {
   saveCue()
-  const newCue = await window.MakeShiftCtrl.get.cueById(cueId)
+  const newCue = await MakeShiftApi.get.cueById(cueId)
   console.log(`Loading ${cueId}`)
   console.log(newCue)
   if (typeof newCue !== 'undefined') {
@@ -418,17 +462,17 @@ watch(
           :icon-url="newCueIcon"
           @click="createCue"
         >
-          new cue
+          New Cue
         </text-button>
         <toolbar-spacer width="8px" />
         <text-button
           :icon-url="saveIcon"
           @click="saveCue"
         >
-          save
+          Save
         </text-button>
         <toolbar-spacer width="8px" />
-        keybind:
+        Key Layout:
         <select
           name="keyboard-mode-selector"
           v-model="keyboardHandler"
@@ -445,16 +489,16 @@ watch(
       <div class="toolbar-cluster right">
         <text-button
           :icon-url="testCueIcon"
-          @click="testCue"
+          @click.stop="runCue"
         >
-          test
+          Run
         </text-button>
         <toolbar-spacer width="8px" />
         <text-button
           :icon-url="assignCueIcon"
           @click="assignCueToEvent"
         >
-          assign to event
+          Assign to Event
         </text-button>
       </div>
     </div>

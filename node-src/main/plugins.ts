@@ -27,7 +27,7 @@ export const plugins = new Map<string, Plugin>()
 const msgen = new Msg({
   host: 'Plugins',
   showTime: false,
-  logLevel: 'debug',
+  logLevel: 'info',
 })
 
 const log = msgen.getLevelLoggers()

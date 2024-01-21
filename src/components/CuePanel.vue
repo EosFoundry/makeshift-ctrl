@@ -16,7 +16,7 @@ const cueDirectory = inject('cue-directory') as Ref<Folder>
 
 
 onBeforeMount(async () => {
-  // console.log(cueDirectory.value)
+   console.log(cueDirectory.value)
 })
 
 async function openCueFolder() {
@@ -98,7 +98,8 @@ function sendLoadEvent(cue: Cue) {
 }
 
 .entry-name {
-  margin-left: 6px;
+  margin-left: 6px 0px;
+
 }
 
 .file-list {

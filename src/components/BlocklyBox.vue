@@ -239,15 +239,20 @@ let removeCueListener: any
 async function runWorkspace() {
   console.log('Saving workspace')
   const success = await saveWorkspace()
-  removeCueListener = MakeShiftApi.onEv.cue.added(runOnceSaved)
-  console.log(removeCueListener)
+  if (success) {
+    removeCueListener = MakeShiftApi.onEv.cue.added(runOnceSaved)
+    console.log(removeCueListener)
+  }
 }
 
 function runOnceSaved(cue: Cue) {
   console.log(cue)
   if (cue.id === workspaceId.value) {
     console.log('cue is the one we want')
-    MakeShiftApi.call.runCue(cue.id)
+    MakeShiftApi.call.runCue({
+      cueId: cue.id,
+      contents: [],
+    })
   }
   removeCueListener()
 }
@@ -280,12 +285,12 @@ async function deployAsCue(workspaceId: string) {
 </script>
 
 <template>
-  <!-- 
+  <!--
     <button
     class="top-10 right-0"
     @click="loadWorkspace"
   >
-    Load Cue Blocks</button> 
+    Load Cue Blocks</button>
   -->
   <div id="blockly-wrapper" ref="blocklyWrapper" :class="['overflow-clip',
     // 'm-3',

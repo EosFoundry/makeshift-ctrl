@@ -28,9 +28,10 @@ link.rel = 'stylesheet'
 link.href = 'src/styles/test.css'
 // document.head.appendChild(link)
 
+
 const FontSizeMonitorDiv = ref<HTMLElement>()
 const selectedView = inject('selected-view') as Ref<View>
-const editorContents = ref(`// Welcome to makesh*t-ctrl alpha!`)
+const editorContents = ref('')
 const clientSize = inject('client-size') as Ref<Size>
 const colorTheme = inject('color-theme') as Ref<string>
 const terminalActive = inject('terminal-active') as Ref<boolean>

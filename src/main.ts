@@ -54,22 +54,22 @@ const cueRoot: Folder = {
   }
 
   console.log(Constants.HardwareDescriptors)
-  
+
   // set up initial selected event cue state
   state.selectedEventCues.value = await window.MakeShiftCtrl.get.cuesAttachedToEvent(state.selectedEvent.value)
 
   state.selectedView.value = await window.MakeShiftCtrl.get.currentView()
-  
+
   // console.log(`initial selected event: ${state.selectedEvent}`)
   // console.log(`initial selected event cues: ${state.selectedEventCues}`)
-  
+
   // set up watcher for selected event to keep the attached cues up to date
   watch(state.selectedEvent, async (newEventName: string) => {
     // console.log(`selected event changed to ${newEventName}`)
     state.selectedEventCues.value = await window.MakeShiftCtrl.get.cuesAttachedToEvent(newEventName)
     // console.log(`selected event cues: ${state.selectedEventCues.value}`)
   })
-  
+
   const initialDevices = await window.MakeShiftCtrl.get.connectedDevices()
 
   // Set up event hooks for device connections
@@ -95,7 +95,7 @@ const cueRoot: Folder = {
   })
 
   state.cues.value.forEach((cue: Cue) => {
-    // console.log(cue.id.split('/'))
+    console.log(cue.id.split('/'))
     addCueToFolderList(cue)
   })
 
@@ -162,7 +162,7 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
     if (cueIdx === -1) {
       currFolder.files.push(cue)
       currFolder.files.sort((a, b) => {
-        return (a.name >= b.name) ? 1 : -1
+        return (a.name.toLowerCase() >= b.name.toLowerCase()) ? 1 : -1
       })
     } else {
       currFolder.files[cueIdx] = cue
@@ -187,18 +187,27 @@ function emplaceCue(cue: Cue, currFolder: Folder, relativePath: string[]) {
 }
 
 function extractCue(currFolder: Folder, relativePath: string[]) {
-  const topLevel = relativePath.shift()
+  const cueName = relativePath.shift()
   if (relativePath.length === 0) {
     currFolder.files = currFolder.files.filter((f) => {
-      return f.file !== topLevel
+      return f.file !== cueName
     })
   } else {
     let folderIdx = currFolder.subFolders.findIndex((f) => {
-      return f.name === topLevel
+      return f.name === cueName
     })
     if (folderIdx === -1) { return }
     else {
       extractCue(currFolder.subFolders[folderIdx], relativePath)
+      let fldName = currFolder.subFolders[folderIdx].name
+
+      // remove empty folders after deletion
+      if (currFolder.subFolders[folderIdx].files.length === 0
+        && currFolder.subFolders[folderIdx].subFolders.length === 0){
+        currFolder.subFolders = currFolder.subFolders.filter((fld) => {
+          return fld.name !== fldName
+        })
+      }
     }
   }
 }

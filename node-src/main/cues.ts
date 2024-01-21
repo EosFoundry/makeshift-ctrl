@@ -49,7 +49,7 @@ export interface CueModule extends IModule {
 }
 
 // Create Loggers
-const msgen = new Msg({ host: 'CueHandler', logLevel: 'info' })
+const msgen = new Msg({ host: 'CueHandler', logLevel: 'debug' })
 msgen.logger = ctrlLogger
 const log = msgen.getLevelLoggers()
 const textDecoder = new TextDecoder()
@@ -61,7 +61,7 @@ let cueTempDir = ''
 
 export async function initCues(opts: { logLvl?: LogLevel}) {
   msgen.logLevel = opts.logLvl || 'info'
-  log.info('Initializing CueHandler...')
+  log.info(`Initializing CueHandler in ${process.env.CUES}`)
   const examplesFolder = join(process.env.CUES, 'examples')
   cueTempDir = join(process.env.TEMP, 'temp')
   if (existsSync(examplesFolder) === false) {
@@ -75,8 +75,9 @@ export async function initCues(opts: { logLvl?: LogLevel}) {
       copyFileSync(join(src, filePath), join(dest, filePath))
     })
   }
+
   cueWatcher = chokidar.watch(process.env.CUES, {
-    cwd: process.env.CUES
+    cwd: process.env.CUES,
   })
 }
 

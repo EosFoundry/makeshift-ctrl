@@ -55,7 +55,7 @@ watch(() => state.value.collapsed, (collapsed) => {
     class="list-entry"
     @click="toggleHide"
     :style="{
-      display: topLevel ? 'none' : 'inline flex'
+      display: topLevel ? 'none' : 'flex'
     }"
   >
     <icon

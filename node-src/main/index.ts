@@ -164,7 +164,7 @@ type LogSettings = {
 
 const logSettings: LogSettings = store.get(storeKeys.LogLevel, {
   serial: 'info',
-  main: 'info',
+  main: 'debug',
   cues: 'info',
   plugins: 'info',
   blockly: 'info',
@@ -174,7 +174,7 @@ const logSettings: LogSettings = store.get(storeKeys.LogLevel, {
 // TODO: debug setttings in UI?
 
 // Create Loggers
-let mainLogLevel:LogLevel = logSettings.main
+let mainLogLevel: LogLevel = logSettings.main
 
 if (app.isPackaged === false) {
   mainLogLevel = 'info'
@@ -240,9 +240,9 @@ if (existsSync(process.env.TEMP)) {
   })
 }
 try { // try to recreate temp
-// mkdirSync errors in linux if the directory already exists
+  // mkdirSync errors in linux if the directory already exists
   mkdirSync(process.env.TEMP)
-} catch (e){}
+} catch (e) {}
 
 // generate paths for html/js entry points
 const preloadScriptPath = join(process.env.DIST_NODE, 'preload/index.js')
@@ -330,7 +330,6 @@ log.debug(`ctrlIpcApi.set: ${nspect(ctrlIpcApi.set, 1)}`)
 const preloadBarrier = []
 preloadBarrier.push(initPlugins())
 preloadBarrier.push(initBlockly())
-preloadBarrier.push(initCues({ logLvl: mainLogLevel }))
 preloadBarrier.push(checkForUpdates({}))
 
 // Open splash
@@ -346,7 +345,10 @@ app.whenReady()
       log.debug(`${key}: ${nspect(val, 1)}`)
     })
     // loadingBarrier.push(loadLayouts())
-    loadingBarrier.push(attachCueWatchers())
+
+    // cues can't be a part of the preload because the attach needs to be chained
+    await initCues({ logLvl: mainLogLevel })
+    attachCueWatchers()
 
     PortAuthority.on(PortAuthorityEvents.port.opened, addKnownDevice)
     PortAuthority.on(PortAuthorityEvents.port.closed, removeKnownDevice)
@@ -400,13 +402,19 @@ app.on('window-all-closed', () => {
  */
 const ipcMainCallHandler = {
   openCueFolder: async () => shell.showItemInFolder(process.env.CUES),
-  runCue: async (cueId) => {
+  runCue: async (data: { cueId: CueId, contents: Uint8Array }) => {
+    let cueId = data.cueId
     log.debug(`Running cue ${cueId}`)
     try {
-      await importCueModule(cues.get(cueId))
-      loadedCueModules[cueId].run({
-        state: true,
-        event: 'test',
+      cueWatcher.once('cue-added-' + cueId, async (newCue: Cue) => {
+        try {
+          cues.set(newCue.id, newCue)
+          newCue.contents = await readFile(newCue.fullPath)
+          cues.set(newCue.id, newCue)
+          log.debug(nspct2(newCue))
+        } catch (e) {
+          log.debug(`${e}`)
+        }
       })
     } catch (e) {
       log.error(`Cue ${cueId} could not be run.`)
@@ -511,11 +519,11 @@ const ipcMainSetHandler = {
       const cue = generateCueFromRelativePath(cueName + '.cue.js')
 
       log.debug(`cue: ${nspct2(cue)}`)
-      // This line saves the blocks that the user created
+      // save the blocks
       saveSerialWorkspace(cue, serialWorkspace)
 
       // log.debug(`jsCode: ${jsCode}`)
-      // This line saves the cue generated from the blocks
+      // save generated cue
       saveCueFile({
         cueId: cue.id,
         contents: jsCode,
@@ -565,8 +573,14 @@ const ipcMainSetHandler = {
           layerName: 'base',
           event: data.event,
         }
-        cueWatcher.on('add', attacheCueIfSaved)
-        cueWatcher.on('change', attacheCueIfSaved)
+        cueWatcher.once('cue-added-' + data.cueId, (cue: Cue) => {
+          attachCueToEvent({
+            layerName: cuesAwaitingAttach[data.cueId].layerName,
+            cueId: data.cueId,
+            event: cuesAwaitingAttach[data.cueId].event,
+          })
+        })
+
         log.debug(`saving cue file: ${data.cueId}`)
         const fullPath = await saveCueFile({
           cueId: data.cueId,
@@ -589,21 +603,15 @@ const ipcMainSetHandler = {
 
 const cuesAwaitingAttach: { [index: string]: { layerName: string, event: string } } = {}
 
-function attacheCueIfSaved(cuePath) {
+function attachCueIfSaved(nue:Cue) {
+  let cuePath = nue.fullPath
   const cue = generateCueFromRelativePath(cuePath)
   log.debug(`attacheCueIfSaved found: ${nspct2(cuePath)}`)
   if (cuesAwaitingAttach[cue.id] !== undefined) {
     log.debug(`attaching cue via add event: ${cue.id}`)
-    attachCueToEvent({
-      layerName: cuesAwaitingAttach[cue.id].layerName,
-      cueId: cue.id,
-      event: cuesAwaitingAttach[cue.id].event,
-    })
     log.debug(`removing cue from cuesAwaitingAttach: ${cue.id}`)
     delete cuesAwaitingAttach[cue.id]
     log.debug(`removing cueWatcher listener`)
-    cueWatcher.removeListener('add', attacheCueIfSaved)
-    cueWatcher.removeListener('change', attacheCueIfSaved)
   }
 }
 
@@ -879,7 +887,7 @@ async function attachCueWatchers() {
 
 export const cueWatcherHandler = {
   add: async function (path) {
-    let newCue
+    let newCue: Cue;
     try {
       newCue = generateCueFromRelativePath(path)
       cues.set(newCue.id, newCue)
@@ -893,6 +901,9 @@ export const cueWatcherHandler = {
     mainWindow.ifJust(mw => {
       mw.webContents.send(Api.onEv.cue.added, newCue)
     })
+    log.debug(`emitting add events`)
+    cueWatcher.emit('cue-added', { cue: newCue })
+    cueWatcher.emit('cue-added-' + newCue.id, { cue: newCue })
   },
   unlink: function (path) {
     try {
@@ -900,6 +911,7 @@ export const cueWatcherHandler = {
       mainWindow.ifJust(mw => {
         mw.webContents.send(Api.onEv.cue.removed, cues.get(maybeCue.id))
       })
+      cueWatcher.emit('cue-unlinked', { cue: maybeCue })
       cues.delete(maybeCue.id)
     } catch (e) {
       log.debug(`Unabled to remove cue, might not be a cue? path: ${path} => ${e}`)
